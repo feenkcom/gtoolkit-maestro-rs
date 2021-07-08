@@ -1,0 +1,29 @@
+[package]
+name = "gtoolkit"
+version = "0.1.0"
+authors = ["feenk gmbh <contact@feenk.com>"]
+edition = "2018"
+
+[[bin]]
+name = "gtoolkit"
+path = "src/main.rs"
+
+[dependencies]
+clap = "3.0.0-beta.2"
+fs_extra = "1.1.0"
+rustc_version = "0.2"
+serde = "1.0.0"
+serde_derive = "1.0.0"
+url = "2.2.2"
+which = "4.1.0"
+octocrab = "0.9"
+futures = "0.3"
+tokio = { version = "1.0", features = ["full"] }
+tokio-util = "0.6"
+tokio-stream = { version = "0.1.7", features = ["fs"] }
+semver = "1.0"
+reqwest = { version = "0.11", features = [ "stream" ] }
+indicatif = "0.16.2"
+console = { version = ">=0.9.1, <1.0.0", default-features = false }
+zip = "0.5.13"
+regex = "1"
