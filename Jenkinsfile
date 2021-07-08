@@ -124,6 +124,7 @@ pipeline {
                 unstash "${WINDOWS_AMD64_TARGET}"
 
                 sh "wget -O feenk-releaser https://github.com/feenkcom/releaser-rs/releases/latest/download/feenk-releaser-${TARGET}"
+                sh "chmod +x feenk-releaser"
 
                 sh """
                 ./feenk-releaser \
