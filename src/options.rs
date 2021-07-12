@@ -101,20 +101,21 @@ impl AppOptions {
     }
 
     pub fn pharo_executable(&self) -> PathBuf {
-        self.gtoolkit_directory()
-            .join("pharo-vm")
-            .join("Pharo.app")
-            .join("Contents")
-            .join("MacOS")
-            .join("Pharo")
+        PathBuf::from(match self.platform() {
+            PlatformOS::MacOSX8664 => { "pharo-vm/Pharo.app/Contents/MacOS/Pharo" }
+            PlatformOS::MacOSAarch64 => { "pharo-vm/Pharo.app/Contents/MacOS/Pharo" }
+            PlatformOS::WindowsX8664 => { "pharo-vm/PharoConsole.exe" }
+            PlatformOS::LinuxX8664 => { "pharo-vm/pharo" }
+        })
     }
 
-    pub fn gtoolkit_executable(&self) -> PathBuf {
-        self.gtoolkit_directory()
-            .join("GlamorousToolkit.app")
-            .join("Contents")
-            .join("MacOS")
-            .join("GlamorousToolkit-cli")
+    pub fn gtoolkit_app_cli(&self) -> PathBuf {
+        PathBuf::from(match self.platform() {
+            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
+            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
+            PlatformOS::WindowsX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli.exe" }
+            PlatformOS::LinuxX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli" }
+        })
     }
 
     pub fn gtoolkit_image(&self) -> PathBuf {

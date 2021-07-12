@@ -43,15 +43,6 @@ impl Builder {
         }
     }
 
-    pub fn gtoolkit_app_cli(&self, options: &AppOptions) -> &str {
-        match options.platform() {
-            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
-            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
-            PlatformOS::WindowsX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli.exe" }
-            PlatformOS::LinuxX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli" }
-        }
-    }
-
     pub fn gtoolkit_app(&self, options: &AppOptions) -> &str {
         match options.platform() {
             PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit" }
@@ -148,13 +139,6 @@ impl Builder {
             .move_file()
             .await?;
 
-        Command::new(self.gtoolkit_app_cli(options))
-            .current_dir(options.gtoolkit_directory())
-            .arg("GlamorousToolkit.image")
-            .arg("st")
-            .arg("-quit")
-            .arg("");
-
         println!("{}Creating build scripts...", CREATING);
         FileToCreate::new(
             options.gtoolkit_directory().join("load-patches.st"),
@@ -194,13 +178,13 @@ impl Builder {
                 "load-taskit.st",
             ))
             .add(SmalltalkScriptToExecute::new(
-                options.gtoolkit_executable(),
+                options.gtoolkit_app_cli(),
                 options.gtoolkit_image(),
                 "clone-gt.st",
             ))
             .add(
                 SmalltalkScriptToExecute::new(
-                    options.gtoolkit_executable(),
+                    options.gtoolkit_app_cli(),
                     options.gtoolkit_image(),
                     "start-gt.st",
                 )
