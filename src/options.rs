@@ -1,5 +1,6 @@
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, ArgEnum, Clap};
 use std::path::PathBuf;
+use std::str::FromStr;
 
 pub const DEFAULT_REPOSITORY: &str = "https://github.com/feenkcom/gtoolkit.git";
 pub const DEFAULT_BRANCH: &str = "main";
@@ -7,7 +8,7 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[clap(setting = AppSettings::ColorAlways)]
 pub struct AppOptions {
     /// A name of the environment variable with personal GitHub token. The reason we do not accept tokens directly is because then it would be exposed in the CI log
     #[clap(long)]
@@ -29,7 +30,35 @@ pub enum SubCommand {
 pub struct BuildOptions {
     /// Delete existing installation of the gtoolkit if present
     #[clap(long)]
-    overwrite: bool,
+    pub overwrite: bool,
+    #[clap(long, default_value = "cloner", possible_values = Loader::VARIANTS, case_insensitive = true)]
+    /// Specify a loader to install GToolkit code in a Pharo image.
+    pub loader: Loader,
+}
+
+#[derive(ArgEnum, Copy, Clone, Debug)]
+#[repr(u32)]
+pub enum Loader {
+    /// Use Cloner from the https://github.com/feenkcom/gtoolkit-releaser, provides much faster loading speed but is not suitable for the release build
+    #[clap(name = "cloner")]
+    Cloner,
+    /// Use Pharo's Metacello. Much slower than Cloner but is suitable for the release build
+    #[clap(name = "metacello")]
+    Metacello,
+}
+
+impl FromStr for Loader {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        <Loader as ArgEnum>::from_str(s, true)
+    }
+}
+
+impl ToString for Loader {
+    fn to_string(&self) -> String {
+        (Loader::VARIANTS[*self as usize]).to_owned()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -118,6 +147,32 @@ impl AppOptions {
             PlatformOS::WindowsX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli",
         })
+    }
+
+    pub fn gtoolkit_app_url(&self) -> &str {
+        match self.platform() {
+            PlatformOS::MacOSX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-apple-darwin.app.zip"
+            }
+            PlatformOS::MacOSAarch64 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-aarch64-apple-darwin.app.zip"
+            }
+            PlatformOS::WindowsX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-pc-windows-msvc.zip"
+            }
+            PlatformOS::LinuxX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-unknown-linux-gnu.zip"
+            }
+        }
+    }
+
+    pub fn gtoolkit_app(&self) -> &str {
+        match self.platform() {
+            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::WindowsX8664 => "bin\\GlamorousToolkit.exe",
+            PlatformOS::LinuxX8664 => "./bin/GlamorousToolkit",
+        }
     }
 
     pub fn gtoolkit_image(&self) -> PathBuf {

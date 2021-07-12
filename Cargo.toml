@@ -9,7 +9,7 @@ name = "gtoolkit"
 path = "src/main.rs"
 
 [dependencies]
-clap = "3.0.0-beta.2"
+clap = { version = "3.0.0-beta.2", features = [ "color" ] }
 fs_extra = "1.1.0"
 rustc_version = "0.2"
 serde = "1.0.0"

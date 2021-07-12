@@ -2,7 +2,7 @@ use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
 use crate::error::Error;
 use crate::moving::FileToMove;
-use crate::options::{AppOptions, PlatformOS};
+use crate::options::{AppOptions, BuildOptions, Loader};
 use crate::smalltalking::SmalltalkScriptToExecute;
 use crate::smalltalking::SmalltalkScriptsToExecute;
 use crate::unzip::{FileToUnzip, FilesToUnzip};
@@ -25,33 +25,11 @@ impl Builder {
         Self {}
     }
 
-    pub fn gtoolkit_app_url(&self, options: &AppOptions) -> &str {
-        match options.platform() {
-            PlatformOS::MacOSX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-apple-darwin.app.zip"
-            }
-            PlatformOS::MacOSAarch64 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-aarch64-apple-darwin.app.zip"
-            }
-            PlatformOS::WindowsX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-pc-windows-msvc.zip"
-            }
-            PlatformOS::LinuxX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-unknown-linux-gnu.zip"
-            }
-        }
-    }
-
-    pub fn gtoolkit_app(&self, options: &AppOptions) -> &str {
-        match options.platform() {
-            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
-            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
-            PlatformOS::WindowsX8664 => "bin\\GlamorousToolkit.exe",
-            PlatformOS::LinuxX8664 => "./bin/GlamorousToolkit",
-        }
-    }
-
-    pub async fn build(&self, options: &AppOptions) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn build(
+        &self,
+        options: &AppOptions,
+        build_options: &BuildOptions,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let started = Instant::now();
 
         println!("{}Checking the system...", CHECKING);
@@ -85,7 +63,7 @@ impl Builder {
         );
 
         let gtoolkit_vm = FileToDownload::new(
-            self.gtoolkit_app_url(options),
+            options.gtoolkit_app_url(),
             options.gtoolkit_directory(),
             "GlamorousToolkit.zip",
         );
@@ -134,6 +112,11 @@ impl Builder {
         .move_file()
         .await?;
 
+        let loader_st = match build_options.loader {
+            Loader::Cloner => include_str!("st/clone-gt.st"),
+            Loader::Metacello => include_str!("st/load-gt.st"),
+        };
+
         FileToMove::new(".*sources", &pharo_image_dir, options.gtoolkit_directory())
             .move_file()
             .await?;
@@ -151,12 +134,9 @@ impl Builder {
         )
         .create()
         .await?;
-        FileToCreate::new(
-            options.gtoolkit_directory().join("clone-gt.st"),
-            include_str!("st/clone-gt.st"),
-        )
-        .create()
-        .await?;
+        FileToCreate::new(options.gtoolkit_directory().join("loader.st"), loader_st)
+            .create()
+            .await?;
         FileToCreate::new(
             options.gtoolkit_directory().join("start-gt.st"),
             include_str!("st/start-gt.st"),
@@ -179,7 +159,7 @@ impl Builder {
             .add(SmalltalkScriptToExecute::new(
                 options.gtoolkit_app_cli(),
                 options.gtoolkit_image(),
-                "clone-gt.st",
+                "loader.st",
             ))
             .add(
                 SmalltalkScriptToExecute::new(
@@ -196,7 +176,7 @@ impl Builder {
         println!("{} Done in {}", SPARKLE, HumanDuration(started.elapsed()));
         println!("To start GlamorousToolkit run:");
         println!("  cd {:?}", options.gtoolkit_directory());
-        println!("  {}", self.gtoolkit_app(options));
+        println!("  {}", options.gtoolkit_app());
         Ok(())
     }
 }

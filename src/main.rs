@@ -31,8 +31,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let options: AppOptions = AppOptions::parse();
 
     match options.command() {
-        SubCommand::Build(_) => {
-            Builder::new().build(&options).await?;
+        SubCommand::Build(build_options) => {
+            Builder::new().build(&options, &build_options).await?;
         }
         SubCommand::Get => {}
         SubCommand::Clone => {}
