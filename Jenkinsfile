@@ -20,18 +20,7 @@ pipeline {
     }
 
     stages {
-        stage('Run CI?') {
-            agent any
-            steps {
-                scmSkip(deleteBuild: true, skipPattern:'.*(\\[ci skip\\]|\\[skip ci\\]).*')
-            }
-        }
         stage ('Parallel build') {
-            when {
-                expression {
-                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME.toString().equals('main')
-                }
-            }
             parallel {
                 stage ('MacOS x86_64') {
                     agent {
