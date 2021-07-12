@@ -23,12 +23,12 @@ mod unzip;
 use crate::builder::Builder;
 use crate::options::SubCommand;
 use clap::Clap;
-use options::BuildOptions;
+use options::AppOptions;
 use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let options: BuildOptions = BuildOptions::parse();
+    let options: AppOptions = AppOptions::parse();
 
     match options.command() {
         SubCommand::Build(_) => {

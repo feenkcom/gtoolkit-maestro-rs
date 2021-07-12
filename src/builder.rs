@@ -2,7 +2,7 @@ use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
 use crate::error::Error;
 use crate::moving::FileToMove;
-use crate::options::BuildOptions;
+use crate::options::{AppOptions, PlatformOS};
 use crate::smalltalking::SmalltalkScriptToExecute;
 use crate::smalltalking::SmalltalkScriptsToExecute;
 use crate::unzip::{FileToUnzip, FilesToUnzip};
@@ -26,7 +26,42 @@ impl Builder {
         Self {}
     }
 
-    pub async fn build(&self, options: &BuildOptions) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn gtoolkit_app_url(&self, options: &AppOptions) -> &str {
+        match options.platform() {
+            PlatformOS::MacOSX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-apple-darwin.app.zip"
+            }
+            PlatformOS::MacOSAarch64 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-aarch64-apple-darwin.app.zip"
+            }
+            PlatformOS::WindowsX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-pc-windows-msvc.zip"
+            }
+            PlatformOS::LinuxX8664 => {
+                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-unknown-linux-gnu.zip"
+            }
+        }
+    }
+
+    pub fn gtoolkit_app_cli(&self, options: &AppOptions) -> &str {
+        match options.platform() {
+            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
+            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
+            PlatformOS::WindowsX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli.exe" }
+            PlatformOS::LinuxX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli" }
+        }
+    }
+
+    pub fn gtoolkit_app(&self, options: &AppOptions) -> &str {
+        match options.platform() {
+            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit" }
+            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit" }
+            PlatformOS::WindowsX8664 => { "bin\\GlamorousToolkit.exe" }
+            PlatformOS::LinuxX8664 => { "./bin/GlamorousToolkit" }
+        }
+    }
+
+    pub async fn build(&self, options: &AppOptions) -> Result<(), Box<dyn std::error::Error>> {
         let started = Instant::now();
 
         println!("{}Checking the system...", CHECKING);
@@ -48,21 +83,21 @@ impl Builder {
 
         println!("{}Downloading files...", DOWNLOADING);
         let pharo_image = FileToDownload::new(
-            "https://files.pharo.org/get-files/90/pharo64.zip",
+            options.pharo_image_url(),
             options.gtoolkit_directory(),
             "pharo-image.zip",
         );
 
         let pharo_vm = FileToDownload::new(
-            "https://files.pharo.org/get-files/90/pharo64-mac-headless-stable.zip",
+            options.pharo_vm_url(),
             options.gtoolkit_directory(),
             "pharo-vm.zip",
         );
 
         let gtoolkit_vm = FileToDownload::new(
-            "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-apple-darwin.app.zip",
+            self.gtoolkit_app_url(options),
             options.gtoolkit_directory(),
-            "GlamorousToolkit.app.zip",
+            "GlamorousToolkit.zip",
         );
 
         let files_to_download = FilesToDownload::new()
@@ -113,7 +148,7 @@ impl Builder {
             .move_file()
             .await?;
 
-        Command::new("GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli")
+        Command::new(self.gtoolkit_app_cli(options))
             .current_dir(options.gtoolkit_directory())
             .arg("GlamorousToolkit.image")
             .arg("st")
@@ -178,7 +213,7 @@ impl Builder {
         println!("{} Done in {}", SPARKLE, HumanDuration(started.elapsed()));
         println!("To start GlamorousToolkit run:");
         println!("  cd {:?}", options.gtoolkit_directory());
-        println!("  ./GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit");
+        println!("  {}", self.gtoolkit_app(options));
         Ok(())
     }
 }
