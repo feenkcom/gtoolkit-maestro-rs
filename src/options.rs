@@ -38,7 +38,7 @@ pub enum PlatformOS {
     MacOSX8664,
     MacOSAarch64,
     WindowsX8664,
-    LinuxX8664
+    LinuxX8664,
 }
 
 impl AppOptions {
@@ -67,7 +67,9 @@ impl AppOptions {
             ("macos", "x86_64") => PlatformOS::MacOSX8664,
             ("linux", "x86_64") => PlatformOS::LinuxX8664,
             ("windows", "x86_64") => PlatformOS::WindowsX8664,
-            (os, arch) => { panic!("Unsupported {}-{}", os, arch); }
+            (os, arch) => {
+                panic!("Unsupported {}-{}", os, arch);
+            }
         }
     }
 
@@ -102,19 +104,19 @@ impl AppOptions {
 
     pub fn pharo_executable(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 => { "pharo-vm/Pharo.app/Contents/MacOS/Pharo" }
-            PlatformOS::MacOSAarch64 => { "pharo-vm/Pharo.app/Contents/MacOS/Pharo" }
-            PlatformOS::WindowsX8664 => { "pharo-vm/PharoConsole.exe" }
-            PlatformOS::LinuxX8664 => { "pharo-vm/pharo" }
+            PlatformOS::MacOSX8664 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
+            PlatformOS::MacOSAarch64 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
+            PlatformOS::WindowsX8664 => "pharo-vm/PharoConsole.exe",
+            PlatformOS::LinuxX8664 => "pharo-vm/pharo",
         })
     }
 
     pub fn gtoolkit_app_cli(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
-            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli" }
-            PlatformOS::WindowsX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli.exe" }
-            PlatformOS::LinuxX8664 => { "GlamorousToolkit/bin/GlamorousToolkit-cli" }
+            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
+            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
+            PlatformOS::WindowsX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli.exe",
+            PlatformOS::LinuxX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli",
         })
     }
 

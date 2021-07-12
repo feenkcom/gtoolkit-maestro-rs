@@ -8,7 +8,6 @@ use crate::smalltalking::SmalltalkScriptsToExecute;
 use crate::unzip::{FileToUnzip, FilesToUnzip};
 use console::Emoji;
 use indicatif::HumanDuration;
-use std::process::Command;
 use std::time::Instant;
 
 pub struct Builder;
@@ -45,10 +44,10 @@ impl Builder {
 
     pub fn gtoolkit_app(&self, options: &AppOptions) -> &str {
         match options.platform() {
-            PlatformOS::MacOSX8664 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit" }
-            PlatformOS::MacOSAarch64 => { "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit" }
-            PlatformOS::WindowsX8664 => { "bin\\GlamorousToolkit.exe" }
-            PlatformOS::LinuxX8664 => { "./bin/GlamorousToolkit" }
+            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::WindowsX8664 => "bin\\GlamorousToolkit.exe",
+            PlatformOS::LinuxX8664 => "./bin/GlamorousToolkit",
         }
     }
 

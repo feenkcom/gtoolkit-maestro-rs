@@ -81,7 +81,7 @@ impl SmalltalkScriptsToExecute {
             pb.set_message(format!("Executing {:?}", &script.script.display()));
             pb.set_prefix(format!("[{}/{}]", index, total));
 
-            Command::new(&script.executable)
+            let status = Command::new(&script.executable)
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .current_dir(&self.workspace)
@@ -100,8 +100,17 @@ impl SmalltalkScriptsToExecute {
                 .arg(&script.script)
                 .status()
                 .unwrap();
-
             pb.finish_with_message(format!("Finished {:?}", &script.script.display()));
+
+            if !status.success() {
+                return Err(Box::new(crate::error::Error {
+                    what: format!(
+                        "Script {} failed. See PharoDebug.log or crash.dmp for more info",
+                        &script.script.display()
+                    ),
+                    source: None,
+                }));
+            }
         }
 
         Ok(())
