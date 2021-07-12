@@ -27,6 +27,11 @@ pipeline {
             }
         }
         stage ('Parallel build') {
+            when {
+                expression {
+                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME.toString().equals('main')
+                }
+            }
             parallel {
                 stage ('MacOS x86_64') {
                     agent {
@@ -39,6 +44,8 @@ pipeline {
                     }
 
                     steps {
+                        echo ${currentBuild.currentResult}
+
                         sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
