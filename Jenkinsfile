@@ -37,15 +37,12 @@ pipeline {
                     agent {
                         label "${MACOS_INTEL_TARGET}"
                     }
-
                     environment {
                         TARGET = "${MACOS_INTEL_TARGET}"
                         PATH = "$HOME/.cargo/bin:/usr/local/bin/:$PATH"
                     }
 
                     steps {
-                        echo ${currentBuild.currentResult}
-
                         sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
