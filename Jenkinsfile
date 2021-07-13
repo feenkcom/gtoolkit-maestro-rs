@@ -119,10 +119,12 @@ pipeline {
                 unstash "${MACOS_INTEL_TARGET}"
                 unstash "${MACOS_M1_TARGET}"
                 sh 'git clean -fdx'
+
                 sh "curl -o feenk-signer -LsS  https://github.com/feenkcom/feenk-signer/releases/latest/download/feenk-signer-${TARGET}"
                 sh "chmod +x feenk-signer"
-                sh "feenk-signer ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
-                sh "feenk-signer ${TOOL_NAME}-${MACOS_M1_TARGET}"
+
+                sh "./feenk-signer ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
+                sh "./feenk-signer ${TOOL_NAME}-${MACOS_M1_TARGET}"
             }
         }
         stage ('Deployment') {
