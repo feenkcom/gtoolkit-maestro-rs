@@ -124,6 +124,10 @@ pipeline {
 
                 sh "./feenk-signer ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
                 sh "./feenk-signer ${TOOL_NAME}-${MACOS_M1_TARGET}"
+                sh """
+                xcrun altool -t osx -f ${TOOL_NAME}-${MACOS_INTEL_TARGET} -itc_provider "77664ZXL29" --primary-bundle-id "com.feenk.gtoolkit-${MACOS_INTEL_TARGET}" --notarize-app --verbose  --username "george.ganea@feenk.com" --password "${APPLEPASSWORD}"
+                xcrun altool -t osx -f ${TOOL_NAME}-${MACOS_M1_TARGET} -itc_provider "77664ZXL29" --primary-bundle-id "com.feenk.gtoolkit-${MACOS_M1_TARGET}" --notarize-app --verbose  --username "george.ganea@feenk.com" --password "${APPLEPASSWORD}"
+                """
             }
         }
         stage ('Deployment') {
