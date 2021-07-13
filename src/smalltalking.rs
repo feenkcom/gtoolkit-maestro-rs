@@ -1,5 +1,6 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::error::Error;
+use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -67,7 +68,22 @@ impl SmalltalkScriptsToExecute {
     pub async fn execute(&self) -> Result<(), Box<dyn Error>> {
         let mut index = 0 as usize;
         let total = self.scripts.len();
+
         for script in &self.scripts {
+            let stdout = OpenOptions::new()
+                .append(true)
+                .write(true)
+                .create(true)
+                .open(self.workspace.join("install.log"))
+                .unwrap();
+
+            let stderr = OpenOptions::new()
+                .append(true)
+                .write(true)
+                .create(true)
+                .open(self.workspace.join("install-errors.log"))
+                .unwrap();
+
             index += 1;
             let pb = ProgressBar::new_spinner();
             pb.enable_steady_tick(120);
@@ -82,8 +98,8 @@ impl SmalltalkScriptsToExecute {
             pb.set_prefix(format!("[{}/{}]", index, total));
 
             let status = Command::new(&script.executable)
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
+                .stdout(stdout)
+                .stderr(stderr)
                 .current_dir(&self.workspace)
                 .arg(&script.image)
                 .arg("st")
@@ -105,7 +121,7 @@ impl SmalltalkScriptsToExecute {
             if !status.success() {
                 return Err(Box::new(crate::error::Error {
                     what: format!(
-                        "Script {} failed. See PharoDebug.log or crash.dmp for more info",
+                        "Script {} failed. See install.log or install-errors.log for more info",
                         &script.script.display()
                     ),
                     source: None,
