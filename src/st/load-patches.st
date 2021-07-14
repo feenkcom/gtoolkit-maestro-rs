@@ -124,7 +124,7 @@ classified: 'accessing - platform'.
 patcher patch: #FFIUnixLibraryFinder asClass source:
 'basePaths
 	^ {
-	(Smalltalk vm directory asFileReference / ''lib'') pathString.
+	(Smalltalk vm directory asFileReference parent / ''lib'') pathString.
 	Smalltalk imageDirectory fullName.
 	Smalltalk vm directory }'
 classified: 'accessing'.
