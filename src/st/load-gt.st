@@ -2,7 +2,7 @@ Iceberg remoteTypeSelector: #httpsUrl.
 EpMonitor current disable.
 
 Metacello new
-    baseline: 'GToolkit';
+    baseline: 'GToolkitForPharo9';
     repository: 'github://feenkcom/gtoolkit/src';
     silently;
     onConflictUseIncoming;

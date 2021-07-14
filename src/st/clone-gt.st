@@ -7,7 +7,7 @@ Metacello new
     load.
 
 GtRlProjectsLoader new
-    loadBaseline: 'GToolkit'
+    loadBaseline: 'GToolkitForPharo9'
     fromRepository: 'github://feenkcom/gtoolkit/src'.
 
 EpMonitor current enable.

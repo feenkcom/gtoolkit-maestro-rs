@@ -4,5 +4,5 @@ A set of tools to build, release, deploy and test Glamorous Toolkit
 ## Local build
 To perform a local build of the Glamorous Toolkit:
 ```
-curl -LsS https://github.com/feenkcom/gtoolkit-maestro-rs/raw/main/scripts/gtoolkit.sh | bash
+curl -LsS https://github.com/feenkcom/gtoolkit-maestro-rs/raw/main/scripts/installer.sh | bash
 ```

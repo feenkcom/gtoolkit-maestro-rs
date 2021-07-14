@@ -75,13 +75,52 @@ patcher patch: MCPackageLoader source: 'tryToLoad: aDefinition
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'.
 
 "===================================
+        Pharo9 Deprecations
+==================================="
+patcher patch: Object source: 'gtDisplayString
+    "This offers a means to customize how the object is shown in the GlamorousToolkit UI.
+    Do not override this method. Override gtDisplayOn: instead"
+
+    | limitedString limit |
+    limit := 1000.
+    limitedString := String streamContents: [:s | self gtDisplayOn: s] limitedTo: limit.
+    limitedString size < limit ifTrue: [^ limitedString].
+    ^ limitedString , '' ...'''
+classified: 'printing'.
+
+patcher patch: Object source: 'gtDisplayOn: stream
+	"This offers a means to customize how the object is shown in the GlamorousToolkit UI"
+	^ self printOn: stream'
+classified: 'printing'.
+
+"===================================
         Patch Library names
 ==================================="
-PharoPatcher patch: #LGitLibrary asClass source:
+patcher patch: #LGitLibrary asClass source:
 'macLibraryName
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libgit2.dylib'' ''libgit2.1.0.1.dylib'' ''libgit2.1.0.0.dylib'' ''libgit2.0.25.1.dylib'')'
 classified: 'accessing - platform'.
+
+patcher patch: #LGitLibrary asClass source:
+'unix64LibraryName
+
+	^ FFIUnix64LibraryFinder findAnyLibrary: #(
+	    ''libgit2.so''
+		"This name is wrong, but some versions of the VM has this library shipped with the bad name"
+		''libgit2.1.0.0.so''
+		''libgit2.so.1.0.0''
+		''libgit2.so.1.0''
+		''libgit2.so.1.1''
+		''libgit2.so.0.25.1'')'
+classified: 'accessing - platform'.
+
+patcher patch: #LGitLibrary asClass source:
+'win32LibraryName
+
+    ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
+classified: 'accessing - platform'.
+
 "===================================
             Clean up
 ==================================="
