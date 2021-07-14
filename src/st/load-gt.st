@@ -1,4 +1,3 @@
-Iceberg remoteTypeSelector: #httpsUrl.
 EpMonitor current disable.
 
 Metacello new

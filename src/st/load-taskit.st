@@ -34,7 +34,7 @@ NonInteractiveTranscript stdout
     cr.
 ].
 
-#Iceberg asClass enableMetacelloIntegration: true.
+Iceberg asClass enableMetacelloIntegration: true.
 EpMonitor current enable.
 
 Smalltalk snapshot: true andQuit: true.
