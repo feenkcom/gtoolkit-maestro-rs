@@ -12,7 +12,7 @@ pipeline {
         GITHUB_TOKEN = credentials('githubrelease')
         AWSIP = 'ec2-18-197-145-81.eu-central-1.compute.amazonaws.com'
 
-        TOOL_NAME = 'gtoolkit'
+        TOOL_NAME = 'gt-installer'
         MACOS_INTEL_TARGET = 'x86_64-apple-darwin'
         MACOS_M1_TARGET = 'aarch64-apple-darwin'
         WINDOWS_AMD64_TARGET = 'x86_64-pc-windows-msvc'

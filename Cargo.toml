@@ -5,7 +5,7 @@ authors = ["feenk gmbh <contact@feenk.com>"]
 edition = "2018"
 
 [[bin]]
-name = "gtoolkit"
+name = "gt-installer"
 path = "src/main.rs"
 
 [dependencies]
