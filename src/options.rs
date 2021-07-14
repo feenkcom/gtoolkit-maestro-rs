@@ -144,8 +144,8 @@ impl AppOptions {
         PathBuf::from(match self.platform() {
             PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
             PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
-            PlatformOS::WindowsX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli.exe",
-            PlatformOS::LinuxX8664 => "GlamorousToolkit/bin/GlamorousToolkit-cli",
+            PlatformOS::WindowsX8664 => "bin/GlamorousToolkit-cli.exe",
+            PlatformOS::LinuxX8664 => "bin/GlamorousToolkit-cli",
         })
     }
 

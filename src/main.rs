@@ -20,6 +20,8 @@ mod options;
 mod smalltalking;
 mod unzip;
 
+pub use moving::*;
+
 use crate::builder::Builder;
 use crate::options::SubCommand;
 use clap::Clap;

@@ -1,11 +1,11 @@
 use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
 use crate::error::Error;
-use crate::moving::FileToMove;
 use crate::options::{AppOptions, BuildOptions, Loader};
 use crate::smalltalking::SmalltalkScriptToExecute;
 use crate::smalltalking::SmalltalkScriptsToExecute;
 use crate::unzip::{FileToUnzip, FilesToUnzip};
+use crate::FileToMove;
 use console::Emoji;
 use indicatif::HumanDuration;
 use std::time::Instant;
