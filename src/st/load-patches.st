@@ -121,6 +121,14 @@ patcher patch: #LGitLibrary asClass source:
     ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
 classified: 'accessing - platform'.
 
+patcher patch: #FFIUnixLibraryFinder asClass source:
+'basePaths
+	^ {
+	(Smalltalk vm directory asFileReference / ''lib'') pathString.
+	Smalltalk imageDirectory fullName.
+	Smalltalk vm directory }'
+classified: 'accessing'.
+
 "===================================
             Clean up
 ==================================="
