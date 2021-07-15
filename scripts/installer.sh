@@ -10,7 +10,7 @@ installer="gt-installer"
 arguments=$*
 if [ $# -eq 0 ]
   then
-    arguments="build"
+    arguments="build-and-setup"
 fi
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

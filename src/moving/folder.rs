@@ -1,4 +1,3 @@
-use regex::Regex;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]

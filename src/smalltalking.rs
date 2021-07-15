@@ -1,8 +1,8 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::error::Error;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 pub struct SmalltalkScriptsToExecute {
     workspace: PathBuf,

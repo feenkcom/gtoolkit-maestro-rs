@@ -1,6 +1,6 @@
-use clap::{AppSettings, ArgEnum, Clap};
+use crate::BuildOptions;
+use clap::{AppSettings, Clap};
 use std::path::PathBuf;
-use std::str::FromStr;
 
 pub const DEFAULT_REPOSITORY: &str = "https://github.com/feenkcom/gtoolkit.git";
 pub const DEFAULT_BRANCH: &str = "main";
@@ -9,56 +9,20 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
 #[clap(setting = AppSettings::ColorAlways)]
+#[clap(setting = AppSettings::ColoredHelp)]
 pub struct AppOptions {
-    /// A name of the environment variable with personal GitHub token. The reason we do not accept tokens directly is because then it would be exposed in the CI log
-    #[clap(long)]
-    token: Option<String>,
     #[clap(subcommand)]
     sub_command: SubCommand,
 }
 
 #[derive(Clap, Clone, Debug)]
 pub enum SubCommand {
+    /// Builds GlamorousToolkit image from sources.
     Build(BuildOptions),
-    Get,
-    Clone,
-}
-
-/// Builds GlamorousToolkit from sources
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
-pub struct BuildOptions {
-    /// Delete existing installation of the gtoolkit if present
-    #[clap(long)]
-    pub overwrite: bool,
-    #[clap(long, default_value = "cloner", possible_values = Loader::VARIANTS, case_insensitive = true)]
-    /// Specify a loader to install GToolkit code in a Pharo image.
-    pub loader: Loader,
-}
-
-#[derive(ArgEnum, Copy, Clone, Debug)]
-#[repr(u32)]
-pub enum Loader {
-    /// Use Cloner from the https://github.com/feenkcom/gtoolkit-releaser, provides much faster loading speed but is not suitable for the release build
-    #[clap(name = "cloner")]
-    Cloner,
-    /// Use Pharo's Metacello. Much slower than Cloner but is suitable for the release build
-    #[clap(name = "metacello")]
-    Metacello,
-}
-
-impl FromStr for Loader {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        <Loader as ArgEnum>::from_str(s, true)
-    }
-}
-
-impl ToString for Loader {
-    fn to_string(&self) -> String {
-        (Loader::VARIANTS[*self as usize]).to_owned()
-    }
+    /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
+    Setup,
+    /// Builds and sets up the GlamorousToolkit image. A combination of the build and setup commands.
+    BuildAndSetup(BuildOptions),
 }
 
 #[derive(Clone, Debug)]
@@ -121,14 +85,6 @@ impl AppOptions {
 
     pub fn pharo_image_url(&self) -> &str {
         "https://files.pharo.org/get-files/90/pharo64.zip"
-    }
-
-    pub fn should_overwrite(&self) -> bool {
-        match &self.sub_command {
-            SubCommand::Build(build) => build.overwrite,
-            SubCommand::Get => false,
-            SubCommand::Clone => false,
-        }
     }
 
     pub fn pharo_executable(&self) -> PathBuf {

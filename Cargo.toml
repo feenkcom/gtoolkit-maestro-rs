@@ -1,5 +1,5 @@
 [package]
-name = "gtoolkit"
+name = "gt-installer"
 version = "0.1.0"
 authors = ["feenk gmbh <contact@feenk.com>"]
 edition = "2018"
