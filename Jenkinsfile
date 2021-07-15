@@ -161,7 +161,8 @@ pipeline {
                         ${TOOL_NAME}-${LINUX_AMD64_TARGET} \
                         ${TOOL_NAME}-${MACOS_INTEL_TARGET} \
                         ${TOOL_NAME}-${MACOS_M1_TARGET} \
-                        ${TOOL_NAME}-${WINDOWS_AMD64_TARGET}.exe """
+                        ${TOOL_NAME}-${WINDOWS_AMD64_TARGET}.exe \
+                        scripts/installer.sh """
             }
         }
     }
