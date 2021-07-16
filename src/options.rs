@@ -42,7 +42,7 @@ pub enum SubCommand {
     Setup(SetupOptions),
     /// Package the GlamorousToolkit image to be uploaded as a tentative release.
     #[clap(display_order = 5)]
-    Package,
+    PackageImage,
 }
 
 #[derive(Clone, Debug)]

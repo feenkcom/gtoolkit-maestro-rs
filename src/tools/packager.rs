@@ -11,7 +11,7 @@ impl Packager {
         Self {}
     }
 
-    pub async fn package(&self, options: &AppOptions) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn package_image(&self, options: &AppOptions) -> Result<(), Box<dyn std::error::Error>> {
         let file = std::fs::File::create(
             options
                 .gtoolkit_directory()

@@ -63,8 +63,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Builder::new().build(&options, &build_options).await?;
             Setup::new().setup(&options, &setup_options).await?;
         }
-        SubCommand::Package => {
-            Packager::new().package(&options).await?;
+        SubCommand::PackageImage => {
+            Packager::new().package_image(&options).await?;
         }
     };
 
