@@ -1,10 +1,15 @@
-use crate::BuildOptions;
+use crate::{BuildOptions, SetupOptions, Smalltalk};
 use clap::{AppSettings, Clap};
+use feenk_releaser::{GitHub, Version};
+use std::error::Error;
 use std::path::PathBuf;
 
 pub const DEFAULT_REPOSITORY: &str = "https://github.com/feenkcom/gtoolkit.git";
 pub const DEFAULT_BRANCH: &str = "main";
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
+
+pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
+pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
 
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
@@ -13,16 +18,31 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 pub struct AppOptions {
     #[clap(subcommand)]
     sub_command: SubCommand,
+    /// Perform commands in a verbose manner
+    #[clap(long)]
+    verbose: bool,
+    /// Specify the version of the VM. When not specified, will use the latest released version
+    #[clap(long, parse(try_from_str = version_parse))]
+    vm_version: Option<Version>,
 }
 
 #[derive(Clap, Clone, Debug)]
 pub enum SubCommand {
-    /// Builds GlamorousToolkit image from sources.
+    /// Creates a typical local build of GlamorousToolkit with GtWorld opened and sets the image up. This is intended to be used by developers and contributors.
+    #[clap(display_order = 1)]
+    LocalBuild,
+    /// Creates a release build of GlamorousToolkit with GtWorld opened and sets up the image to be deployed. This is intended to be used by the Continuous Integration server.
+    #[clap(display_order = 2)]
+    ReleaseBuild,
+    /// Builds GlamorousToolkit image from sources without performing any extra setup.
+    #[clap(display_order = 3)]
     Build(BuildOptions),
     /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
-    Setup,
-    /// Builds and sets up the GlamorousToolkit image. A combination of the build and setup commands.
-    BuildAndSetup(BuildOptions),
+    #[clap(display_order = 4)]
+    Setup(SetupOptions),
+    /// Package the GlamorousToolkit image to be uploaded as a tentative release.
+    #[clap(display_order = 5)]
+    Package,
 }
 
 #[derive(Clone, Debug)]
@@ -34,9 +54,45 @@ pub enum PlatformOS {
     LinuxX8664,
 }
 
+fn version_parse(val: &str) -> Result<Version, Box<dyn Error>> {
+    Version::parse(val)
+}
+
 impl AppOptions {
     pub fn command(&self) -> SubCommand {
         self.sub_command.clone()
+    }
+
+    pub async fn ensure_vm_version(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.vm_version.is_some() {
+            return Ok(());
+        }
+
+        let latest_version: Option<Version> =
+            GitHub::new(VM_REPOSITORY_OWNER, VM_REPOSITORY_NAME, None)
+                .latest_release_version()
+                .await?;
+        if let Some(latest_version) = latest_version {
+            self.vm_version = Some(latest_version);
+            Ok(())
+        } else {
+            Err(Box::new(crate::error::Error {
+                what: "VM is not yet released".to_string(),
+                source: None,
+            }))
+        }
+    }
+
+    pub fn vm_version(&self) -> Option<&Version> {
+        self.vm_version.as_ref()
+    }
+
+    pub fn vm_version_file_name(&self) -> &str {
+        "gtoolkit-vm.version"
+    }
+
+    pub fn vm_version_file(&self) -> PathBuf {
+        self.gtoolkit_directory().join(self.vm_version_file_name())
     }
 
     pub fn repository(&self) -> String {
@@ -45,6 +101,18 @@ impl AppOptions {
 
     pub fn branch(&self) -> String {
         DEFAULT_BRANCH.to_owned()
+    }
+
+    pub fn gtoolkit(&self) -> Smalltalk {
+        Smalltalk::new(self.gtoolkit_app_cli(), self.gtoolkit_image())
+            .set_workspace(self.gtoolkit_directory())
+            .set_options(self.clone())
+    }
+
+    pub fn pharo(&self) -> Smalltalk {
+        Smalltalk::new(self.pharo_executable(), self.gtoolkit_image())
+            .set_workspace(self.gtoolkit_directory())
+            .set_options(self.clone())
     }
 
     pub fn gtoolkit_directory(&self) -> PathBuf {
@@ -64,6 +132,10 @@ impl AppOptions {
                 panic!("Unsupported {}-{}", os, arch);
             }
         }
+    }
+
+    pub fn verbose(&self) -> bool {
+        self.verbose
     }
 
     pub fn pharo_vm_url(&self) -> &str {
@@ -105,19 +177,24 @@ impl AppOptions {
         })
     }
 
-    pub fn gtoolkit_app_url(&self) -> &str {
+    pub fn gtoolkit_app_url(&self) -> String {
+        let version = self
+            .vm_version
+            .as_ref()
+            .expect("Version is not resolved")
+            .to_string();
         match self.platform() {
             PlatformOS::MacOSX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-apple-darwin.app.zip"
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-apple-darwin.app.zip", &version)
             }
             PlatformOS::MacOSAarch64 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-aarch64-apple-darwin.app.zip"
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-apple-darwin.app.zip", &version)
             }
             PlatformOS::WindowsX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-pc-windows-msvc.zip"
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-pc-windows-msvc.zip", &version)
             }
             PlatformOS::LinuxX8664 => {
-                "https://github.com/feenkcom/gtoolkit-vm/releases/latest/download/GlamorousToolkit-x86_64-unknown-linux-gnu.zip"
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-unknown-linux-gnu.zip", &version)
             }
         }
     }

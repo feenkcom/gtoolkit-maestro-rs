@@ -2,7 +2,7 @@ EpMonitor current disable.
 
 Metacello new
     baseline: 'GToolkitReleaser';
-    githubUser: 'feenkcom' project: 'gtoolkit-releaser' commitish: 'master' path: '';
+    repository: 'github://feenkcom/gtoolkit-releaser/src';
     load.
 
 GtRlProjectsLoader new
@@ -12,6 +12,4 @@ GtRlProjectsLoader new
 EpMonitor current enable.
 
 PharoLightTheme beCurrent.
-#GtImageSetup asClass performLocalSetup.
 World closeAllWindowsDiscardingChanges.
-Smalltalk snapshot: true andQuit: true.

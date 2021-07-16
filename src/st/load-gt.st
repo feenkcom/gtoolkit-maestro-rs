@@ -10,6 +10,4 @@ Metacello new
 EpMonitor current enable.
 
 PharoLightTheme beCurrent.
-#GtImageSetup asClass performLocalSetup.
 World closeAllWindowsDiscardingChanges.
-Smalltalk snapshot: true andQuit: true.

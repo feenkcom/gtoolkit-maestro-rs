@@ -2,11 +2,13 @@ use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
 use crate::error::Error;
 use crate::options::AppOptions;
-use crate::smalltalking::SmalltalkScriptToExecute;
-use crate::smalltalking::SmalltalkScriptsToExecute;
-use crate::unzip::{FileToUnzip, FilesToUnzip};
-use crate::{FileToMove, BUILDING, CHECKING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE};
+use crate::{
+    FileToMove, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CHECKING, CREATING,
+    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+};
+use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
+use file_matcher::FileNamed;
 use indicatif::HumanDuration;
 use std::str::FromStr;
 use std::time::Instant;
@@ -24,8 +26,22 @@ pub struct BuildOptions {
 }
 
 impl BuildOptions {
+    pub fn new() -> Self {
+        Self {
+            overwrite: false,
+            loader: Loader::Cloner,
+        }
+    }
     pub fn should_overwrite(&self) -> bool {
         self.overwrite
+    }
+
+    pub fn overwrite(&mut self, overwrite: bool) {
+        self.overwrite = overwrite;
+    }
+
+    pub fn loader(&mut self, loader: Loader) {
+        self.loader = loader;
     }
 }
 
@@ -131,19 +147,24 @@ impl Builder {
         println!("{}Moving files...", MOVING);
 
         FileToMove::new(
-            ".*image",
-            &pharo_image_dir,
+            FileNamed::wildmatch("*.image").within(&pharo_image_dir),
             options.gtoolkit_directory().join("GlamorousToolkit.image"),
         )
         .move_file()
         .await?;
 
         FileToMove::new(
-            ".*changes",
-            &pharo_image_dir,
+            FileNamed::wildmatch("*.changes").within(&pharo_image_dir),
             options
                 .gtoolkit_directory()
                 .join("GlamorousToolkit.changes"),
+        )
+        .move_file()
+        .await?;
+
+        FileToMove::new(
+            FileNamed::wildmatch("*.sources").within(&pharo_image_dir),
+            options.gtoolkit_directory(),
         )
         .move_file()
         .await?;
@@ -152,10 +173,6 @@ impl Builder {
             Loader::Cloner => include_str!("../st/clone-gt.st"),
             Loader::Metacello => include_str!("../st/load-gt.st"),
         };
-
-        FileToMove::new(".*sources", &pharo_image_dir, options.gtoolkit_directory())
-            .move_file()
-            .await?;
 
         println!("{}Creating build scripts...", CREATING);
         FileToCreate::new(
@@ -174,24 +191,20 @@ impl Builder {
             .create()
             .await?;
 
-        println!("{}Building the image...", BUILDING);
-        SmalltalkScriptsToExecute::new(options.gtoolkit_directory())
-            .add(SmalltalkScriptToExecute::new(
-                options.pharo_executable(),
-                options.gtoolkit_image(),
-                "load-patches.st",
-            ))
-            .add(SmalltalkScriptToExecute::new(
-                options.pharo_executable(),
-                options.gtoolkit_image(),
-                "load-taskit.st",
-            ))
-            .add(SmalltalkScriptToExecute::new(
-                options.gtoolkit_app_cli(),
-                options.gtoolkit_image(),
-                "load-gt.st",
-            ))
-            .execute()
+        let gtoolkit = options.gtoolkit();
+        let pharo = options.pharo();
+
+        println!("{}Preparing the image...", BUILDING);
+        SmalltalkScriptsToExecute::new()
+            .add(SmalltalkScriptToExecute::new("load-patches.st"))
+            .add(SmalltalkScriptToExecute::new("load-taskit.st"))
+            .execute(pharo.evaluator().save(true))
+            .await?;
+
+        println!("{}Building Glamorous Toolkit...", BUILDING);
+        SmalltalkScriptsToExecute::new()
+            .add(SmalltalkScriptToExecute::new("load-gt.st"))
+            .execute(gtoolkit.evaluator().save(true))
             .await?;
 
         println!("{} Done in {}", SPARKLE, HumanDuration(started.elapsed()));

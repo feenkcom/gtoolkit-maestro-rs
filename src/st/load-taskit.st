@@ -35,6 +35,4 @@ NonInteractiveTranscript stdout
 ].
 
 Iceberg enableMetacelloIntegration: true.
-EpMonitor current enable.
-
-Smalltalk snapshot: true andQuit: true.
+EpMonitor current enable

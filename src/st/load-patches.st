@@ -94,6 +94,28 @@ patcher patch: Object source: 'gtDisplayOn: stream
 classified: 'printing'.
 
 "===================================
+            Pharo9 Bugs
+==================================="
+"See https://github.com/pharo-vcs/iceberg/issues/1520"
+
+patcher patch: ExternalData source: 'readStringUTF8
+	"Assume that the receiver represents a C string containing UTF8 characters and convert
+	 it to a Smalltalk string."
+	| stream index char |
+
+	self isNull ifTrue: [ ^ nil ].
+
+	type isPointerType ifFalse: [self error: ''External object is not a pointer type.''].
+	stream := WriteStream on: ByteArray new.
+	index := 1.
+	[(char := handle unsignedByteAt: index) = 0 ] whileFalse: [
+		stream nextPut: char.
+		index := index + 1].
+	^ [ ZnCharacterEncoder utf8 decodeBytes: stream contents ] on: ZnInvalidUTF8 do: [ stream contents asString ]'
+classified: '*UnifiedFFI'.
+
+
+"===================================
         Patch Library names
 ==================================="
 patcher patch: #LGitLibrary asClass source:
@@ -135,5 +157,3 @@ classified: 'accessing'.
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
-
-Smalltalk snapshot: true andQuit: true.
