@@ -70,4 +70,10 @@ impl Smalltalk {
     pub fn options(&self) -> Option<&AppOptions> {
         self.options.as_ref()
     }
+
+    pub fn verbose(&self) -> bool {
+        self.options
+            .as_ref()
+            .map_or(false, |options| options.verbose())
+    }
 }

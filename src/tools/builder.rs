@@ -1,10 +1,9 @@
 use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
-use crate::error::Error;
 use crate::options::AppOptions;
 use crate::{
-    FileToMove, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CHECKING, CREATING,
-    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+    Checker, Downloader, FileToMove, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING,
+    CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
@@ -84,22 +83,13 @@ impl Builder {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let started = Instant::now();
 
-        println!("{}Checking the system...", CHECKING);
-        if build_options.should_overwrite() && options.gtoolkit_directory().exists() {
-            tokio::fs::remove_dir_all(options.gtoolkit_directory()).await?;
-        }
+        Checker::new()
+            .check(options, build_options.should_overwrite())
+            .await?;
 
-        if options.gtoolkit_directory().exists() {
-            return Err(Box::new(Error {
-                what: format!(
-                    "GToolkit already exists in {:?}",
-                    options.gtoolkit_directory().display()
-                ),
-                source: None,
-            }));
-        }
-
-        tokio::fs::create_dir_all(options.gtoolkit_directory()).await?;
+        Downloader::new()
+            .download_glamorous_toolkit_vm(options)
+            .await?;
 
         println!("{}Downloading files...", DOWNLOADING);
         let pharo_image = FileToDownload::new(
@@ -114,16 +104,9 @@ impl Builder {
             "pharo-vm.zip",
         );
 
-        let gtoolkit_vm = FileToDownload::new(
-            options.gtoolkit_app_url(),
-            options.gtoolkit_directory(),
-            "GlamorousToolkit.zip",
-        );
-
         let files_to_download = FilesToDownload::new()
             .add(pharo_image.clone())
-            .add(pharo_vm.clone())
-            .add(gtoolkit_vm.clone());
+            .add(pharo_vm.clone());
 
         files_to_download.download().await?;
 
@@ -136,10 +119,6 @@ impl Builder {
             .add(FileToUnzip::new(
                 pharo_vm.path(),
                 options.gtoolkit_directory().join("pharo-vm"),
-            ))
-            .add(FileToUnzip::new(
-                gtoolkit_vm.path(),
-                options.gtoolkit_directory(),
             ));
 
         files_to_unzip.unzip().await?;

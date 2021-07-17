@@ -1,4 +1,4 @@
-use crate::{BuildOptions, SetupOptions, Smalltalk};
+use crate::{BuildOptions, SetupOptions, Smalltalk, TentativeOptions};
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version};
 use std::error::Error;
@@ -40,9 +40,16 @@ pub enum SubCommand {
     /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
     #[clap(display_order = 4)]
     Setup(SetupOptions),
-    /// Package the GlamorousToolkit image to be uploaded as a tentative release.
+    /// Tests Glamorous Toolkit and exports the results.
     #[clap(display_order = 5)]
-    PackageImage,
+    Test,
+    /// Package the GlamorousToolkit image as a tentative release.
+    #[clap(display_order = 6)]
+    PackageTentative(TentativeOptions),
+    /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file,
+    /// run examples and bundle the final release archive.
+    #[clap(display_order = 7)]
+    ReleaseTentative(TentativeOptions),
 }
 
 #[derive(Clone, Debug)]
@@ -81,6 +88,25 @@ impl AppOptions {
                 source: None,
             }))
         }
+    }
+
+    /// Read the vm version from the vm version file
+    pub async fn read_vm_version(&mut self) -> Result<(), Box<dyn Error>> {
+        let vm_version_file_path = self.vm_version_file();
+
+        if !vm_version_file_path.exists() {
+            return Err(Box::new(crate::error::Error {
+                what: format!("Cound not find {:?}", &vm_version_file_path),
+                source: None,
+            }));
+        }
+
+        let version_string = std::fs::read_to_string(&vm_version_file_path)?;
+        let version = Version::parse(version_string)?;
+
+        self.vm_version = Some(version);
+
+        Ok(())
     }
 
     pub fn vm_version(&self) -> Option<&Version> {
@@ -177,12 +203,15 @@ impl AppOptions {
         })
     }
 
-    pub fn gtoolkit_app_url(&self) -> String {
-        let version = self
-            .vm_version
+    pub fn gtoolkit_app_version_string(&self) -> String {
+        self.vm_version
             .as_ref()
             .expect("Version is not resolved")
-            .to_string();
+            .to_string()
+    }
+
+    pub fn gtoolkit_app_url(&self) -> String {
+        let version = self.gtoolkit_app_version_string();
         match self.platform() {
             PlatformOS::MacOSX8664 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-apple-darwin.app.zip", &version)
