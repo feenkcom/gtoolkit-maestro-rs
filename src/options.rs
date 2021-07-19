@@ -182,7 +182,7 @@ impl AppOptions {
     }
 
     pub fn pharo_image_url(&self) -> &str {
-        "https://files.pharo.org/get-files/90/pharo64.zip"
+        "https://files.pharo.org/image/90/latest-64.zip"
     }
 
     pub fn pharo_executable(&self) -> PathBuf {
