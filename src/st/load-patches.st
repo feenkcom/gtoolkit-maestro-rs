@@ -151,6 +151,11 @@ patcher patch: #FFIUnixLibraryFinder asClass source:
 	Smalltalk vm directory }'
 classified: 'accessing'.
 
+patcher patch: #CairoLibrary asClass source:
+'macLibraryName
+
+ 	^ FFIMacLibraryFinder findAnyLibrary: #(''libcairo.dylib'' ''libcairo.2.dylib'')'
+classified: 'accessing - platform'.
 "===================================
             Clean up
 ==================================="
