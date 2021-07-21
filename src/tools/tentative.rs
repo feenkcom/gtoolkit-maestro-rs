@@ -13,6 +13,10 @@ pub struct TentativeOptions {
     /// Path to the .zip with the tentative image build
     #[clap(parse(from_os_str))]
     pub tentative: PathBuf,
+    /// When packaging or un-packaging, do not fail when some of the items do not exist.
+    /// This may be useful when packaging a local build.
+    #[clap(long)]
+    pub ignore_absent: bool,
 }
 
 pub struct Tentative;
@@ -47,11 +51,11 @@ impl Tentative {
             zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
         }
 
-        zip_folder(
-            &mut zip,
-            options.gtoolkit_directory().join("gt-extra"),
-            zip_options,
-        )?;
+        let gt_extra = options.gtoolkit_directory().join("gt-extra");
+
+        if gt_extra.exists() || !tentative_options.ignore_absent {
+            zip_folder(&mut zip, &gt_extra, zip_options)?;
+        }
 
         zip.finish()?;
 
