@@ -12,7 +12,7 @@ pub use checker::Checker;
 pub use downloader::Downloader;
 pub use setup::{Setup, SetupOptions, SetupTarget};
 pub use tentative::{Tentative, TentativeOptions};
-pub use tester::Tester;
+pub use tester::{TestOptions, Tester};
 
 pub static CHECKING: Emoji<'_, '_> = Emoji("🔍 ", "");
 pub static DOWNLOADING: Emoji<'_, '_> = Emoji("📥 ", "");

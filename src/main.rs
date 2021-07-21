@@ -46,8 +46,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         SubCommand::Setup(setup_options) => {
             Setup::new().setup(&options, &setup_options).await?;
         }
-        SubCommand::Test => {
-            Tester::new().test_release(&options).await?;
+        SubCommand::Test(test_options) => {
+            Tester::new().test(&options, &test_options).await?;
         }
         SubCommand::LocalBuild => {
             let build_options = BuildOptions::new();
@@ -71,12 +71,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .package(&options, &tentative_options)
                 .await?;
         }
-        SubCommand::ReleaseTentative(tentative_options) => {
+        SubCommand::UnpackageTentative(tentative_options) => {
             Tentative::new()
                 .unpackage(&mut options, &tentative_options)
                 .await?;
-
-            Tester::new().test_release(&options).await?;
         }
     };
 

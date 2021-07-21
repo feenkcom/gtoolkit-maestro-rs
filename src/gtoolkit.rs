@@ -8,6 +8,7 @@ pub trait GToolkit {
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>>;
+    fn run_examples(&self, packages: &Vec<String>) -> Result<(), Box<dyn Error>>;
     fn run_release_examples(&self) -> Result<(), Box<dyn Error>>;
     fn run_release_slides(&self) -> Result<(), Box<dyn Error>>;
     fn run_architectural_report(&self) -> Result<(), Box<dyn Error>>;
@@ -35,6 +36,14 @@ impl GToolkit for Smalltalk {
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>> {
         SmalltalkExpression::new("GtImageSetup performLocalSetup")
             .execute(self.evaluator().save(true))
+    }
+
+    fn run_examples(&self, packages: &Vec<String>) -> Result<(), Box<dyn Error>> {
+        SmalltalkCommand::new("examples")
+            .args(packages)
+            .arg("--junit-xml-output")
+            .arg(if self.verbose() { "--verbose" } else { "" })
+            .execute(&self.evaluator())
     }
 
     fn run_release_examples(&self) -> Result<(), Box<dyn Error>> {

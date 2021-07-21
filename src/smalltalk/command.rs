@@ -27,6 +27,14 @@ impl SmalltalkCommand {
             arguments: args,
         }
     }
+
+    pub fn args(self, args: &Vec<impl AsRef<str>>) -> Self {
+        let mut command = self;
+        for arg in args {
+            command = command.arg(arg.as_ref().to_owned());
+        }
+        command
+    }
 }
 
 impl ExecutableSmalltalk for SmalltalkCommand {

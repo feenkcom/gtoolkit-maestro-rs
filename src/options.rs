@@ -1,4 +1,4 @@
-use crate::{BuildOptions, SetupOptions, Smalltalk, TentativeOptions};
+use crate::{BuildOptions, SetupOptions, Smalltalk, TentativeOptions, TestOptions};
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version};
 use std::error::Error;
@@ -42,14 +42,13 @@ pub enum SubCommand {
     Setup(SetupOptions),
     /// Tests Glamorous Toolkit and exports the results.
     #[clap(display_order = 5)]
-    Test,
+    Test(TestOptions),
     /// Package the GlamorousToolkit image as a tentative release.
     #[clap(display_order = 6)]
     PackageTentative(TentativeOptions),
-    /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file,
-    /// run examples and bundle the final release archive.
+    /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
     #[clap(display_order = 7)]
-    ReleaseTentative(TentativeOptions),
+    UnpackageTentative(TentativeOptions),
 }
 
 #[derive(Clone, Debug)]
