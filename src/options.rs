@@ -11,6 +11,9 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
 
+pub const DEFAULT_PHARO_IMAGE: &str =
+    "https://files.pharo.org/image/90/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
+
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
 #[clap(setting = AppSettings::ColorAlways)]
@@ -24,6 +27,9 @@ pub struct AppOptions {
     /// Specify the version of the VM. When not specified, will use the latest released version
     #[clap(long, parse(try_from_str = version_parse))]
     vm_version: Option<Version>,
+    /// Specify a URl from which to download a clean pharo image. When not specified, will use some hardcoded value
+    #[clap(long)]
+    image_url: Option<String>,
 }
 
 #[derive(Clap, Clone, Debug)]
@@ -181,7 +187,10 @@ impl AppOptions {
     }
 
     pub fn pharo_image_url(&self) -> &str {
-        "https://files.pharo.org/image/90/latest-64.zip"
+        self.image_url
+            .as_ref()
+            .map(|url| url.as_ref())
+            .unwrap_or(DEFAULT_PHARO_IMAGE)
     }
 
     pub fn pharo_executable(&self) -> PathBuf {
