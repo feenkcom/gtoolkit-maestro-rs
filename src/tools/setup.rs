@@ -82,9 +82,10 @@ impl Setup {
                 println!("{}Setting up for release...", CREATING);
                 gtoolkit.perform_setup_for_release()?;
                 gtoolkit.print_new_commits()?;
-                gtoolkit.print_vm_version()?;
             }
         }
+
+        gtoolkit.print_vm_version()?;
 
         if !setup_options.no_gt_world {
             println!("{}Setting up GtWorld...", BUILDING);
