@@ -4,6 +4,13 @@ use std::fs::File;
 use std::io::Write;
 
 pub trait GToolkit {
+    fn set_deprecation_rewrites(&self, enabled: bool) -> Result<(), Box<dyn Error>>;
+    fn disable_deprecation_rewrites(&self) -> Result<(), Box<dyn Error>> {
+        self.set_deprecation_rewrites(false)
+    }
+    fn enable_deprecation_rewrites(&self) -> Result<(), Box<dyn Error>> {
+        self.set_deprecation_rewrites(true)
+    }
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>>;
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
@@ -15,6 +22,11 @@ pub trait GToolkit {
 }
 
 impl GToolkit for Smalltalk {
+    fn set_deprecation_rewrites(&self, enabled: bool) -> Result<(), Box<dyn Error>> {
+        SmalltalkExpression::new(format!("Deprecation activateTransformations: {}", enabled))
+            .execute(self.evaluator().save(true))
+    }
+
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>> {
         let options = self.options().expect("Options are not set");
         let version = options.vm_version().expect("VM version is not set");
