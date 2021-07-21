@@ -7,7 +7,7 @@ mod tester;
 
 use console::Emoji;
 
-pub use builder::{BuildOptions, Builder, Loader};
+pub use builder::{BuildOptions, Builder, Loader, ReleaseBuildOptions};
 pub use checker::Checker;
 pub use downloader::Downloader;
 pub use setup::{Setup, SetupOptions, SetupTarget};

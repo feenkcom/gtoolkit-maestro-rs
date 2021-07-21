@@ -24,6 +24,15 @@ pub struct BuildOptions {
     pub loader: Loader,
 }
 
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColorAlways)]
+#[clap(setting = AppSettings::ColoredHelp)]
+pub struct ReleaseBuildOptions {
+    #[clap(long, possible_values = Loader::VARIANTS, case_insensitive = true)]
+    /// Specify a loader to install GToolkit code in a Pharo image.
+    pub loader: Option<Loader>,
+}
+
 impl BuildOptions {
     pub fn new() -> Self {
         Self {

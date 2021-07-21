@@ -1,4 +1,6 @@
-use crate::{BuildOptions, SetupOptions, Smalltalk, TentativeOptions, TestOptions};
+use crate::{
+    BuildOptions, ReleaseBuildOptions, SetupOptions, Smalltalk, TentativeOptions, TestOptions,
+};
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version};
 use std::error::Error;
@@ -39,7 +41,7 @@ pub enum SubCommand {
     LocalBuild,
     /// Creates a release build of GlamorousToolkit with GtWorld opened and sets up the image to be deployed. This is intended to be used by the Continuous Integration server.
     #[clap(display_order = 2)]
-    ReleaseBuild,
+    ReleaseBuild(ReleaseBuildOptions),
     /// Builds GlamorousToolkit image from sources without performing any extra setup.
     #[clap(display_order = 3)]
     Build(BuildOptions),

@@ -55,10 +55,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Builder::new().build(&options, &build_options).await?;
             Setup::new().setup(&options, &setup_options).await?;
         }
-        SubCommand::ReleaseBuild => {
+        SubCommand::ReleaseBuild(release_build) => {
             let mut build_options = BuildOptions::new();
             build_options.overwrite(true);
-            build_options.loader(Loader::Metacello);
+
+            if let Some(loader) = release_build.loader {
+                build_options.loader(loader);
+            } else {
+                build_options.loader(Loader::Metacello);
+            }
 
             let mut setup_options = SetupOptions::new();
             setup_options.target(SetupTarget::Release);
