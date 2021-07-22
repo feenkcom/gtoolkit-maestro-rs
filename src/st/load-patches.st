@@ -151,6 +151,17 @@ patcher patch: #FFIUnixLibraryFinder asClass source:
 	Smalltalk vm directory }'
 classified: 'accessing'.
 
+patcher patch: #FFIUnix64LibraryFinder asClass source:
+'knownPaths
+	^ #(
+    	''/lib/x86_64-linux-gnu''
+    	''/lib64''
+    	''/usr/lib64''
+    	''/usr/lib''
+    	''/usr/lib/x86_64-linux-gnu''
+    	''/usr/local/lib'')'
+classified: 'accessing'.
+
 patcher patch: #CairoLibrary asClass source:
 'macLibraryName
 
