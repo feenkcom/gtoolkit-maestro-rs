@@ -114,7 +114,10 @@ patcher patch: ExternalData source: 'readStringUTF8
 	^ [ ZnCharacterEncoder utf8 decodeBytes: stream contents ] on: ZnInvalidUTF8 do: [ stream contents asString ]'
 classified: '*UnifiedFFI'.
 
-
+"See https://github.com/pharo-project/pharo/issues/9630"
+patcher patch: CommandLineUIManager source: 'activate
+	NonInteractiveTranscript stdout install'
+classified: 'private'.
 "===================================
         Patch Library names
 ==================================="
@@ -151,6 +154,7 @@ patcher patch: #FFIUnixLibraryFinder asClass source:
 	Smalltalk vm directory }'
 classified: 'accessing'.
 
+"See https://github.com/pharo-project/pharo/issues/9643"
 patcher patch: #FFIUnix64LibraryFinder asClass source:
 'knownPaths
 	^ #(
