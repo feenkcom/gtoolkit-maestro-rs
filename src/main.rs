@@ -81,6 +81,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .unpackage(&mut options, &tentative_options)
                 .await?;
         }
+        SubCommand::PackageRelease(release_options) => {
+            Release::new().package(&options, &release_options).await?;
+        }
     };
 
     Ok(())

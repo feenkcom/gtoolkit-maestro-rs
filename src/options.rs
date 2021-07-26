@@ -1,8 +1,10 @@
 use crate::{
-    BuildOptions, ReleaseBuildOptions, SetupOptions, Smalltalk, TentativeOptions, TestOptions,
+    BuildOptions, ReleaseBuildOptions, ReleaseOptions, SetupOptions, Smalltalk, TentativeOptions,
+    TestOptions,
 };
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version};
+use file_matcher::{FolderNamed, OneEntry};
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -57,6 +59,9 @@ pub enum SubCommand {
     /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
     #[clap(display_order = 7)]
     UnpackageTentative(TentativeOptions),
+    /// Package the GlamorousToolkit image and App for a release.
+    #[clap(display_order = 8)]
+    PackageRelease(ReleaseOptions),
 }
 
 #[derive(Clone, Debug)]
@@ -245,6 +250,28 @@ impl AppOptions {
             PlatformOS::WindowsX8664 => "bin\\GlamorousToolkit.exe",
             PlatformOS::LinuxX8664 => "./bin/GlamorousToolkit",
         }
+    }
+
+    pub fn gtoolkit_app_folders(&self) -> Vec<OneEntry> {
+        let folders = match self.platform() {
+            PlatformOS::MacOSX8664 => {
+                vec![FolderNamed::exact("GlamorousToolkit.app")]
+            }
+            PlatformOS::MacOSAarch64 => {
+                vec![FolderNamed::exact("GlamorousToolkit.app")]
+            }
+            PlatformOS::WindowsX8664 => {
+                vec![FolderNamed::exact("bin")]
+            }
+            PlatformOS::LinuxX8664 => {
+                vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
+            }
+        };
+
+        folders
+            .into_iter()
+            .map(|each| each.within(self.gtoolkit_directory()))
+            .collect::<Vec<OneEntry>>()
     }
 
     pub fn gtoolkit_image(&self) -> PathBuf {

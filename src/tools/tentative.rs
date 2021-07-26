@@ -2,7 +2,7 @@ use crate::options::AppOptions;
 use clap::{AppSettings, Clap};
 use std::path::PathBuf;
 
-use file_matcher::{FileNamed, OneFileFilter};
+use file_matcher::{FileNamed, OneEntry};
 
 use crate::{zip_file, zip_folder, Checker, Downloader, FileToUnzip, FilesToUnzip};
 
@@ -45,7 +45,7 @@ impl Tentative {
         ]
         .into_iter()
         .map(|each| each.within(options.gtoolkit_directory()))
-        .collect::<Vec<OneFileFilter>>();
+        .collect::<Vec<OneEntry>>();
 
         for ref filter in filters {
             zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;

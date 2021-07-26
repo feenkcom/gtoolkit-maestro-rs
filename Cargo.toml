@@ -29,4 +29,4 @@ zip = "0.5.13"
 regex = "1"
 walkdir = "2.3.2"
 feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", rev = "f09581d4d691343f98757b58ca247884d931b321" }
-file-matcher = "0.2.4"
+file-matcher = "0.5"
