@@ -28,5 +28,6 @@ console = { version = ">=0.9.1, <1.0.0", default-features = false }
 zip = "0.5.13"
 regex = "1"
 walkdir = "2.3.2"
-feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", rev = "f09581d4d691343f98757b58ca247884d931b321" }
+feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", rev = "4181c530925230839363f6274e5f26c40630f2eb" }
 file-matcher = "0.5"
+mustache = "0.9"

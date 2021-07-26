@@ -3,7 +3,7 @@ use crate::{
     TestOptions,
 };
 use clap::{AppSettings, Clap};
-use feenk_releaser::{GitHub, Version};
+use feenk_releaser::{GitHub, Version, VersionBump};
 use file_matcher::{FolderNamed, OneEntry};
 use std::error::Error;
 use std::path::PathBuf;
@@ -11,6 +11,9 @@ use std::path::PathBuf;
 pub const DEFAULT_REPOSITORY: &str = "https://github.com/feenkcom/gtoolkit.git";
 pub const DEFAULT_BRANCH: &str = "main";
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
+
+pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
+pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit9";
 
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
@@ -31,6 +34,7 @@ pub struct AppOptions {
     /// Specify the version of the VM. When not specified, will use the latest released version
     #[clap(long, parse(try_from_str = version_parse))]
     vm_version: Option<Version>,
+    gtoolkit_version: Option<Version>,
     /// Specify a URl from which to download a clean pharo image. When not specified, will use some hardcoded value
     #[clap(long)]
     image_url: Option<String>,
@@ -59,9 +63,12 @@ pub enum SubCommand {
     /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
     #[clap(display_order = 7)]
     UnpackageTentative(TentativeOptions),
-    /// Package the GlamorousToolkit image and App for a release.
+    /// Package the GlamorousToolkit image and App for a release. Prints the path to the created package in the `stdout`
     #[clap(display_order = 8)]
     PackageRelease(ReleaseOptions),
+    /// Display the Debug information of the AppOptions
+    #[clap(display_order = 9)]
+    PrintDebug,
 }
 
 #[derive(Clone, Debug)]
@@ -87,6 +94,11 @@ impl AppOptions {
             return Ok(());
         }
 
+        if self.vm_version_file().exists() {
+            self.read_vm_version().await?;
+            return Ok(());
+        }
+
         let latest_version: Option<Version> =
             GitHub::new(VM_REPOSITORY_OWNER, VM_REPOSITORY_NAME, None)
                 .latest_release_version()
@@ -100,6 +112,29 @@ impl AppOptions {
                 source: None,
             }))
         }
+    }
+
+    pub async fn ensure_gtoolkit_version(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.gtoolkit_version.is_some() {
+            return Ok(());
+        }
+
+        if self.gtoolkit_version_file().exists() {
+            self.read_gtoolkit_version().await?;
+            return Ok(());
+        }
+
+        let latest_version: Option<Version> =
+            GitHub::new(GTOOLKIT_REPOSITORY_OWNER, GTOOLKIT_REPOSITORY_NAME, None)
+                .latest_release_version()
+                .await?;
+        let gtoolkit_version = if let Some(latest_version) = latest_version {
+            latest_version
+        } else {
+            Version::new(VersionBump::Patch)
+        };
+        self.gtoolkit_version = Some(gtoolkit_version);
+        Ok(())
     }
 
     /// Read the vm version from the vm version file
@@ -121,16 +156,48 @@ impl AppOptions {
         Ok(())
     }
 
+    /// Read the gtoolkit version from the vm version file
+    pub async fn read_gtoolkit_version(&mut self) -> Result<(), Box<dyn Error>> {
+        let gtoolkit_version_file_path = self.gtoolkit_version_file();
+
+        if !gtoolkit_version_file_path.exists() {
+            return Err(Box::new(crate::error::Error {
+                what: format!("Cound not find {:?}", &gtoolkit_version_file_path),
+                source: None,
+            }));
+        }
+
+        let version_string = std::fs::read_to_string(&gtoolkit_version_file_path)?;
+        let version = Version::parse(version_string)?;
+
+        self.gtoolkit_version = Some(version);
+
+        Ok(())
+    }
+
     pub fn vm_version(&self) -> Option<&Version> {
         self.vm_version.as_ref()
+    }
+
+    pub fn gtoolkit_version(&self) -> Option<&Version> {
+        self.gtoolkit_version.as_ref()
     }
 
     pub fn vm_version_file_name(&self) -> &str {
         "gtoolkit-vm.version"
     }
 
+    pub fn gtoolkit_version_file_name(&self) -> &str {
+        "gtoolkit.version"
+    }
+
     pub fn vm_version_file(&self) -> PathBuf {
         self.gtoolkit_directory().join(self.vm_version_file_name())
+    }
+
+    pub fn gtoolkit_version_file(&self) -> PathBuf {
+        self.gtoolkit_directory()
+            .join(self.gtoolkit_version_file_name())
     }
 
     pub fn repository(&self) -> String {

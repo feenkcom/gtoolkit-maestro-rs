@@ -14,8 +14,8 @@ pub struct SetupOptions {
     /// Do not open a default GtWorld
     #[clap(long)]
     pub no_gt_world: bool,
-    #[clap(long, default_value = "local-build", possible_values = SetupTarget::VARIANTS, case_insensitive = true)]
     /// Specify a setup target
+    #[clap(long, default_value = "local-build", possible_values = SetupTarget::VARIANTS, case_insensitive = true)]
     pub target: SetupTarget,
 }
 
@@ -86,6 +86,7 @@ impl Setup {
         }
 
         gtoolkit.print_vm_version()?;
+        gtoolkit.print_gtoolkit_version()?;
 
         if !setup_options.no_gt_world {
             println!("{}Setting up GtWorld...", BUILDING);

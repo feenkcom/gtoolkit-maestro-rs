@@ -196,6 +196,7 @@ impl Builder {
             .await?;
 
         println!("{} Done in {}", SPARKLE, HumanDuration(started.elapsed()));
+
         Ok(())
     }
 }

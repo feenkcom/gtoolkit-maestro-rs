@@ -7,7 +7,9 @@ extern crate regex;
 extern crate reqwest;
 extern crate semver;
 extern crate serde;
+#[macro_use]
 extern crate serde_derive;
+extern crate mustache;
 extern crate tokio;
 extern crate tokio_stream;
 extern crate tokio_util;
@@ -38,6 +40,7 @@ use std::error::Error;
 async fn main() -> Result<(), Box<dyn Error>> {
     let mut options: AppOptions = AppOptions::parse();
     options.ensure_vm_version().await?;
+    options.ensure_gtoolkit_version().await?;
 
     match options.command() {
         SubCommand::Build(build_options) => {
@@ -82,7 +85,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .await?;
         }
         SubCommand::PackageRelease(release_options) => {
-            Release::new().package(&options, &release_options).await?;
+            let package = Release::new().package(&options, &release_options).await?;
+            println!("{}", package.display())
+        }
+        SubCommand::PrintDebug => {
+            println!("{:?}", &options);
         }
     };
 

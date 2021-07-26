@@ -12,6 +12,7 @@ pub trait GToolkit {
         self.set_deprecation_rewrites(true)
     }
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>>;
+    fn print_gtoolkit_version(&self) -> Result<(), Box<dyn Error>>;
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>>;
@@ -32,6 +33,18 @@ impl GToolkit for Smalltalk {
         let version = options.vm_version().expect("VM version is not set");
 
         let mut file = File::create(options.vm_version_file()).expect("Could not create file");
+        file.write_fmt(format_args!("v{}", version))?;
+        Ok(())
+    }
+
+    fn print_gtoolkit_version(&self) -> Result<(), Box<dyn Error>> {
+        let options = self.options().expect("Options are not set");
+        let version = options
+            .gtoolkit_version()
+            .expect("GToolkit version is not set");
+
+        let mut file =
+            File::create(options.gtoolkit_version_file()).expect("Could not create file");
         file.write_fmt(format_args!("v{}", version))?;
         Ok(())
     }
