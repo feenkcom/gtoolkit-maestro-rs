@@ -31,6 +31,9 @@ pub struct ReleaseBuildOptions {
     #[clap(long, possible_values = Loader::VARIANTS, case_insensitive = true)]
     /// Specify a loader to install GToolkit code in a Pharo image.
     pub loader: Option<Loader>,
+    /// Do not open a default GtWorld
+    #[clap(long)]
+    pub no_gt_world: bool,
 }
 
 impl BuildOptions {

@@ -71,6 +71,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             let mut setup_options = SetupOptions::new();
             setup_options.target(SetupTarget::Release);
+            setup_options.gt_world(!release_build.no_gt_world);
 
             Builder::new().build(&options, &build_options).await?;
             Setup::new().setup(&options, &setup_options).await?;
