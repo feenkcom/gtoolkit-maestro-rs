@@ -59,6 +59,7 @@ pipeline {
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
                 }
+
                 stage ('Linux x86_64') {
                     agent {
                         label "${LINUX_AMD64_TARGET}"
@@ -77,6 +78,7 @@ pipeline {
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
                 }
+
                 stage ('Windows x86_64') {
                     agent {
                         label "${WINDOWS_AMD64_TARGET}"

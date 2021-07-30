@@ -102,7 +102,13 @@ impl<'smalltalk> SmalltalkEvaluator<'smalltalk> {
     }
 
     pub fn command(&self) -> Command {
-        let mut command = Command::new(self.executable());
+        let relative_executable = self.workspace().join(self.executable());
+        let executable = std::fs::canonicalize(&relative_executable).expect(&format!(
+            "Failed to canonicalize {}",
+            &relative_executable.display()
+        ));
+
+        let mut command = Command::new(executable);
         command
             .current_dir(self.workspace())
             .stdout(self.stdout())

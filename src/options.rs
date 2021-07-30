@@ -314,8 +314,8 @@ impl AppOptions {
         match self.platform() {
             PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
             PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
-            PlatformOS::WindowsX8664 => "bin\\GlamorousToolkit.exe",
-            PlatformOS::LinuxX8664 => "./bin/GlamorousToolkit",
+            PlatformOS::WindowsX8664 => "bin/GlamorousToolkit.exe",
+            PlatformOS::LinuxX8664 => "bin/GlamorousToolkit",
         }
     }
 
