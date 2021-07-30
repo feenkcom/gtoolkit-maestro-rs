@@ -31,3 +31,4 @@ walkdir = "2.3.2"
 feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", rev = "4181c530925230839363f6274e5f26c40630f2eb" }
 file-matcher = "0.5"
 mustache = "0.9"
+to_absolute = "0.1"

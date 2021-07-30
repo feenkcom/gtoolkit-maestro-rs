@@ -15,6 +15,7 @@ extern crate tokio_stream;
 extern crate tokio_util;
 extern crate walkdir;
 extern crate zip;
+extern crate to_absolute;
 
 mod create;
 mod download;
