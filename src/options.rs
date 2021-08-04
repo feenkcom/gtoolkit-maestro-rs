@@ -19,7 +19,7 @@ pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
 
 pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://files.pharo.org/image/90/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
+    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
 
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
