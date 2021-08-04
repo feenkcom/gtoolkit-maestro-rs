@@ -252,7 +252,7 @@ impl AppOptions {
         match self.platform() {
             PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC,
             PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC,
-            PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_LINUX,
+            PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX,
         }
     }
