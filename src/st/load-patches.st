@@ -171,6 +171,11 @@ patcher patch: #CairoLibrary asClass source:
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libcairo.dylib'' ''libcairo.2.dylib'')'
 classified: 'accessing - platform'.
+patcher patch: #CairoLibrary asClass source:
+'win32LibraryName
+
+ 	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
+classified: 'accessing - platform'.
 "===================================
             Clean up
 ==================================="
