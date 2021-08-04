@@ -20,6 +20,11 @@ pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
 
 pub const DEFAULT_PHARO_IMAGE: &str =
     "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
+pub const DEFAULT_PHARO_VM_MAC: &str = "https://dl.feenk.com/pharo/pharo64-mac-headless-stable.zip";
+pub const DEFAULT_PHARO_VM_LINUX: &str =
+    "https://dl.feenk.com/pharo/pharo64-linux-headless-stable.zip";
+pub const DEFAULT_PHARO_VM_WINDOWS: &str =
+    "https://dl.feenk.com/pharo/pharo64-win-headless-stable.zip";
 
 #[derive(Clap, Clone, Debug)]
 #[clap(author = "feenk gmbh <contact@feenk.com>")]
@@ -245,18 +250,10 @@ impl AppOptions {
 
     pub fn pharo_vm_url(&self) -> &str {
         match self.platform() {
-            PlatformOS::MacOSX8664 => {
-                "https://files.pharo.org/get-files/90/pharo64-mac-headless-stable.zip"
-            }
-            PlatformOS::MacOSAarch64 => {
-                "https://files.pharo.org/get-files/90/pharo64-mac-headless-stable.zip"
-            }
-            PlatformOS::WindowsX8664 => {
-                "https://files.pharo.org/get-files/90/pharo64-win-headless-latest.zip"
-            }
-            PlatformOS::LinuxX8664 => {
-                "https://files.pharo.org/get-files/90/pharo64-linux-headless-latest.zip"
-            }
+            PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC,
+            PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC,
+            PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_LINUX,
+            PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX,
         }
     }
 

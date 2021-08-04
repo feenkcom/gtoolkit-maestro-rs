@@ -42,7 +42,7 @@ impl Tentative {
             FileNamed::wildmatch("*.changes"),
             FileNamed::wildmatch("*.sources"),
             FileNamed::exact(options.vm_version_file_name()),
-            FileNamed::exact(options.gtoolkit_version_file_name())
+            FileNamed::exact(options.gtoolkit_version_file_name()),
         ]
         .into_iter()
         .map(|each| each.within(options.gtoolkit_directory()))

@@ -10,12 +10,12 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate mustache;
+extern crate to_absolute;
 extern crate tokio;
 extern crate tokio_stream;
 extern crate tokio_util;
 extern crate walkdir;
 extern crate zip;
-extern crate to_absolute;
 
 mod create;
 mod download;
