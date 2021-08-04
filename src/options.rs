@@ -13,7 +13,7 @@ pub const DEFAULT_BRANCH: &str = "main";
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 
 pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
-pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit9";
+pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
 
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
