@@ -20,7 +20,7 @@ impl SmalltalkExpression {
 impl ExecutableSmalltalk for SmalltalkExpression {
     fn execute(&self, evaluator: &SmalltalkEvaluator) -> Result<(), Box<dyn Error>> {
         let expression = if evaluator.should_save() {
-            ExpressionBuilder::new()
+            SmalltalkExpressionBuilder::new()
                 .add(&self.expression)
                 .add("Smalltalk snapshot: true andQuit: false")
                 .build()
@@ -74,11 +74,11 @@ impl From<SmalltalkExpression> for Box<(dyn ExecutableSmalltalk + 'static)> {
     }
 }
 
-pub struct ExpressionBuilder {
+pub struct SmalltalkExpressionBuilder {
     expressions: Vec<String>,
 }
 
-impl ExpressionBuilder {
+impl SmalltalkExpressionBuilder {
     pub fn new() -> Self {
         Self {
             expressions: vec![],

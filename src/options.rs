@@ -1,6 +1,6 @@
 use crate::{
-    BuildOptions, ReleaseBuildOptions, ReleaseOptions, SetupOptions, Smalltalk, TentativeOptions,
-    TestOptions,
+    BuildOptions, CopyOptions, ReleaseBuildOptions, ReleaseOptions, SetupOptions, Smalltalk,
+    StartOptions, TentativeOptions, TestOptions,
 };
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version, VersionBump};
@@ -36,6 +36,8 @@ pub struct AppOptions {
     /// Perform commands in a verbose manner
     #[clap(long)]
     verbose: bool,
+    #[clap(long, default_value = DEFAULT_DIRECTORY, parse(from_os_str))]
+    workspace: PathBuf,
     /// Specify the version of the VM. When not specified, will use the latest released version
     #[clap(long, parse(try_from_str = version_parse))]
     vm_version: Option<Version>,
@@ -59,20 +61,31 @@ pub enum SubCommand {
     /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
     #[clap(display_order = 4)]
     Setup(SetupOptions),
-    /// Tests Glamorous Toolkit and exports the results.
+    /// Copies glamorous toolkit related files from the current workspace into a new workspace.
+    /// Does not copy temporary files or logs
     #[clap(display_order = 5)]
+    CopyTo(CopyOptions),
+    /// Starts an application interactively, waits for a duration of delay to let it load completely then saves and quits.
+    #[clap(display_order = 6)]
+    Start(StartOptions),
+    /// Cleans up an image after loading Glamorous Toolkit. It cleans up ssh keys, removes iceberg repositories
+    /// and garbage collects objects
+    #[clap(display_order = 7)]
+    CleanUp,
+    /// Tests Glamorous Toolkit and exports the results.
+    #[clap(display_order = 8)]
     Test(TestOptions),
     /// Package the GlamorousToolkit image as a tentative release.
-    #[clap(display_order = 6)]
+    #[clap(display_order = 9)]
     PackageTentative(TentativeOptions),
     /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
-    #[clap(display_order = 7)]
+    #[clap(display_order = 10)]
     UnpackageTentative(TentativeOptions),
     /// Package the GlamorousToolkit image and App for a release. Prints the path to the created package in the `stdout`
-    #[clap(display_order = 8)]
+    #[clap(display_order = 11)]
     PackageRelease(ReleaseOptions),
     /// Display the Debug information of the AppOptions
-    #[clap(display_order = 9)]
+    #[clap(display_order = 12)]
     PrintDebug,
 }
 
@@ -197,12 +210,11 @@ impl AppOptions {
     }
 
     pub fn vm_version_file(&self) -> PathBuf {
-        self.gtoolkit_directory().join(self.vm_version_file_name())
+        self.workspace().join(self.vm_version_file_name())
     }
 
     pub fn gtoolkit_version_file(&self) -> PathBuf {
-        self.gtoolkit_directory()
-            .join(self.gtoolkit_version_file_name())
+        self.workspace().join(self.gtoolkit_version_file_name())
     }
 
     pub fn repository(&self) -> String {
@@ -215,18 +227,24 @@ impl AppOptions {
 
     pub fn gtoolkit(&self) -> Smalltalk {
         Smalltalk::new(self.gtoolkit_app_cli(), self.gtoolkit_image())
-            .set_workspace(self.gtoolkit_directory())
+            .set_workspace(self.workspace())
             .set_options(self.clone())
     }
 
     pub fn pharo(&self) -> Smalltalk {
         Smalltalk::new(self.pharo_executable(), self.gtoolkit_image())
-            .set_workspace(self.gtoolkit_directory())
+            .set_workspace(self.workspace())
             .set_options(self.clone())
     }
 
-    pub fn gtoolkit_directory(&self) -> PathBuf {
-        std::env::current_dir().unwrap().join(DEFAULT_DIRECTORY)
+    pub fn workspace(&self) -> PathBuf {
+        std::env::current_dir()
+            .unwrap()
+            .join(self.workspace.as_path())
+    }
+
+    pub fn set_workspace(&mut self, path: impl Into<PathBuf>) {
+        self.workspace = path.into()
     }
 
     pub fn platform(&self) -> PlatformOS {
@@ -334,11 +352,11 @@ impl AppOptions {
 
         folders
             .into_iter()
-            .map(|each| each.within(self.gtoolkit_directory()))
+            .map(|each| each.within(self.workspace()))
             .collect::<Vec<OneEntry>>()
     }
 
     pub fn gtoolkit_image(&self) -> PathBuf {
-        self.gtoolkit_directory().join("GlamorousToolkit.image")
+        self.workspace().join("GlamorousToolkit.image")
     }
 }

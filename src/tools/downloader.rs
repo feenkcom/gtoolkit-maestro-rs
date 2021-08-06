@@ -20,7 +20,7 @@ impl Downloader {
         );
         let gtoolkit_vm = FileToDownload::new(
             options.gtoolkit_app_url(),
-            options.gtoolkit_directory(),
+            options.workspace(),
             format!(
                 "GlamorousToolkitApp-v{}.zip",
                 options.gtoolkit_app_version_string()
@@ -36,10 +36,8 @@ impl Downloader {
             EXTRACTING,
             options.gtoolkit_app_version_string()
         );
-        let files_to_unzip = FilesToUnzip::new().add(FileToUnzip::new(
-            gtoolkit_vm.path(),
-            options.gtoolkit_directory(),
-        ));
+        let files_to_unzip =
+            FilesToUnzip::new().add(FileToUnzip::new(gtoolkit_vm.path(), options.workspace()));
 
         files_to_unzip.unzip().await?;
 

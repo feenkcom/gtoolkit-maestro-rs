@@ -1,7 +1,6 @@
-use crate::create::FileToCreate;
 use crate::gtoolkit::GToolkit;
 use crate::options::AppOptions;
-use crate::{SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING};
+use crate::{StartOptions, Starter, BUILDING, CREATING};
 use clap::{AppSettings, ArgEnum, Clap};
 use std::str::FromStr;
 
@@ -91,27 +90,13 @@ impl Setup {
         if !setup_options.no_gt_world {
             println!("{}Setting up GtWorld...", BUILDING);
 
-            FileToCreate::new(
-                options.gtoolkit_directory().join("start-gt.st"),
-                include_str!("../st/start-gt.st"),
-            )
-            .create()
-            .await?;
-
-            SmalltalkScriptsToExecute::new()
-                .add(SmalltalkScriptToExecute::new("start-gt.st"))
-                .execute(
-                    gtoolkit
-                        .evaluator()
-                        .save(false)
-                        .interactive(true)
-                        .quit(false),
-                )
+            Starter::new()
+                .start(options, &StartOptions::default())
                 .await?;
         }
 
         println!("To start GlamorousToolkit run:");
-        println!("  cd {:?}", options.gtoolkit_directory());
+        println!("  cd {:?}", options.workspace());
         println!("  {}", options.gtoolkit_app());
 
         Ok(())

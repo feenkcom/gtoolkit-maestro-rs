@@ -95,14 +95,14 @@ impl Release {
             FileNamed::wildmatch("*.sources"),
         ]
         .into_iter()
-        .map(|each| each.within(options.gtoolkit_directory()))
+        .map(|each| each.within(options.workspace()))
         .collect::<Vec<OneEntry>>();
 
         for ref filter in filters {
             zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
         }
 
-        let gt_extra = options.gtoolkit_directory().join("gt-extra");
+        let gt_extra = options.workspace().join("gt-extra");
         zip_folder(&mut zip, &gt_extra, zip_options)?;
 
         for folder in options.gtoolkit_app_folders() {

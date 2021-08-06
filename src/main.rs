@@ -10,6 +10,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate mustache;
+extern crate parse_duration;
 extern crate to_absolute;
 extern crate tokio;
 extern crate tokio_stream;
@@ -75,6 +76,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             Builder::new().build(&options, &build_options).await?;
             Setup::new().setup(&options, &setup_options).await?;
+        }
+        SubCommand::CopyTo(copy_options) => {
+            Copier::new().copy(&mut options, &copy_options).await?;
+        }
+        SubCommand::CleanUp => {
+            Cleaner::new().clean(&options).await?;
+        }
+        SubCommand::Start(start_options) => {
+            Starter::new().start(&options, &start_options).await?;
         }
         SubCommand::PackageTentative(tentative_options) => {
             Tentative::new()

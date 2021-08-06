@@ -15,21 +15,21 @@ impl Checker {
         should_overwrite: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         println!("{}Checking the system...", CHECKING);
-        if should_overwrite && options.gtoolkit_directory().exists() {
-            tokio::fs::remove_dir_all(options.gtoolkit_directory()).await?;
+        if should_overwrite && options.workspace().exists() {
+            tokio::fs::remove_dir_all(options.workspace()).await?;
         }
 
-        if options.gtoolkit_directory().exists() {
+        if options.workspace().exists() {
             return Err(Box::new(Error {
                 what: format!(
                     "GToolkit already exists in {:?}",
-                    options.gtoolkit_directory().display()
+                    options.workspace().display()
                 ),
                 source: None,
             }));
         }
 
-        tokio::fs::create_dir_all(options.gtoolkit_directory()).await?;
+        tokio::fs::create_dir_all(options.workspace()).await?;
         Ok(())
     }
 }

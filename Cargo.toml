@@ -32,3 +32,4 @@ feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", rev = "4181c
 file-matcher = "0.5"
 mustache = "0.9"
 to_absolute = "0.1"
+parse_duration = "2.1"

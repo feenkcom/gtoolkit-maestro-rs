@@ -1,4 +1,7 @@
-use crate::{ExecutableSmalltalk, Smalltalk, SmalltalkCommand, SmalltalkExpression};
+use crate::{
+    ExecutableSmalltalk, Smalltalk, SmalltalkCommand, SmalltalkExpression,
+    SmalltalkExpressionBuilder,
+};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
@@ -16,6 +19,7 @@ pub trait GToolkit {
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>>;
+    fn perform_iceberg_clean_up(&self) -> Result<(), Box<dyn Error>>;
     fn run_examples(&self, packages: &Vec<String>) -> Result<(), Box<dyn Error>>;
     fn run_release_examples(&self) -> Result<(), Box<dyn Error>>;
     fn run_release_slides(&self) -> Result<(), Box<dyn Error>>;
@@ -60,6 +64,16 @@ impl GToolkit for Smalltalk {
 
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>> {
         SmalltalkExpression::new("GtImageSetup performLocalSetup")
+            .execute(self.evaluator().save(true))
+    }
+
+    fn perform_iceberg_clean_up(&self) -> Result<(), Box<dyn Error>> {
+        SmalltalkExpressionBuilder::new()
+            .add("IceCredentialsProvider sshCredentials publicKey: ''; privateKey: ''")
+            .add("IceCredentialsProvider useCustomSsh: false")
+            .add("IceRepository registry removeAll")
+            .add("3 timesRepeat: [ Smalltalk garbageCollect ]")
+            .build()
             .execute(self.evaluator().save(true))
     }
 

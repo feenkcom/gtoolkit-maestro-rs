@@ -106,15 +106,12 @@ impl Builder {
         println!("{}Downloading files...", DOWNLOADING);
         let pharo_image = FileToDownload::new(
             options.pharo_image_url(),
-            options.gtoolkit_directory(),
+            options.workspace(),
             "pharo-image.zip",
         );
 
-        let pharo_vm = FileToDownload::new(
-            options.pharo_vm_url(),
-            options.gtoolkit_directory(),
-            "pharo-vm.zip",
-        );
+        let pharo_vm =
+            FileToDownload::new(options.pharo_vm_url(), options.workspace(), "pharo-vm.zip");
 
         let files_to_download = FilesToDownload::new()
             .add(pharo_image.clone())
@@ -124,13 +121,13 @@ impl Builder {
 
         println!("{}Extracting files...", EXTRACTING);
 
-        let pharo_image_dir = options.gtoolkit_directory().join("pharo-image");
+        let pharo_image_dir = options.workspace().join("pharo-image");
 
         let files_to_unzip = FilesToUnzip::new()
             .add(FileToUnzip::new(pharo_image.path(), &pharo_image_dir))
             .add(FileToUnzip::new(
                 pharo_vm.path(),
-                options.gtoolkit_directory().join("pharo-vm"),
+                options.workspace().join("pharo-vm"),
             ));
 
         files_to_unzip.unzip().await?;
@@ -139,23 +136,21 @@ impl Builder {
 
         FileToMove::new(
             FileNamed::wildmatch("*.image").within(&pharo_image_dir),
-            options.gtoolkit_directory().join("GlamorousToolkit.image"),
+            options.workspace().join("GlamorousToolkit.image"),
         )
         .move_file()
         .await?;
 
         FileToMove::new(
             FileNamed::wildmatch("*.changes").within(&pharo_image_dir),
-            options
-                .gtoolkit_directory()
-                .join("GlamorousToolkit.changes"),
+            options.workspace().join("GlamorousToolkit.changes"),
         )
         .move_file()
         .await?;
 
         FileToMove::new(
             FileNamed::wildmatch("*.sources").within(&pharo_image_dir),
-            options.gtoolkit_directory(),
+            options.workspace(),
         )
         .move_file()
         .await?;
@@ -167,18 +162,18 @@ impl Builder {
 
         println!("{}Creating build scripts...", CREATING);
         FileToCreate::new(
-            options.gtoolkit_directory().join("load-patches.st"),
+            options.workspace().join("load-patches.st"),
             include_str!("../st/load-patches.st"),
         )
         .create()
         .await?;
         FileToCreate::new(
-            options.gtoolkit_directory().join("load-taskit.st"),
+            options.workspace().join("load-taskit.st"),
             include_str!("../st/load-taskit.st"),
         )
         .create()
         .await?;
-        FileToCreate::new(options.gtoolkit_directory().join("load-gt.st"), loader_st)
+        FileToCreate::new(options.workspace().join("load-gt.st"), loader_st)
             .create()
             .await?;
 
