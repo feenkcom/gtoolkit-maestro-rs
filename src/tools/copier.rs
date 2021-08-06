@@ -25,17 +25,21 @@ impl Copier {
         options: &mut AppOptions,
         copy_options: &CopyOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let entries = vec![
+        let mut entries = vec![
             FileNamed::wildmatch("*.image").boxed(),
             FileNamed::wildmatch("*.changes").boxed(),
             FileNamed::wildmatch("*.sources").boxed(),
             FileNamed::exact(options.vm_version_file_name()).boxed(),
             FileNamed::exact(options.gtoolkit_version_file_name()).boxed(),
             FolderNamed::exact("gt-extra").boxed(),
-        ]
-        .into_iter()
-        .map(|each| each.within_path_buf(options.workspace()))
-        .collect::<Vec<OneEntry>>();
+        ];
+
+        entries.extend(options.gtoolkit_app_entries());
+
+        let entries = entries
+            .into_iter()
+            .map(|each| each.within_path_buf(options.workspace()))
+            .collect::<Vec<OneEntry>>();
 
         if !copy_options.destination.exists() {
             std::fs::create_dir_all(copy_options.destination.as_path())?;

@@ -4,7 +4,7 @@ use crate::{
 };
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version, VersionBump};
-use file_matcher::{FolderNamed, OneEntry};
+use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -301,6 +301,23 @@ impl AppOptions {
             PlatformOS::WindowsX8664 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 => "bin/GlamorousToolkit-cli",
         })
+    }
+
+    pub fn gtoolkit_app_entries(&self) -> Vec<Box<dyn OneEntryNamed>> {
+        match self.platform() {
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
+                vec![FolderNamed::wildmatch("*.app").boxed()]
+            }
+            PlatformOS::WindowsX8664 => {
+                vec![FolderNamed::exact("bin").boxed()]
+            }
+            PlatformOS::LinuxX8664 => {
+                vec![
+                    FolderNamed::exact("bin").boxed(),
+                    FolderNamed::exact("lib").boxed(),
+                ]
+            }
+        }
     }
 
     pub fn gtoolkit_app_version_string(&self) -> String {
