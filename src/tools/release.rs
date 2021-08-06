@@ -1,5 +1,5 @@
 use crate::options::{AppOptions, PlatformOS};
-use crate::{zip_file, zip_folder};
+use crate::{zip_file, zip_folder, ExecutableSmalltalk, SmalltalkCommand, SmalltalkExpression};
 use clap::{AppSettings, Clap};
 use feenk_releaser::VersionBump;
 use file_matcher::{FileNamed, OneEntry};
@@ -112,5 +112,17 @@ impl Release {
         zip.finish()?;
 
         Ok(package)
+    }
+
+    pub async fn run_releaser(
+        &self,
+        options: &AppOptions,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        SmalltalkExpression::new("GtPharoCompletionStrategy unsubscribeFromSystem")
+            .execute(options.gtoolkit().evaluator().save(true))?;
+
+        SmalltalkCommand::new("releasegtoolkit").execute(&options.gtoolkit().evaluator())?;
+
+        Ok(())
     }
 }

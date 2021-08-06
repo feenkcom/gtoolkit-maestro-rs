@@ -100,6 +100,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let package = Release::new().package(&options, &release_options).await?;
             println!("{}", package.display())
         }
+        SubCommand::RunReleaser => {
+            Release::new().run_releaser(&options).await?;
+        }
         SubCommand::PrintDebug => {
             println!("{:?}", &options);
         }

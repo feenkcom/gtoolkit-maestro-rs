@@ -84,8 +84,11 @@ pub enum SubCommand {
     /// Package the GlamorousToolkit image and App for a release. Prints the path to the created package in the `stdout`
     #[clap(display_order = 11)]
     PackageRelease(ReleaseOptions),
-    /// Display the Debug information of the AppOptions
+    /// Run the gtoolkit-releaser to release glamorous toolkit
     #[clap(display_order = 12)]
+    RunReleaser,
+    /// Display the Debug information of the AppOptions
+    #[clap(display_order = 13)]
     PrintDebug,
 }
 
