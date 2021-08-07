@@ -47,6 +47,7 @@ impl Starter {
                 "{} milliSeconds wait",
                 &start_options.delay.as_millis()
             ))
+            .add("LeLocalStoreMonitor setEnableStartup")
             .add("BlHost pickHost universe snapshot: true andQuit: true")
             .build()
             .execute(
