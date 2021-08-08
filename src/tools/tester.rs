@@ -30,20 +30,12 @@ impl Tester {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let gtoolkit = options.gtoolkit();
 
-        if test_options.disable_deprecation_rewrites {
-            gtoolkit.disable_deprecation_rewrites()?;
-        }
-
         if let Some(ref packages) = test_options.packages {
-            gtoolkit.run_examples(packages, test_options.skip_packages.as_ref())?;
+            gtoolkit.run_examples(packages, test_options)?;
         } else {
-            gtoolkit.run_release_examples(test_options.skip_packages.as_ref())?;
-            gtoolkit.run_release_slides(test_options.skip_packages.as_ref())?;
+            gtoolkit.run_release_examples(test_options)?;
+            gtoolkit.run_release_slides(test_options)?;
             gtoolkit.run_architectural_report()?;
-        }
-
-        if test_options.disable_deprecation_rewrites {
-            gtoolkit.enable_deprecation_rewrites()?;
         }
 
         Ok(())

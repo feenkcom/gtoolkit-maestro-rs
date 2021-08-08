@@ -1,19 +1,12 @@
 use crate::{
     ExecutableSmalltalk, Smalltalk, SmalltalkCommand, SmalltalkExpression,
-    SmalltalkExpressionBuilder,
+    SmalltalkExpressionBuilder, TestOptions,
 };
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 
 pub trait GToolkit {
-    fn set_deprecation_rewrites(&self, enabled: bool) -> Result<(), Box<dyn Error>>;
-    fn disable_deprecation_rewrites(&self) -> Result<(), Box<dyn Error>> {
-        self.set_deprecation_rewrites(false)
-    }
-    fn enable_deprecation_rewrites(&self) -> Result<(), Box<dyn Error>> {
-        self.set_deprecation_rewrites(true)
-    }
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>>;
     fn print_gtoolkit_version(&self) -> Result<(), Box<dyn Error>>;
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
@@ -23,23 +16,14 @@ pub trait GToolkit {
     fn run_examples(
         &self,
         packages: &Vec<String>,
-        skip_packages: Option<&Vec<String>>,
+        test_options: &TestOptions,
     ) -> Result<(), Box<dyn Error>>;
-    fn run_release_examples(
-        &self,
-        skip_packages: Option<&Vec<String>>,
-    ) -> Result<(), Box<dyn Error>>;
-    fn run_release_slides(&self, skip_packages: Option<&Vec<String>>)
-        -> Result<(), Box<dyn Error>>;
+    fn run_release_examples(&self, test_options: &TestOptions) -> Result<(), Box<dyn Error>>;
+    fn run_release_slides(&self, test_options: &TestOptions) -> Result<(), Box<dyn Error>>;
     fn run_architectural_report(&self) -> Result<(), Box<dyn Error>>;
 }
 
 impl GToolkit for Smalltalk {
-    fn set_deprecation_rewrites(&self, enabled: bool) -> Result<(), Box<dyn Error>> {
-        SmalltalkExpression::new(format!("Deprecation activateTransformations: {}", enabled))
-            .execute(self.evaluator().save(true))
-    }
-
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>> {
         let options = self.options().expect("Options are not set");
         let version = options.vm_version().expect("VM version is not set");
@@ -88,41 +72,50 @@ impl GToolkit for Smalltalk {
     fn run_examples(
         &self,
         packages: &Vec<String>,
-        skip_packages: Option<&Vec<String>>,
+        test_options: &TestOptions,
     ) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("examples")
             .args(packages)
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
-            .arg(skip_packages.map_or_else(
+            .arg(if test_options.disable_deprecation_rewrites {
+                "--disable-deprecation-rewrites"
+            } else {
+                ""
+            })
+            .arg(test_options.skip_packages.as_ref().map_or_else(
                 || "".to_string(),
                 |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
             ))
             .execute(&self.evaluator())
     }
 
-    fn run_release_examples(
-        &self,
-        skip_packages: Option<&Vec<String>>,
-    ) -> Result<(), Box<dyn Error>> {
+    fn run_release_examples(&self, test_options: &TestOptions) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("dedicatedReleaseBranchExamples")
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
-            .arg(skip_packages.map_or_else(
+            .arg(if test_options.disable_deprecation_rewrites {
+                "--disable-deprecation-rewrites"
+            } else {
+                ""
+            })
+            .arg(test_options.skip_packages.as_ref().map_or_else(
                 || "".to_string(),
                 |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
             ))
             .execute(&self.evaluator())
     }
 
-    fn run_release_slides(
-        &self,
-        skip_packages: Option<&Vec<String>>,
-    ) -> Result<(), Box<dyn Error>> {
+    fn run_release_slides(&self, test_options: &TestOptions) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("dedicatedReleaseBranchSlides")
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
-            .arg(skip_packages.map_or_else(
+            .arg(if test_options.disable_deprecation_rewrites {
+                "--disable-deprecation-rewrites"
+            } else {
+                ""
+            })
+            .arg(test_options.skip_packages.as_ref().map_or_else(
                 || "".to_string(),
                 |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
             ))
