@@ -20,9 +20,17 @@ pub trait GToolkit {
     fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>>;
     fn perform_iceberg_clean_up(&self) -> Result<(), Box<dyn Error>>;
-    fn run_examples(&self, packages: &Vec<String>) -> Result<(), Box<dyn Error>>;
-    fn run_release_examples(&self) -> Result<(), Box<dyn Error>>;
-    fn run_release_slides(&self) -> Result<(), Box<dyn Error>>;
+    fn run_examples(
+        &self,
+        packages: &Vec<String>,
+        skip_packages: Option<&Vec<String>>,
+    ) -> Result<(), Box<dyn Error>>;
+    fn run_release_examples(
+        &self,
+        skip_packages: Option<&Vec<String>>,
+    ) -> Result<(), Box<dyn Error>>;
+    fn run_release_slides(&self, skip_packages: Option<&Vec<String>>)
+        -> Result<(), Box<dyn Error>>;
     fn run_architectural_report(&self) -> Result<(), Box<dyn Error>>;
 }
 
@@ -77,25 +85,47 @@ impl GToolkit for Smalltalk {
             .execute(self.evaluator().save(true))
     }
 
-    fn run_examples(&self, packages: &Vec<String>) -> Result<(), Box<dyn Error>> {
+    fn run_examples(
+        &self,
+        packages: &Vec<String>,
+        skip_packages: Option<&Vec<String>>,
+    ) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("examples")
             .args(packages)
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
+            .arg(skip_packages.map_or_else(
+                || "".to_string(),
+                |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
+            ))
             .execute(&self.evaluator())
     }
 
-    fn run_release_examples(&self) -> Result<(), Box<dyn Error>> {
+    fn run_release_examples(
+        &self,
+        skip_packages: Option<&Vec<String>>,
+    ) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("dedicatedReleaseBranchExamples")
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
+            .arg(skip_packages.map_or_else(
+                || "".to_string(),
+                |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
+            ))
             .execute(&self.evaluator())
     }
 
-    fn run_release_slides(&self) -> Result<(), Box<dyn Error>> {
+    fn run_release_slides(
+        &self,
+        skip_packages: Option<&Vec<String>>,
+    ) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("dedicatedReleaseBranchSlides")
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
+            .arg(skip_packages.map_or_else(
+                || "".to_string(),
+                |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
+            ))
             .execute(&self.evaluator())
     }
 

@@ -14,6 +14,8 @@ pub struct TestOptions {
     /// Disable automatic deprecation rewrites during testing phase
     #[clap(long)]
     pub disable_deprecation_rewrites: bool,
+    #[clap(long, min_values = 1)]
+    pub skip_packages: Option<Vec<String>>,
 }
 
 impl Tester {
@@ -33,10 +35,10 @@ impl Tester {
         }
 
         if let Some(ref packages) = test_options.packages {
-            gtoolkit.run_examples(packages)?;
+            gtoolkit.run_examples(packages, test_options.skip_packages.as_ref())?;
         } else {
-            gtoolkit.run_release_examples()?;
-            gtoolkit.run_release_slides()?;
+            gtoolkit.run_release_examples(test_options.skip_packages.as_ref())?;
+            gtoolkit.run_release_slides(test_options.skip_packages.as_ref())?;
             gtoolkit.run_architectural_report()?;
         }
 
