@@ -15,9 +15,16 @@ pipeline {
         AWSIP = 'ec2-18-197-145-81.eu-central-1.compute.amazonaws.com'
 
         TOOL_NAME = 'gt-installer'
+        REPOSITORY_OWNER = 'feenkcom'
+        REPOSITORY_NAME = 'gtoolkit-maestro-rs'
+
         MACOS_INTEL_TARGET = 'x86_64-apple-darwin'
         MACOS_M1_TARGET = 'aarch64-apple-darwin'
+
+        WINDOWS_SERVER_NAME = 'daffy-duck'
         WINDOWS_AMD64_TARGET = 'x86_64-pc-windows-msvc'
+
+        LINUX_SERVER_NAME = 'mickey-mouse'
         LINUX_AMD64_TARGET = 'x86_64-unknown-linux-gnu'
     }
 
@@ -83,7 +90,7 @@ pipeline {
 
                 stage ('Linux x86_64') {
                     agent {
-                        label "${LINUX_AMD64_TARGET}"
+                        label "${LINUX_AMD64_TARGET}-${LINUX_SERVER_NAME}"
                     }
                     environment {
                         TARGET = "${LINUX_AMD64_TARGET}"
@@ -102,7 +109,7 @@ pipeline {
 
                 stage ('Windows x86_64') {
                     agent {
-                        label "${WINDOWS_AMD64_TARGET}"
+                        label "${WINDOWS_AMD64_TARGET}-${WINDOWS_SERVER_NAME}"
                     }
 
                     environment {
@@ -154,10 +161,10 @@ pipeline {
         }
         stage ('Deployment') {
             agent {
-                label "${LINUX_AMD64_TARGET}"
+                label "${MACOS_M1_TARGET}"
             }
             environment {
-                TARGET = "${LINUX_AMD64_TARGET}"
+                TARGET = "${MACOS_M1_TARGET}"
             }
             when {
                 expression {
@@ -175,8 +182,8 @@ pipeline {
 
                 sh """
                 ./feenk-releaser \
-                    --owner feenkcom \
-                    --repo gtoolkit-maestro-rs \
+                    --owner ${REPOSITORY_OWNER} \
+                    --repo ${REPOSITORY_NAME} \
                     --token GITHUB_TOKEN \
                     --bump ${params.BUMP} \
                     --auto-accept \
