@@ -110,10 +110,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("{:?}", &options);
         }
         SubCommand::PrintGtoolkitImageVersion => {
-            println!("{}", &options.gtoolkit_version().expect("No version"));
+            println!("v{}", &options.gtoolkit_version().expect("No version"));
         }
         SubCommand::PrintGtoolkitAppVersion => {
-            println!("{}", &options.vm_version().expect("No version"));
+            println!("v{}", &options.vm_version().expect("No version"));
         }
     };
 
