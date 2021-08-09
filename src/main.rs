@@ -101,11 +101,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let package = Release::new().package(&options, &release_options).await?;
             println!("{}", package.display())
         }
-        SubCommand::RunReleaser => {
-            Release::new().run_releaser(&options).await?;
+        SubCommand::RunReleaser(releaser_options) => {
+            Release::new()
+                .run_releaser(&options, &releaser_options)
+                .await?;
         }
         SubCommand::PrintDebug => {
             println!("{:?}", &options);
+        }
+        SubCommand::PrintGtoolkitImageVersion => {
+            println!("{}", &options.gtoolkit_version().expect("No version"));
+        }
+        SubCommand::PrintGtoolkitAppVersion => {
+            println!("{}", &options.vm_version().expect("No version"));
         }
     };
 

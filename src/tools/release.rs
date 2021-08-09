@@ -1,5 +1,5 @@
 use crate::options::{AppOptions, PlatformOS};
-use crate::{zip_file, zip_folder, ExecutableSmalltalk, SmalltalkCommand, SmalltalkExpression};
+use crate::{zip_file, zip_folder, ExecutableSmalltalk, SmalltalkCommand};
 use clap::{AppSettings, Clap};
 use feenk_releaser::VersionBump;
 use file_matcher::{FileNamed, OneEntry};
@@ -16,6 +16,13 @@ pub struct ReleaseOptions {
     /// - {{arch}} - the target release architecture. (`x86_64`, `aarch64`)
     #[clap(parse(from_os_str))]
     pub release: PathBuf,
+}
+
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColorAlways)]
+#[clap(setting = AppSettings::ColoredHelp)]
+pub struct ReleaserOptions {
+    /// Specify a releaser version bump strategy
     #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
     pub bump: VersionBump,
 }
@@ -34,15 +41,10 @@ impl Release {
         Self {}
     }
 
-    fn process_template_path(
-        options: &AppOptions,
-        release_options: &ReleaseOptions,
-        path: impl AsRef<Path>,
-    ) -> PathBuf {
+    fn process_template_path(options: &AppOptions, path: impl AsRef<Path>) -> PathBuf {
         let new_version = options
             .gtoolkit_version()
-            .expect("Must have a gtoolkit version")
-            .bump(release_options.bump.clone());
+            .expect("Must have a gtoolkit version");
         let platform = match options.platform() {
             PlatformOS::MacOSX8664 => "MacOS",
             PlatformOS::MacOSAarch64 => "MacOS",
@@ -77,11 +79,7 @@ impl Release {
         options: &AppOptions,
         release_options: &ReleaseOptions,
     ) -> Result<PathBuf, Box<dyn std::error::Error>> {
-        let package = Self::process_template_path(
-            options,
-            release_options,
-            release_options.release.as_path(),
-        );
+        let package = Self::process_template_path(options, release_options.release.as_path());
 
         let file = std::fs::File::create(&package).unwrap();
         let mut zip = zip::ZipWriter::new(file);
@@ -93,6 +91,8 @@ impl Release {
             FileNamed::wildmatch("*.image"),
             FileNamed::wildmatch("*.changes"),
             FileNamed::wildmatch("*.sources"),
+            FileNamed::exact(options.vm_version_file_name()),
+            FileNamed::exact(options.gtoolkit_version_file_name()),
         ]
         .into_iter()
         .map(|each| each.within(options.workspace()))
@@ -117,11 +117,15 @@ impl Release {
     pub async fn run_releaser(
         &self,
         options: &AppOptions,
+        releaser_options: &ReleaserOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        SmalltalkExpression::new("GtPharoCompletionStrategy unsubscribeFromSystem")
-            .execute(options.gtoolkit().evaluator().save(true))?;
-
-        SmalltalkCommand::new("releasegtoolkit").execute(&options.gtoolkit().evaluator())?;
+        SmalltalkCommand::new("releasegtoolkit")
+            .arg(format!("--strategy={}", releaser_options.bump.to_str()))
+            .arg(options.gtoolkit_version().map_or_else(
+                || "".to_string(),
+                |version| format!("--expected={}", version.to_string()),
+            ))
+            .execute(&options.gtoolkit().evaluator())?;
 
         Ok(())
     }

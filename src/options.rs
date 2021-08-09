@@ -1,6 +1,6 @@
 use crate::{
-    BuildOptions, CopyOptions, ReleaseBuildOptions, ReleaseOptions, SetupOptions, Smalltalk,
-    StartOptions, TentativeOptions, TestOptions,
+    BuildOptions, CopyOptions, ReleaseBuildOptions, ReleaseOptions, ReleaserOptions, SetupOptions,
+    Smalltalk, StartOptions, TentativeOptions, TestOptions,
 };
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version, VersionBump};
@@ -86,10 +86,16 @@ pub enum SubCommand {
     PackageRelease(ReleaseOptions),
     /// Run the gtoolkit-releaser to release glamorous toolkit
     #[clap(display_order = 12)]
-    RunReleaser,
+    RunReleaser(ReleaserOptions),
     /// Display the Debug information of the AppOptions
     #[clap(display_order = 13)]
     PrintDebug,
+    /// Display the version of the glamorous toolkit
+    #[clap(display_order = 14)]
+    PrintGtoolkitImageVersion,
+    /// Display the version of the glamorous toolkit app
+    #[clap(display_order = 15)]
+    PrintGtoolkitAppVersion,
 }
 
 #[derive(Clone, Debug)]

@@ -16,7 +16,7 @@ pub use checker::Checker;
 pub use cleaner::Cleaner;
 pub use copier::{Copier, CopyOptions};
 pub use downloader::Downloader;
-pub use release::{Release, ReleaseOptions};
+pub use release::{Release, ReleaseOptions, ReleaserOptions};
 pub use setup::{Setup, SetupOptions, SetupTarget};
 pub use starter::{StartOptions, Starter};
 pub use tentative::{Tentative, TentativeOptions};
