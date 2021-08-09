@@ -79,23 +79,24 @@ impl Setup {
         options: &mut AppOptions,
         setup_options: &SetupOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let gtoolkit = options.gtoolkit();
-
         match setup_options.target {
             SetupTarget::LocalBuild => {
                 println!("{}Setting up for local build...", CREATING);
-                gtoolkit.perform_setup_for_local_build()?;
+                options.gtoolkit().perform_setup_for_local_build()?;
             }
             SetupTarget::Release => {
                 println!("{}Setting up for release...", CREATING);
-                gtoolkit.perform_setup_for_release(setup_options.bump.clone())?;
-                options.set_gtoolkit_version(gtoolkit.get_gtoolkit_version()?);
-                gtoolkit.print_new_commits()?;
+                options
+                    .gtoolkit()
+                    .perform_setup_for_release(setup_options.bump.clone())?;
+                let gtoolkit_version = options.gtoolkit().get_gtoolkit_version()?;
+                options.set_gtoolkit_version(gtoolkit_version);
+                options.gtoolkit().print_new_commits()?;
             }
         }
 
-        gtoolkit.print_vm_version()?;
-        gtoolkit.print_gtoolkit_version()?;
+        options.gtoolkit().print_vm_version()?;
+        options.gtoolkit().print_gtoolkit_version()?;
 
         if !setup_options.no_gt_world {
             println!("{}Setting up GtWorld...", BUILDING);

@@ -16,7 +16,10 @@ impl SmalltalkScriptsToExecute {
         self
     }
 
-    pub async fn execute(&self, evaluator: &SmalltalkEvaluator<'_>) -> Result<(), Box<dyn Error>> {
+    pub async fn execute(
+        &self,
+        evaluator: &SmalltalkEvaluator<'_, '_>,
+    ) -> Result<(), Box<dyn Error>> {
         let mut index = 0 as usize;
         let total = self.scripts.len();
 

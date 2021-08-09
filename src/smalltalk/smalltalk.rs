@@ -55,14 +55,14 @@ pub trait ExecutableSmalltalk {
 }
 
 #[derive(Debug, Clone)]
-pub struct Smalltalk {
+pub struct Smalltalk<'options> {
     executable: PathBuf,
     image: PathBuf,
     workspace: Option<PathBuf>,
-    options: Option<AppOptions>,
+    options: Option<&'options AppOptions>,
 }
 
-impl Smalltalk {
+impl<'options> Smalltalk<'options> {
     pub fn new(executable: impl Into<PathBuf>, image: impl Into<PathBuf>) -> Self {
         Self {
             executable: executable.into(),
@@ -95,7 +95,7 @@ impl Smalltalk {
         }
     }
 
-    pub fn set_options(self, options: AppOptions) -> Self {
+    pub fn set_options(self, options: &'options AppOptions) -> Self {
         Self {
             executable: self.executable,
             image: self.image,
@@ -113,7 +113,7 @@ impl Smalltalk {
     }
 
     pub fn options(&self) -> Option<&AppOptions> {
-        self.options.as_ref()
+        self.options
     }
 
     pub fn verbose(&self) -> bool {

@@ -241,13 +241,13 @@ impl AppOptions {
     pub fn gtoolkit(&self) -> Smalltalk {
         Smalltalk::new(self.gtoolkit_app_cli(), self.gtoolkit_image())
             .set_workspace(self.workspace())
-            .set_options(self.clone())
+            .set_options(self)
     }
 
     pub fn pharo(&self) -> Smalltalk {
         Smalltalk::new(self.pharo_executable(), self.gtoolkit_image())
             .set_workspace(self.workspace())
-            .set_options(self.clone())
+            .set_options(self)
     }
 
     pub fn workspace(&self) -> PathBuf {

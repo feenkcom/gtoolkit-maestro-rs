@@ -4,16 +4,16 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 #[derive(Debug)]
-pub struct SmalltalkEvaluator<'smalltalk> {
-    smalltalk: &'smalltalk Smalltalk,
+pub struct SmalltalkEvaluator<'smalltalk, 'options> {
+    smalltalk: &'smalltalk Smalltalk<'options>,
     interactive: bool,
     should_quit: bool,
     should_save: bool,
     verbose: bool,
 }
 
-impl<'smalltalk> SmalltalkEvaluator<'smalltalk> {
-    pub fn new(smalltalk: &'smalltalk Smalltalk) -> Self {
+impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
+    pub fn new(smalltalk: &'smalltalk Smalltalk<'options>) -> Self {
         Self {
             smalltalk,
             interactive: false,

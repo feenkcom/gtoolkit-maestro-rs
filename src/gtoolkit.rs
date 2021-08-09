@@ -25,7 +25,7 @@ pub trait GToolkit {
     fn run_architectural_report(&self) -> Result<(), Box<dyn Error>>;
 }
 
-impl GToolkit for Smalltalk {
+impl<'options> GToolkit for Smalltalk<'options> {
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>> {
         let options = self.options().expect("Options are not set");
         let version = options.vm_version().expect("VM version is not set");
