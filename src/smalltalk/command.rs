@@ -1,5 +1,6 @@
 use crate::{ExecutableSmalltalk, SmalltalkEvaluator};
 use std::error::Error;
+use std::process::Command;
 
 pub struct SmalltalkCommand {
     command: String,
@@ -38,26 +39,12 @@ impl SmalltalkCommand {
 }
 
 impl ExecutableSmalltalk for SmalltalkCommand {
-    fn execute(&self, evaluator: &SmalltalkEvaluator) -> Result<(), Box<dyn Error>> {
+    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command, Box<dyn Error>> {
         let mut command = evaluator.command();
         command.arg(&self.command);
         command.args(&self.arguments);
-        if evaluator.is_verbose() {
-            println!("{:?}", &command);
-        }
 
-        let status = command.status().unwrap();
-
-        if !status.success() {
-            return Err(Box::new(crate::error::Error {
-                what: format!(
-                    "Command {} failed. See install.log or install-errors.log for more info",
-                    &self.command
-                ),
-                source: None,
-            }));
-        }
-        Ok(())
+        Ok(command)
     }
 
     fn name(&self) -> String {

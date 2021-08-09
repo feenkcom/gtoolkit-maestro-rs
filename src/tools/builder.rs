@@ -7,6 +7,7 @@ use crate::{
 };
 use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
+use feenk_releaser::VersionBump;
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
 use std::str::FromStr;
@@ -34,6 +35,9 @@ pub struct ReleaseBuildOptions {
     /// Do not open a default GtWorld
     #[clap(long)]
     pub no_gt_world: bool,
+    /// When building an image for a release, specify which component version to bump
+    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
+    pub bump: VersionBump,
 }
 
 impl BuildOptions {

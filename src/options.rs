@@ -204,6 +204,10 @@ impl AppOptions {
         self.gtoolkit_version.as_ref()
     }
 
+    pub fn set_gtoolkit_version(&mut self, version: Version) {
+        self.gtoolkit_version = Some(version)
+    }
+
     pub fn vm_version_file_name(&self) -> &str {
         "gtoolkit-vm.version"
     }

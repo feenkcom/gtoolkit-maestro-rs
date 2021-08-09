@@ -2,6 +2,7 @@ use crate::gtoolkit::GToolkit;
 use crate::options::AppOptions;
 use crate::{StartOptions, Starter, BUILDING, CREATING};
 use clap::{AppSettings, ArgEnum, Clap};
+use feenk_releaser::VersionBump;
 use std::str::FromStr;
 
 pub struct Setup;
@@ -16,6 +17,9 @@ pub struct SetupOptions {
     /// Specify a setup target
     #[clap(long, default_value = "local-build", possible_values = SetupTarget::VARIANTS, case_insensitive = true)]
     pub target: SetupTarget,
+    /// When building an image for a release, specify which component version to bump
+    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
+    pub bump: VersionBump,
 }
 
 impl SetupOptions {
@@ -23,6 +27,7 @@ impl SetupOptions {
         Self {
             no_gt_world: false,
             target: SetupTarget::LocalBuild,
+            bump: VersionBump::Patch,
         }
     }
 
@@ -32,6 +37,10 @@ impl SetupOptions {
 
     pub fn gt_world(&mut self, should_open_gt_world: bool) {
         self.no_gt_world = !should_open_gt_world;
+    }
+
+    pub fn bump(&mut self, bump: VersionBump) {
+        self.bump = bump;
     }
 }
 
@@ -67,7 +76,7 @@ impl Setup {
 
     pub async fn setup(
         &self,
-        options: &AppOptions,
+        options: &mut AppOptions,
         setup_options: &SetupOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let gtoolkit = options.gtoolkit();
@@ -79,7 +88,8 @@ impl Setup {
             }
             SetupTarget::Release => {
                 println!("{}Setting up for release...", CREATING);
-                gtoolkit.perform_setup_for_release()?;
+                gtoolkit.perform_setup_for_release(setup_options.bump.clone())?;
+                options.set_gtoolkit_version(gtoolkit.get_gtoolkit_version()?);
                 gtoolkit.print_new_commits()?;
             }
         }

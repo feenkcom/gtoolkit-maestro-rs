@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Builder::new().build(&options, &build_options).await?;
         }
         SubCommand::Setup(setup_options) => {
-            Setup::new().setup(&options, &setup_options).await?;
+            Setup::new().setup(&mut options, &setup_options).await?;
         }
         SubCommand::Test(test_options) => {
             Tester::new().test(&options, &test_options).await?;
@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let build_options = BuildOptions::new();
             let setup_options = SetupOptions::new();
             Builder::new().build(&options, &build_options).await?;
-            Setup::new().setup(&options, &setup_options).await?;
+            Setup::new().setup(&mut options, &setup_options).await?;
         }
         SubCommand::ReleaseBuild(release_build) => {
             let mut build_options = BuildOptions::new();
@@ -73,9 +73,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let mut setup_options = SetupOptions::new();
             setup_options.target(SetupTarget::Release);
             setup_options.gt_world(!release_build.no_gt_world);
+            setup_options.bump(release_build.bump);
 
             Builder::new().build(&options, &build_options).await?;
-            Setup::new().setup(&options, &setup_options).await?;
+            Setup::new().setup(&mut options, &setup_options).await?;
         }
         SubCommand::CopyTo(copy_options) => {
             Copier::new().copy(&mut options, &copy_options).await?;

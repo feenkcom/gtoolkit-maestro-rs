@@ -1,6 +1,7 @@
 use crate::{ExecutableSmalltalk, SmalltalkEvaluator};
 use std::error::Error;
 use std::path::PathBuf;
+use std::process::Command;
 
 pub struct SmalltalkScriptToExecute {
     script: PathBuf,
@@ -15,7 +16,7 @@ impl SmalltalkScriptToExecute {
 }
 
 impl ExecutableSmalltalk for SmalltalkScriptToExecute {
-    fn execute(&self, evaluator: &SmalltalkEvaluator) -> Result<(), Box<dyn Error>> {
+    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command, Box<dyn Error>> {
         let mut command = evaluator.command();
         command
             .arg("st")
@@ -36,21 +37,7 @@ impl ExecutableSmalltalk for SmalltalkScriptToExecute {
             })
             .arg(self.script.as_path());
 
-        if evaluator.is_verbose() {
-            println!("{:?}", &command);
-        }
-        let status = command.status().unwrap();
-
-        if !status.success() {
-            return Err(Box::new(crate::error::Error {
-                what: format!(
-                    "Script {} failed. See install.log or install-errors.log for more info",
-                    self.script.display()
-                ),
-                source: None,
-            }));
-        }
-        Ok(())
+        Ok(command)
     }
 
     fn name(&self) -> String {

@@ -2,9 +2,54 @@ use crate::options::AppOptions;
 use crate::SmalltalkEvaluator;
 use std::error::Error;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
 pub trait ExecutableSmalltalk {
-    fn execute(&self, evaluator: &SmalltalkEvaluator) -> Result<(), Box<dyn Error>>;
+    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command, Box<dyn Error>>;
+    fn execute(&self, evaluator: &SmalltalkEvaluator) -> Result<(), Box<dyn Error>> {
+        let mut command = self.create_command(evaluator)?;
+        if evaluator.is_verbose() {
+            println!("{:?}", &command);
+        }
+
+        let status = command.status()?;
+
+        if !status.success() {
+            return Err(Box::new(crate::error::Error {
+                what: format!(
+                    "Command {:?} failed. See install.log or install-errors.log for more info",
+                    &command
+                ),
+                source: None,
+            }));
+        }
+        Ok(())
+    }
+    fn execute_with_result(
+        &self,
+        evaluator: &SmalltalkEvaluator,
+    ) -> Result<String, Box<dyn Error>> {
+        let mut command = self.create_command(evaluator)?;
+        command.stdout(Stdio::piped());
+
+        if evaluator.is_verbose() {
+            println!("{:?}", &command);
+        }
+
+        let output = command.output()?;
+
+        if !output.status.success() {
+            return Err(Box::new(crate::error::Error {
+                what: format!(
+                    "Command {:?} failed.\nError:\n{}",
+                    &command,
+                    String::from_utf8_lossy(&output.stderr)
+                ),
+                source: None,
+            }));
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
 
     fn name(&self) -> String;
 }

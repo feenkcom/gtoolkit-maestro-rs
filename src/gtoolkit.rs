@@ -2,6 +2,7 @@ use crate::{
     ExecutableSmalltalk, Smalltalk, SmalltalkCommand, SmalltalkExpression,
     SmalltalkExpressionBuilder, TestOptions,
 };
+use feenk_releaser::{Version, VersionBump};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
@@ -9,8 +10,9 @@ use std::io::Write;
 pub trait GToolkit {
     fn print_vm_version(&self) -> Result<(), Box<dyn Error>>;
     fn print_gtoolkit_version(&self) -> Result<(), Box<dyn Error>>;
+    fn get_gtoolkit_version(&self) -> Result<Version, Box<dyn Error>>;
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>>;
-    fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>>;
+    fn perform_setup_for_release(&self, bump: VersionBump) -> Result<(), Box<dyn Error>>;
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>>;
     fn perform_iceberg_clean_up(&self) -> Result<(), Box<dyn Error>>;
     fn run_examples(
@@ -45,13 +47,22 @@ impl GToolkit for Smalltalk {
         Ok(())
     }
 
+    fn get_gtoolkit_version(&self) -> Result<Version, Box<dyn Error>> {
+        let version_string =
+            SmalltalkCommand::new("getgtoolkitversion").execute_with_result(&self.evaluator())?;
+        Version::parse(version_string)
+    }
+
     fn print_new_commits(&self) -> Result<(), Box<dyn Error>> {
         SmalltalkCommand::new("printNewCommits").execute(&self.evaluator())
     }
 
-    fn perform_setup_for_release(&self) -> Result<(), Box<dyn Error>> {
-        SmalltalkExpression::new("GtImageSetup performSetupForRelease")
-            .execute(self.evaluator().save(true))
+    fn perform_setup_for_release(&self, bump: VersionBump) -> Result<(), Box<dyn Error>> {
+        SmalltalkExpression::new(format!(
+            "GtImageSetup performSetupForRelease: '{}'",
+            bump.to_str()
+        ))
+        .execute(self.evaluator().save(true))
     }
 
     fn perform_setup_for_local_build(&self) -> Result<(), Box<dyn Error>> {
