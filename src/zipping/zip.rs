@@ -31,7 +31,17 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
         // Write file or directory explicitly
         // Some unzip tools unzip files with directory paths correctly, some do not!
         if path.is_file() {
-            zip.start_file(name, zip_options)?;
+            let mut file_options = zip_options.clone();
+            // Get and Set permissions
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+
+                let unix_mode: u32 = std::fs::metadata(path)?.permissions().mode();
+                file_options = file_options.unix_permissions(unix_mode);
+            }
+
+            zip.start_file(name, file_options)?;
             let mut f = File::open(path)?;
 
             f.read_to_end(&mut buffer)?;
@@ -48,7 +58,7 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
 pub fn zip_file<F: std::io::Write + std::io::Seek>(
     zip: &mut ZipWriter<F>,
     file: impl AsRef<Path>,
-    zip_options: FileOptions,
+    mut zip_options: FileOptions,
 ) -> Result<(), Box<dyn Error>> {
     let file = file.as_ref();
     let name = file
@@ -56,6 +66,15 @@ pub fn zip_file<F: std::io::Write + std::io::Seek>(
         .expect("Could not get file name")
         .to_str()
         .expect("Could not convert file name to Unicode");
+
+    // Get and Set permissions
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        let unix_mode: u32 = std::fs::metadata(file)?.permissions().mode();
+        zip_options = zip_options.unix_permissions(unix_mode);
+    }
 
     zip.start_file(name, zip_options)?;
 

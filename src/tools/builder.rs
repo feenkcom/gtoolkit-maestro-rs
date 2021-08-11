@@ -3,9 +3,8 @@ use crate::download::{FileToDownload, FilesToDownload};
 use crate::error::Error;
 use crate::options::AppOptions;
 use crate::{
-    Checker, Downloader, FileToMove, SmalltalkExpressionBuilder,
-    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING,
-    EXTRACTING, MOVING, SPARKLE,
+    Checker, Downloader, FileToMove, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
+    SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
