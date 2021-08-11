@@ -1,17 +1,21 @@
 use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
+use crate::error::Error;
 use crate::options::AppOptions;
 use crate::{
-    Checker, Downloader, FileToMove, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING,
-    CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+    Checker, Downloader, FileToMove, SmalltalkExpressionBuilder,
+    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING,
+    EXTRACTING, MOVING, SPARKLE,
 };
 use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
 use feenk_releaser::VersionBump;
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use url::Url;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColorAlways)]
@@ -23,6 +27,22 @@ pub struct BuildOptions {
     #[clap(long, default_value = "cloner", possible_values = Loader::VARIANTS, case_insensitive = true)]
     /// Specify a loader to install GToolkit code in a Pharo image.
     pub loader: Loader,
+    /// Specify a URL to a clean seed image on top of which to build the glamorous toolkit
+    #[clap(long, parse(try_from_str = url_parse))]
+    pub image_url: Option<Url>,
+    /// Specify a path to a clean seed image on top of which to build the glamorous toolkit
+    #[clap(long, parse(from_os_str))]
+    pub image_path: Option<PathBuf>,
+    /// Public ssh key to use when pushing to the repositories
+    #[clap(long, parse(from_os_str))]
+    pub public_key: Option<PathBuf>,
+    /// Private ssh key to use when pushing to the repositories
+    #[clap(long, parse(from_os_str))]
+    pub private_key: Option<PathBuf>,
+}
+
+fn url_parse(val: &str) -> Result<Url, Box<dyn std::error::Error>> {
+    Url::parse(val).map_err(|error| error.into())
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -38,6 +58,58 @@ pub struct ReleaseBuildOptions {
     /// When building an image for a release, specify which component version to bump
     #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
     pub bump: VersionBump,
+    /// Public ssh key to use when pushing to the repositories
+    #[clap(long, parse(from_os_str))]
+    pub public_key: Option<PathBuf>,
+    /// Private ssh key to use when pushing to the repositories
+    #[clap(long, parse(from_os_str))]
+    pub private_key: Option<PathBuf>,
+}
+
+impl BuildOptions {
+    fn ssh_keys(&self) -> Result<Option<(PathBuf, PathBuf)>, Box<dyn std::error::Error>> {
+        let public_key = self.public_key()?;
+        let private_key = self.private_key()?;
+
+        match (private_key, public_key) {
+            (Some(private), Some(public)) => Ok(Some((private, public))),
+            (None, None) => Ok(None),
+            _ => Err(Box::new(Error {
+                what: "Both private and public key must be set, or none".to_string(),
+                source: None,
+            })),
+        }
+    }
+
+    fn public_key(&self) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+        if let Some(ref key) = self.public_key {
+            if key.exists() {
+                Ok(Some(to_absolute::canonicalize(key)?))
+            } else {
+                return Err(Box::new(Error {
+                    what: format!("Specified public key does not exist: {:?}", key),
+                    source: None,
+                }));
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn private_key(&self) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+        if let Some(ref key) = self.private_key {
+            if key.exists() {
+                Ok(Some(to_absolute::canonicalize(key)?))
+            } else {
+                return Err(Box::new(Error {
+                    what: format!("Specified private key does not exist: {:?}", key),
+                    source: None,
+                }));
+            }
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl BuildOptions {
@@ -45,6 +117,10 @@ impl BuildOptions {
         Self {
             overwrite: false,
             loader: Loader::Cloner,
+            image_url: None,
+            image_path: None,
+            public_key: None,
+            private_key: None,
         }
     }
     pub fn should_overwrite(&self) -> bool {
@@ -83,6 +159,11 @@ impl ToString for Loader {
     fn to_string(&self) -> String {
         (Loader::VARIANTS[*self as usize]).to_owned()
     }
+}
+
+pub enum ImageSeed {
+    Url(Url),
+    File(PathBuf),
 }
 
 pub struct Builder;
@@ -192,7 +273,23 @@ impl Builder {
             .await?;
 
         println!("{}Building Glamorous Toolkit...", BUILDING);
-        SmalltalkScriptsToExecute::new()
+        let ssh_keys = build_options.ssh_keys()?;
+        let mut scripts_to_execute = SmalltalkScriptsToExecute::new();
+
+        if let Some((private, public)) = ssh_keys {
+            scripts_to_execute.add(
+                SmalltalkExpressionBuilder::new()
+                    .add("IceCredentialsProvider useCustomSsh: true")
+                    .add(format!(
+                        "IceCredentialsProvider sshCredentials publicKey: '{}'; privateKey: '{}'",
+                        private.display(),
+                        public.display()
+                    ))
+                    .build(),
+            );
+        }
+
+        scripts_to_execute
             .add(SmalltalkScriptToExecute::new("load-gt.st"))
             .execute(gtoolkit.evaluator().save(true))
             .await?;

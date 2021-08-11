@@ -69,6 +69,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 build_options.loader(Loader::Metacello);
             }
+            build_options.private_key = release_build.private_key;
+            build_options.public_key = release_build.public_key;
 
             let mut setup_options = SetupOptions::new();
             setup_options.target(SetupTarget::Release);
