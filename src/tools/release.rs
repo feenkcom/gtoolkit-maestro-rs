@@ -127,22 +127,31 @@ impl Release {
         options: &AppOptions,
         releaser_options: &ReleaserOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(ref private_key) = releaser_options.private_key {
-            if !private_key.exists() {
+        let private_key_path = if let Some(ref private_key) = releaser_options.private_key {
+            if private_key.exists() {
+                Some(to_absolute::canonicalize(private_key)?)
+            } else {
                 return Err(Box::new(Error {
                     what: format!("Specified private key does not exist: {:?}", private_key),
                     source: None,
                 }));
             }
-        }
-        if let Some(ref public_key) = releaser_options.public_key {
-            if !public_key.exists() {
+        } else {
+            None
+        };
+
+        let public_key_path = if let Some(ref public_key) = releaser_options.public_key {
+            if public_key.exists() {
+                Some(to_absolute::canonicalize(public_key)?)
+            } else {
                 return Err(Box::new(Error {
                     what: format!("Specified public key does not exist: {:?}", public_key),
                     source: None,
                 }));
             }
-        }
+        } else {
+            None
+        };
 
         SmalltalkCommand::new("releasegtoolkit")
             .arg(format!("--strategy={}", releaser_options.bump.to_str()))
@@ -150,11 +159,11 @@ impl Release {
                 || "".to_string(),
                 |version| format!("--expected={}", version.to_string()),
             ))
-            .arg(releaser_options.private_key.as_ref().map_or_else(
+            .arg(private_key_path.map_or_else(
                 || "".to_string(),
                 |path| format!("--private-key={}", path.display()),
             ))
-            .arg(releaser_options.public_key.as_ref().map_or_else(
+            .arg(public_key_path.map_or_else(
                 || "".to_string(),
                 |path| format!("--public-key={}", path.display()),
             ))
