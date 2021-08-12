@@ -5,9 +5,10 @@ Metacello new
     repository: 'github://feenkcom/gtoolkit-releaser:main/src';
     load.
 
-GtRlProjectsLoader new
-    loadBaseline: 'GToolkitForPharo9'
-    fromRepository: 'github://feenkcom/gtoolkit:main/src'.
+MCCacheRepository disableCacheDuring: [
+    GtRlProjectsLoader new
+        loadBaseline: 'GToolkitForPharo9'
+        fromRepository: 'github://feenkcom/gtoolkit:main/src' ].
 
 EpMonitor current enable.
 
