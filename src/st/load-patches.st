@@ -74,6 +74,16 @@ patcher patch: MCPackageLoader source: 'tryToLoad: aDefinition
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'.
 
+patcher patch: CompiledMethod source: 'basicAsMCMethodDefinition
+	^ MCMethodDefinition
+		  className: self methodClass instanceSide name
+		  classIsMeta: self methodClass isClassSide
+		  selector: self selector
+		  category: self protocol
+		  timeStamp: '''' "self stamp"
+		  source: self sourceCode'.
+	
+
 "===================================
         Pharo9 Deprecations
 ==================================="
