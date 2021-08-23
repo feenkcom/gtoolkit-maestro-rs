@@ -1,5 +1,6 @@
-use crate::options::{AppOptions, PlatformOS};
-use crate::{zip_file, zip_folder, ExecutableSmalltalk, SmalltalkCommand};
+use crate::{
+    zip_file, zip_folder, Application, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand,
+};
 use clap::{AppSettings, Clap};
 use feenk_releaser::VersionBump;
 use file_matcher::{FileNamed, OneEntry};
@@ -41,18 +42,17 @@ impl Release {
         Self {}
     }
 
-    fn process_template_path(options: &AppOptions, path: impl AsRef<Path>) -> PathBuf {
-        let new_version = options
-            .gtoolkit_version()
-            .expect("Must have a gtoolkit version");
-        let platform = match options.platform() {
+    fn process_template_path(application: &Application, path: impl AsRef<Path>) -> PathBuf {
+        let new_version = application.image_version();
+
+        let platform = match application.platform() {
             PlatformOS::MacOSX8664 => "MacOS",
             PlatformOS::MacOSAarch64 => "MacOS",
             PlatformOS::WindowsX8664 => "Windows",
             PlatformOS::LinuxX8664 => "Linux",
         };
 
-        let arch = match options.platform() {
+        let arch = match application.platform() {
             PlatformOS::MacOSX8664 => "x86_64",
             PlatformOS::MacOSAarch64 => "aarch64",
             PlatformOS::WindowsX8664 => "x86_64",
@@ -76,10 +76,10 @@ impl Release {
 
     pub async fn package(
         &self,
-        options: &AppOptions,
+        application: &Application,
         release_options: &ReleaseOptions,
-    ) -> Result<PathBuf, Box<dyn std::error::Error>> {
-        let package = Self::process_template_path(options, release_options.release.as_path());
+    ) -> Result<PathBuf> {
+        let package = Self::process_template_path(application, release_options.release.as_path());
 
         let file = std::fs::File::create(&package).unwrap();
         let mut zip = zip::ZipWriter::new(file);
@@ -91,21 +91,20 @@ impl Release {
             FileNamed::wildmatch("*.image"),
             FileNamed::wildmatch("*.changes"),
             FileNamed::wildmatch("*.sources"),
-            FileNamed::exact(options.vm_version_file_name()),
-            FileNamed::exact(options.gtoolkit_version_file_name()),
+            FileNamed::exact(application.serialization_file_name()),
         ]
         .into_iter()
-        .map(|each| each.within(options.workspace()))
+        .map(|each| each.within(application.workspace()))
         .collect::<Vec<OneEntry>>();
 
         for ref filter in filters {
             zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
         }
 
-        let gt_extra = options.workspace().join("gt-extra");
+        let gt_extra = application.workspace().join("gt-extra");
         zip_folder(&mut zip, &gt_extra, zip_options)?;
 
-        for folder in options.gtoolkit_app_folders() {
+        for folder in application.gtoolkit_app_folders() {
             zip_folder(&mut zip, folder.as_path_buf()?, zip_options)?;
         }
 
@@ -116,17 +115,21 @@ impl Release {
 
     pub async fn run_releaser(
         &self,
-        options: &AppOptions,
+        application: &Application,
         releaser_options: &ReleaserOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         SmalltalkCommand::new("releasegtoolkit")
             .arg(format!("--strategy={}", releaser_options.bump.to_str()))
-            .arg(options.gtoolkit_version().map_or_else(
-                || "".to_string(),
-                |version| format!("--expected={}", version.to_string()),
+            .arg(format!(
+                "--expected={}",
+                application.image_version().to_string()
             ))
-            .arg(if options.verbose() { "--verbose" } else { "" })
-            .execute(&options.gtoolkit().evaluator())?;
+            .arg(if application.is_verbose() {
+                "--verbose"
+            } else {
+                ""
+            })
+            .execute(&application.gtoolkit().evaluator())?;
 
         Ok(())
     }

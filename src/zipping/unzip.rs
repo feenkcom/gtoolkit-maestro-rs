@@ -1,10 +1,10 @@
-use crate::error::BoxError;
 use futures::{stream, StreamExt};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
+
+use crate::Result;
 
 #[derive(Debug, Clone)]
 pub struct FileToUnzip {
@@ -37,7 +37,21 @@ impl FilesToUnzip {
         Self { files }
     }
 
-    pub async fn unzip(self) -> Result<(), Box<dyn Error>> {
+    pub fn maybe_add(self, file_to_unzip: Option<FileToUnzip>) -> Self {
+        if let Some(file_to_unzip) = file_to_unzip {
+            self.add(file_to_unzip)
+        } else {
+            self
+        }
+    }
+
+    pub fn extend(self, files_to_unzip: Self) -> Self {
+        let mut files = self.files.clone();
+        files.extend(files_to_unzip.files);
+        Self { files }
+    }
+
+    pub async fn unzip(self) -> Result<()> {
         // Set up a new multi-progress bar.
         // The bar is stored in an `Arc` to facilitate sharing between threads.
         let multibar = std::sync::Arc::new(indicatif::MultiProgress::new());
@@ -108,10 +122,7 @@ impl FilesToUnzip {
     }
 }
 
-pub fn unzip_task(
-    file_to_unzip: FileToUnzip,
-    multibar: Arc<MultiProgress>,
-) -> Result<(), BoxError> {
+pub fn unzip_task(file_to_unzip: FileToUnzip, multibar: Arc<MultiProgress>) -> Result<()> {
     let file = std::fs::File::open(&file_to_unzip.archive).unwrap();
     let mut archive = zip::ZipArchive::new(file).unwrap();
 

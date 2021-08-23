@@ -1,10 +1,11 @@
-use crate::options::AppOptions;
 use clap::{AppSettings, Clap};
 use std::path::PathBuf;
 
 use file_matcher::{FileNamed, OneEntry};
 
-use crate::{zip_file, zip_folder, Checker, Downloader, FileToUnzip, FilesToUnzip};
+use crate::{
+    zip_file, zip_folder, Application, Checker, Downloader, FileToUnzip, FilesToUnzip, Result,
+};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColorAlways)]
@@ -28,9 +29,9 @@ impl Tentative {
 
     pub async fn package(
         &self,
-        options: &AppOptions,
+        application: &Application,
         tentative_options: &TentativeOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let file = std::fs::File::create(&tentative_options.tentative).unwrap();
         let mut zip = zip::ZipWriter::new(file);
 
@@ -41,18 +42,17 @@ impl Tentative {
             FileNamed::wildmatch("*.image"),
             FileNamed::wildmatch("*.changes"),
             FileNamed::wildmatch("*.sources"),
-            FileNamed::exact(options.vm_version_file_name()),
-            FileNamed::exact(options.gtoolkit_version_file_name()),
+            FileNamed::exact(application.serialization_file_name()),
         ]
         .into_iter()
-        .map(|each| each.within(options.workspace()))
+        .map(|each| each.within(application.workspace()))
         .collect::<Vec<OneEntry>>();
 
         for ref filter in filters {
             zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
         }
 
-        let gt_extra = options.workspace().join("gt-extra");
+        let gt_extra = application.workspace().join("gt-extra");
 
         if gt_extra.exists() || !tentative_options.ignore_absent {
             zip_folder(&mut zip, &gt_extra, zip_options)?;
@@ -65,23 +65,22 @@ impl Tentative {
 
     pub async fn unpackage(
         &self,
-        options: &mut AppOptions,
+        application: &mut Application,
         tentative_options: &TentativeOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        Checker::new().check(&options, false).await?;
+    ) -> Result<()> {
+        Checker::new().check(&application, false).await?;
 
         let files_to_unzip = FilesToUnzip::new().add(FileToUnzip::new(
             tentative_options.tentative.as_path(),
-            options.workspace(),
+            application.workspace(),
         ));
 
         files_to_unzip.unzip().await?;
 
-        options.read_vm_version().await?;
-        options.read_gtoolkit_version().await?;
+        application.deserialize_from_file()?;
 
         Downloader::new()
-            .download_glamorous_toolkit_vm(&options)
+            .download_glamorous_toolkit_vm(&application)
             .await?;
 
         Ok(())

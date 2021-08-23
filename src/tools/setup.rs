@@ -1,6 +1,5 @@
 use crate::gtoolkit::GToolkit;
-use crate::options::AppOptions;
-use crate::{StartOptions, Starter, BUILDING, CREATING};
+use crate::{Application, Result, StartOptions, Starter, BUILDING, CREATING};
 use clap::{AppSettings, ArgEnum, Clap};
 use feenk_releaser::VersionBump;
 use std::str::FromStr;
@@ -58,7 +57,7 @@ pub enum SetupTarget {
 impl FromStr for SetupTarget {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, String> {
         <SetupTarget as ArgEnum>::from_str(s, true)
     }
 }
@@ -76,39 +75,38 @@ impl Setup {
 
     pub async fn setup(
         &self,
-        options: &mut AppOptions,
+        application: &mut Application,
         setup_options: &SetupOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         match setup_options.target {
             SetupTarget::LocalBuild => {
                 println!("{}Setting up for local build...", CREATING);
-                options.gtoolkit().perform_setup_for_local_build()?;
+                application.gtoolkit().perform_setup_for_local_build()?;
             }
             SetupTarget::Release => {
                 println!("{}Setting up for release...", CREATING);
-                options
+                application
                     .gtoolkit()
                     .perform_setup_for_release(setup_options.bump.clone())?;
-                let gtoolkit_version = options.gtoolkit().get_gtoolkit_version()?;
-                options.set_gtoolkit_version(gtoolkit_version);
-                options.gtoolkit().print_new_commits()?;
+                let gtoolkit_version = application.gtoolkit().get_gtoolkit_version()?;
+                application.set_image_version(gtoolkit_version.into());
+                application.gtoolkit().print_new_commits()?;
             }
         }
 
-        options.gtoolkit().print_vm_version()?;
-        options.gtoolkit().print_gtoolkit_version()?;
+        application.serialize_into_file()?;
 
         if !setup_options.no_gt_world {
             println!("{}Setting up GtWorld...", BUILDING);
 
             Starter::new()
-                .start(options, &StartOptions::default())
+                .start(application, &StartOptions::default())
                 .await?;
         }
 
         println!("To start GlamorousToolkit run:");
-        println!("  cd {:?}", options.workspace());
-        println!("  {}", options.gtoolkit_app());
+        println!("  cd {:?}", application.workspace());
+        println!("  {}", application.gtoolkit_app());
 
         Ok(())
     }

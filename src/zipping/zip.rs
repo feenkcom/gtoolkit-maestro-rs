@@ -1,4 +1,4 @@
-use std::error::Error;
+use crate::Result;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -10,7 +10,7 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
     zip: &mut ZipWriter<F>,
     src_dir: impl AsRef<Path>,
     zip_options: FileOptions,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let src_dir = src_dir.as_ref();
 
     let walkdir = WalkDir::new(src_dir);
@@ -59,7 +59,7 @@ pub fn zip_file<F: std::io::Write + std::io::Seek>(
     zip: &mut ZipWriter<F>,
     file: impl AsRef<Path>,
     mut zip_options: FileOptions,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let file = file.as_ref();
     let name = file
         .file_name()

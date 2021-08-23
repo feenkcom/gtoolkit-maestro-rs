@@ -1,7 +1,7 @@
-use crate::options::AppOptions;
 use clap::{AppSettings, Clap};
 use std::path::PathBuf;
 
+use crate::{Application, Result};
 use file_matcher::{FileNamed, FolderNamed, OneEntry, OneEntryCopier, OneEntryNamed};
 
 #[derive(Clap, Debug, Clone)]
@@ -22,23 +22,22 @@ impl Copier {
 
     pub async fn copy(
         &self,
-        options: &mut AppOptions,
+        application: &mut Application,
         copy_options: &CopyOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let mut entries = vec![
             FileNamed::wildmatch("*.image").boxed(),
             FileNamed::wildmatch("*.changes").boxed(),
             FileNamed::wildmatch("*.sources").boxed(),
-            FileNamed::exact(options.vm_version_file_name()).boxed(),
-            FileNamed::exact(options.gtoolkit_version_file_name()).boxed(),
+            FileNamed::exact(application.serialization_file_name()).boxed(),
             FolderNamed::exact("gt-extra").boxed(),
         ];
 
-        entries.extend(options.gtoolkit_app_entries());
+        entries.extend(application.gtoolkit_app_entries());
 
         let entries = entries
             .into_iter()
-            .map(|each| each.within_path_buf(options.workspace()))
+            .map(|each| each.within_path_buf(application.workspace().to_path_buf()))
             .collect::<Vec<OneEntry>>();
 
         if !copy_options.destination.exists() {
@@ -49,7 +48,7 @@ impl Copier {
             entry.copy(copy_options.destination.as_path())?;
         }
 
-        options.set_workspace(copy_options.destination.clone());
+        application.set_workspace(copy_options.destination.clone());
 
         Ok(())
     }

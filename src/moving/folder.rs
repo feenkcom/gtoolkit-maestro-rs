@@ -1,3 +1,4 @@
+use crate::Result;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -14,7 +15,7 @@ impl FolderToMove {
         }
     }
 
-    pub async fn move_folder(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn move_folder(&self) -> Result<()> {
         let mut stack = Vec::new();
         stack.push(self.folder.clone());
 

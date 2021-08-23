@@ -11,54 +11,83 @@ extern crate serde;
 extern crate serde_derive;
 extern crate mustache;
 extern crate parse_duration;
+extern crate thiserror;
 extern crate to_absolute;
 extern crate tokio;
 extern crate tokio_stream;
 extern crate tokio_util;
+extern crate user_error;
 extern crate walkdir;
 extern crate zip;
 
+mod application;
 mod create;
 mod download;
 mod error;
 mod gtoolkit;
 mod moving;
 mod options;
+mod seed;
 mod smalltalk;
 mod tools;
+mod version;
 mod zipping;
 
+pub use application::*;
+pub use download::*;
+pub use error::*;
+pub use gtoolkit::*;
 pub use moving::*;
+pub use seed::*;
 pub use smalltalk::*;
 pub use tools::*;
+pub use version::*;
 pub use zipping::*;
 
 use crate::options::SubCommand;
 use clap::Clap;
 use options::AppOptions;
-use std::error::Error;
+use url::Url;
+use user_error::{UserFacingError, UFE};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let mut options: AppOptions = AppOptions::parse();
-    options.ensure_vm_version().await?;
-    options.ensure_gtoolkit_version().await?;
+async fn run() -> Result<()> {
+    let options: AppOptions = AppOptions::parse();
+
+    let gtoolkit_vm_version = options.fetch_vm_version().await?;
+    let gtoolkit_image_version = options.fetch_image_version().await?;
+    let image_seed = ImageSeed::Url(Url::parse(DEFAULT_PHARO_IMAGE)?);
+
+    let mut application = Application::new(
+        options.workspace(),
+        gtoolkit_vm_version,
+        gtoolkit_image_version,
+        image_seed,
+    )?;
+    application.set_verbose(options.verbose());
+
+    if application.serialization_file().exists() {
+        application.deserialize_from_file()?;
+    }
 
     match options.command() {
         SubCommand::Build(build_options) => {
-            Builder::new().build(&options, &build_options).await?;
+            Builder::new()
+                .build(&mut application, &build_options)
+                .await?;
         }
         SubCommand::Setup(setup_options) => {
-            Setup::new().setup(&mut options, &setup_options).await?;
+            Setup::new().setup(&mut application, &setup_options).await?;
         }
         SubCommand::Test(test_options) => {
-            Tester::new().test(&options, &test_options).await?;
+            Tester::new().test(&application, &test_options).await?;
         }
         SubCommand::LocalBuild => {
             let build_options = BuildOptions::new();
             let setup_options = SetupOptions::new();
-            Builder::new().build(&options, &build_options).await?;
-            Setup::new().setup(&mut options, &setup_options).await?;
+            Builder::new()
+                .build(&mut application, &build_options)
+                .await?;
+            Setup::new().setup(&mut application, &setup_options).await?;
         }
         SubCommand::ReleaseBuild(release_build) => {
             let mut build_options = BuildOptions::new();
@@ -77,47 +106,60 @@ async fn main() -> Result<(), Box<dyn Error>> {
             setup_options.gt_world(!release_build.no_gt_world);
             setup_options.bump(release_build.bump);
 
-            Builder::new().build(&options, &build_options).await?;
-            Setup::new().setup(&mut options, &setup_options).await?;
+            Builder::new()
+                .build(&mut application, &build_options)
+                .await?;
+            Setup::new().setup(&mut application, &setup_options).await?;
         }
         SubCommand::CopyTo(copy_options) => {
-            Copier::new().copy(&mut options, &copy_options).await?;
+            Copier::new().copy(&mut application, &copy_options).await?;
         }
         SubCommand::CleanUp => {
-            Cleaner::new().clean(&options).await?;
+            Cleaner::new().clean(&application).await?;
         }
         SubCommand::Start(start_options) => {
-            Starter::new().start(&options, &start_options).await?;
+            Starter::new().start(&application, &start_options).await?;
         }
         SubCommand::PackageTentative(tentative_options) => {
             Tentative::new()
-                .package(&options, &tentative_options)
+                .package(&application, &tentative_options)
                 .await?;
         }
         SubCommand::UnpackageTentative(tentative_options) => {
             Tentative::new()
-                .unpackage(&mut options, &tentative_options)
+                .unpackage(&mut application, &tentative_options)
                 .await?;
         }
         SubCommand::PackageRelease(release_options) => {
-            let package = Release::new().package(&options, &release_options).await?;
+            let package = Release::new()
+                .package(&application, &release_options)
+                .await?;
             println!("{}", package.display())
         }
         SubCommand::RunReleaser(releaser_options) => {
             Release::new()
-                .run_releaser(&options, &releaser_options)
+                .run_releaser(&application, &releaser_options)
                 .await?;
         }
         SubCommand::PrintDebug => {
-            println!("{:?}", &options);
+            println!("{:?}", &application);
         }
         SubCommand::PrintGtoolkitImageVersion => {
-            println!("v{}", &options.gtoolkit_version().expect("No version"));
+            println!("v{}", &application.image_version());
         }
         SubCommand::PrintGtoolkitAppVersion => {
-            println!("v{}", &options.vm_version().expect("No version"));
+            println!("v{}", &application.app_version());
         }
     };
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() {
+    if let Err(error) = run().await {
+        let error: Box<dyn std::error::Error> = Box::new(error);
+        let user_facing_error: UserFacingError = error.into();
+        user_facing_error.help("").print_and_exit();
+    }
 }

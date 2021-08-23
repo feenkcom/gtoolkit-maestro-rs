@@ -1,6 +1,6 @@
 use crate::Smalltalk;
 use std::fs::OpenOptions;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 #[derive(Debug)]
@@ -43,7 +43,7 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         self
     }
 
-    pub fn workspace(&self) -> PathBuf {
+    pub fn workspace(&self) -> &Path {
         self.smalltalk.workspace()
     }
 

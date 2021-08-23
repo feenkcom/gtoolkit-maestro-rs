@@ -2,8 +2,7 @@ use clap::{AppSettings, Clap};
 use parse_duration::parse as duration_parse;
 use std::time::Duration;
 
-use crate::options::AppOptions;
-use crate::{ExecutableSmalltalk, SmalltalkExpressionBuilder};
+use crate::{Application, ExecutableSmalltalk, Result, SmalltalkExpressionBuilder};
 
 const DEFAULT_APPLICATION_STARTER: &str = "GtWorld openDefault";
 const DEFAULT_DELAY: &str = "5 seconds";
@@ -38,9 +37,9 @@ impl Starter {
 
     pub async fn start(
         &self,
-        options: &AppOptions,
+        application: &Application,
         start_options: &StartOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         SmalltalkExpressionBuilder::new()
             .add(&start_options.expression)
             .add(format!(
@@ -50,7 +49,7 @@ impl Starter {
             .add("BlHost pickHost universe snapshot: true andQuit: true")
             .build()
             .execute(
-                options
+                application
                     .gtoolkit()
                     .evaluator()
                     .save(false)

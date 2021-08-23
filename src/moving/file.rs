@@ -1,3 +1,4 @@
+use crate::Result;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -14,7 +15,7 @@ impl FileToMove {
         }
     }
 
-    pub async fn move_file(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn move_file(&self) -> Result<()> {
         let file_name = self.file.file_name().unwrap().to_str().unwrap();
 
         if self.destination.is_dir() {

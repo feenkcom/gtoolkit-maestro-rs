@@ -1,5 +1,6 @@
 use crate::gtoolkit::GToolkit;
-use crate::options::AppOptions;
+use crate::Application;
+use crate::Result;
 use clap::{AppSettings, Clap};
 
 pub struct Tester;
@@ -23,12 +24,8 @@ impl Tester {
         Self {}
     }
 
-    pub async fn test(
-        &self,
-        options: &AppOptions,
-        test_options: &TestOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let gtoolkit = options.gtoolkit();
+    pub async fn test(&self, application: &Application, test_options: &TestOptions) -> Result<()> {
+        let gtoolkit = application.gtoolkit();
 
         if let Some(ref packages) = test_options.packages {
             gtoolkit.run_examples(packages, test_options)?;

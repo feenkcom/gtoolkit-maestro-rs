@@ -1,9 +1,8 @@
 use crate::create::FileToCreate;
 use crate::download::{FileToDownload, FilesToDownload};
-use crate::error::Error;
-use crate::options::AppOptions;
 use crate::{
-    Checker, Downloader, FileToMove, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
+    Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
+    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
     SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use crate::{FileToUnzip, FilesToUnzip};
@@ -16,6 +15,9 @@ use std::str::FromStr;
 use std::time::Instant;
 use url::Url;
 
+pub const DEFAULT_PHARO_IMAGE: &str =
+    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
+
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColorAlways)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -27,20 +29,43 @@ pub struct BuildOptions {
     /// Specify a loader to install GToolkit code in a Pharo image.
     pub loader: Loader,
     /// Specify a URL to a clean seed image on top of which to build the glamorous toolkit
-    #[clap(long, parse(try_from_str = url_parse))]
+    #[clap(long, parse(try_from_str = url_parse), conflicts_with_all(&["image_zip", "image_file"]))]
     pub image_url: Option<Url>,
-    /// Specify a path to a clean seed image on top of which to build the glamorous toolkit
-    #[clap(long, parse(from_os_str))]
-    pub image_path: Option<PathBuf>,
-    /// Public ssh key to use when pushing to the repositories
+    /// Specify a path to the zip archive that contains a seed .image, .changes and .sources on top of which to build the glamorous toolkit
+    #[clap(long, parse(from_os_str), conflicts_with_all(&["image_url", "image_file"]))]
+    pub image_zip: Option<PathBuf>,
+    /// Specify a path to the .image in which to install the glamorous toolkit
+    #[clap(long, parse(from_os_str), conflicts_with_all(&["image_url", "image_zip"]))]
+    pub image_file: Option<PathBuf>,
+    /// Public ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub public_key: Option<PathBuf>,
-    /// Private ssh key to use when pushing to the repositories
+    /// Private ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub private_key: Option<PathBuf>,
 }
 
-fn url_parse(val: &str) -> Result<Url, Box<dyn std::error::Error>> {
+impl BuildOptions {
+    pub fn image_seed(&self) -> ImageSeed {
+        if let Some(ref image_zip) = self.image_zip {
+            return ImageSeed::Zip(image_zip.clone());
+        }
+        if let Some(ref image_url) = self.image_url {
+            return ImageSeed::Url(image_url.clone());
+        }
+
+        if let Some(ref image_file) = self.image_file {
+            return ImageSeed::Image(image_file.clone());
+        }
+
+        return ImageSeed::Url(
+            url_parse(DEFAULT_PHARO_IMAGE)
+                .unwrap_or_else(|_| panic!("Failed to parse url: {}", DEFAULT_PHARO_IMAGE)),
+        );
+    }
+}
+
+fn url_parse(val: &str) -> Result<Url> {
     Url::parse(val).map_err(|error| error.into())
 }
 
@@ -66,44 +91,39 @@ pub struct ReleaseBuildOptions {
 }
 
 impl BuildOptions {
-    fn ssh_keys(&self) -> Result<Option<(PathBuf, PathBuf)>, Box<dyn std::error::Error>> {
+    fn ssh_keys(&self) -> Result<Option<(PathBuf, PathBuf)>> {
         let public_key = self.public_key()?;
         let private_key = self.private_key()?;
 
-        match (private_key, public_key) {
-            (Some(private), Some(public)) => Ok(Some((private, public))),
+        match (&private_key, &public_key) {
+            (Some(private), Some(public)) => Ok(Some((private.clone(), public.clone()))),
             (None, None) => Ok(None),
-            _ => Err(Box::new(Error {
-                what: "Both private and public key must be set, or none".to_string(),
-                source: None,
-            })),
+            _ => InstallerError::SshKeysConfigurationError(private_key, public_key).into(),
         }
     }
 
-    fn public_key(&self) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    fn public_key(&self) -> Result<Option<PathBuf>> {
         if let Some(ref key) = self.public_key {
             if key.exists() {
-                Ok(Some(to_absolute::canonicalize(key)?))
+                Ok(Some(to_absolute::canonicalize(key).map_err(|error| {
+                    InstallerError::CanonicalizeError(key.clone(), error)
+                })?))
             } else {
-                return Err(Box::new(Error {
-                    what: format!("Specified public key does not exist: {:?}", key),
-                    source: None,
-                }));
+                return InstallerError::PublicKeyDoesNotExist(key.clone()).into();
             }
         } else {
             Ok(None)
         }
     }
 
-    fn private_key(&self) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    fn private_key(&self) -> Result<Option<PathBuf>> {
         if let Some(ref key) = self.private_key {
             if key.exists() {
-                Ok(Some(to_absolute::canonicalize(key)?))
+                Ok(Some(to_absolute::canonicalize(key).map_err(|error| {
+                    InstallerError::CanonicalizeError(key.clone(), error)
+                })?))
             } else {
-                return Err(Box::new(Error {
-                    what: format!("Specified private key does not exist: {:?}", key),
-                    source: None,
-                }));
+                return InstallerError::PrivateKeyDoesNotExist(key.clone()).into();
             }
         } else {
             Ok(None)
@@ -117,7 +137,8 @@ impl BuildOptions {
             overwrite: false,
             loader: Loader::Cloner,
             image_url: None,
-            image_path: None,
+            image_zip: None,
+            image_file: None,
             public_key: None,
             private_key: None,
         }
@@ -149,7 +170,7 @@ pub enum Loader {
 impl FromStr for Loader {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, String> {
         <Loader as ArgEnum>::from_str(s, true)
     }
 }
@@ -158,11 +179,6 @@ impl ToString for Loader {
     fn to_string(&self) -> String {
         (Loader::VARIANTS[*self as usize]).to_owned()
     }
-}
-
-pub enum ImageSeed {
-    Url(Url),
-    File(PathBuf),
 }
 
 pub struct Builder;
@@ -174,70 +190,76 @@ impl Builder {
 
     pub async fn build(
         &self,
-        options: &AppOptions,
+        application: &mut Application,
         build_options: &BuildOptions,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let started = Instant::now();
 
+        let image_seed = build_options.image_seed();
+        application.set_image_seed(image_seed.clone())?;
+
         Checker::new()
-            .check(options, build_options.should_overwrite())
+            .check(application, build_options.should_overwrite())
             .await?;
 
-        Downloader::new()
-            .download_glamorous_toolkit_vm(options)
-            .await?;
+        application.serialize_into_file()?;
 
         println!("{}Downloading files...", DOWNLOADING);
-        let pharo_image = FileToDownload::new(
-            options.pharo_image_url(),
-            options.workspace(),
-            "pharo-image.zip",
+
+        let pharo_vm = FileToDownload::new(
+            Url::parse(application.pharo_vm_url())?,
+            application.workspace(),
+            "pharo-vm.zip",
         );
 
-        let pharo_vm =
-            FileToDownload::new(options.pharo_vm_url(), options.workspace(), "pharo-vm.zip");
-
         let files_to_download = FilesToDownload::new()
-            .add(pharo_image.clone())
-            .add(pharo_vm.clone());
+            .extend(Downloader::files_to_download(application))
+            .add(pharo_vm.clone())
+            .maybe_add(image_seed.file_to_download(application));
 
         files_to_download.download().await?;
 
         println!("{}Extracting files...", EXTRACTING);
 
-        let pharo_image_dir = options.workspace().join("pharo-image");
-
         let files_to_unzip = FilesToUnzip::new()
-            .add(FileToUnzip::new(pharo_image.path(), &pharo_image_dir))
+            .extend(Downloader::files_to_unzip(application))
             .add(FileToUnzip::new(
                 pharo_vm.path(),
-                options.workspace().join("pharo-vm"),
-            ));
+                application.workspace().join("pharo-vm"),
+            ))
+            .maybe_add(image_seed.file_to_unzip(application));
 
         files_to_unzip.unzip().await?;
 
-        println!("{}Moving files...", MOVING);
+        if !image_seed.is_image_file() {
+            println!("{}Moving files...", MOVING);
 
-        FileToMove::new(
-            FileNamed::wildmatch("*.image").within(&pharo_image_dir),
-            options.workspace().join("GlamorousToolkit.image"),
-        )
-        .move_file()
-        .await?;
+            let seed_image = FileNamed::wildmatch(format!("*.{}", application.image_extension()))
+                .within(image_seed.seed_image_directory(application))
+                .find()?;
+            let seed_smalltalk =
+                Smalltalk::new(application.pharo_executable(), seed_image, application);
+            let seed_evaluator = seed_smalltalk.evaluator();
 
-        FileToMove::new(
-            FileNamed::wildmatch("*.changes").within(&pharo_image_dir),
-            options.workspace().join("GlamorousToolkit.changes"),
-        )
-        .move_file()
-        .await?;
+            SmalltalkCommand::new("save")
+                .arg(
+                    application
+                        .workspace()
+                        .join(application.image_name())
+                        .display()
+                        .to_string(),
+                )
+                .execute(&seed_evaluator)?;
 
-        FileToMove::new(
-            FileNamed::wildmatch("*.sources").within(&pharo_image_dir),
-            options.workspace(),
-        )
-        .move_file()
-        .await?;
+            FileToMove::new(
+                FileNamed::wildmatch("*.sources")
+                    .within(image_seed.seed_image_directory(application))
+                    .find()?,
+                application.workspace(),
+            )
+            .move_file()
+            .await?;
+        }
 
         let loader_st = match build_options.loader {
             Loader::Cloner => include_str!("../st/clone-gt.st"),
@@ -246,23 +268,23 @@ impl Builder {
 
         println!("{}Creating build scripts...", CREATING);
         FileToCreate::new(
-            options.workspace().join("load-patches.st"),
+            application.workspace().join("load-patches.st"),
             include_str!("../st/load-patches.st"),
         )
         .create()
         .await?;
         FileToCreate::new(
-            options.workspace().join("load-taskit.st"),
+            application.workspace().join("load-taskit.st"),
             include_str!("../st/load-taskit.st"),
         )
         .create()
         .await?;
-        FileToCreate::new(options.workspace().join("load-gt.st"), loader_st)
+        FileToCreate::new(application.workspace().join("load-gt.st"), loader_st)
             .create()
             .await?;
 
-        let gtoolkit = options.gtoolkit();
-        let pharo = options.pharo();
+        let gtoolkit = application.gtoolkit();
+        let pharo = application.pharo();
 
         println!("{}Preparing the image...", BUILDING);
         SmalltalkScriptsToExecute::new()

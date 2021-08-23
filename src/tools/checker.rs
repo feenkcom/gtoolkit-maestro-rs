@@ -1,6 +1,4 @@
-use crate::error::Error;
-use crate::options::AppOptions;
-use crate::CHECKING;
+use crate::{Application, InstallerError, Result, CHECKING};
 
 pub struct Checker;
 
@@ -9,27 +7,23 @@ impl Checker {
         Self {}
     }
 
-    pub async fn check(
-        &self,
-        options: &AppOptions,
-        should_overwrite: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn check(&self, application: &Application, should_overwrite: bool) -> Result<()> {
         println!("{}Checking the system...", CHECKING);
-        if should_overwrite && options.workspace().exists() {
-            tokio::fs::remove_dir_all(options.workspace()).await?;
+
+        if application.image_seed().is_image_file() {
+            return Ok(());
         }
 
-        if options.workspace().exists() {
-            return Err(Box::new(Error {
-                what: format!(
-                    "GToolkit already exists in {:?}",
-                    options.workspace().display()
-                ),
-                source: None,
-            }));
+        if should_overwrite && application.workspace().exists() {
+            tokio::fs::remove_dir_all(application.workspace()).await?;
         }
 
-        tokio::fs::create_dir_all(options.workspace()).await?;
+        if application.workspace().exists() {
+            return InstallerError::WorkspaceAlreadyExists(application.workspace().to_path_buf())
+                .into();
+        }
+
+        tokio::fs::create_dir_all(application.workspace()).await?;
         Ok(())
     }
 }

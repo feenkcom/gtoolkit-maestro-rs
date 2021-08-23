@@ -1,65 +1,61 @@
-//! Custom types for error handling.
+use reqwest::{StatusCode, Url};
+use std::path::PathBuf;
+use std::process::Command;
+use thiserror::Error;
+use tokio::task::JoinError;
 
-/// Type-erased error that can be moved between threads.  Example:
-///
-/// ```ignore
-/// fn my_func() -> Result<(), BoxError> {
-///     do_something_fallible()?;
-///     Ok(())
-/// }
-/// ```
-///
-/// See https://github.com/rust-lang/rfcs/pull/2820
-pub type BoxError = std::boxed::Box<
-    dyn std::error::Error // must implement Error to satisfy ?
-        + std::marker::Send // needed for threads
-        + std::marker::Sync, // needed for threads
->;
+pub type Result<T> = core::result::Result<T, InstallerError>;
 
-/// Generic error type that stores a message `what` and optionally wraps another
-/// causative error `source`.  Example:
-///
-/// ```ignore
-/// fn my_func() -> Result<(), BoxError> {
-///     match do_something_fallible() {
-///         Ok(_) => (),
-///         Err(e) => return Err(Error{
-///             what: "There was a problem doing something.".to_string(),
-///             source: Some(e),
-///         }.into()),
-///     };
-///
-///     if did_it_work() == false {
-///         return Err(Error{
-///             what: "It didn't work.".to_string(),
-///             source: None,
-///         }.into());
-///     }
-///
-///     Ok(())
-/// }
-/// ```
-#[derive(Debug)]
-pub struct Error {
-    /// What went wrong?
-    pub what: String,
-    /// What was the source/cause of this error, if any?
-    pub source: Option<BoxError>,
+#[derive(Error, Debug)]
+pub enum InstallerError {
+    #[error("Input/Output error")]
+    IoError(#[from] std::io::Error),
+    #[error("File matcher error")]
+    FileMatcherError(#[from] file_matcher::FileMatcherError),
+    #[error("Zip error")]
+    ZipError(#[from] zip::result::ZipError),
+    #[error("Failed to perform a request")]
+    ReqwestError(#[from] reqwest::Error),
+    #[error("Failed to canonicalize a path {0}")]
+    CanonicalizeError(PathBuf, #[source] to_absolute::Error),
+    #[error("Failed to serialize as yaml")]
+    SerializationAsYamlError(#[from] serde_yaml::Error),
+    #[error("Version parse error")]
+    ReleaserError(#[from] feenk_releaser::ReleaserError),
+    #[error("Walkdir error")]
+    WalkdirError(#[from] walkdir::Error),
+    #[error("Failed to parse URL")]
+    UrlParseError(#[from] url::ParseError),
+    #[error("Task join error")]
+    JoinError(#[from] JoinError),
+    #[error("Failed to detect the version of the gtoolkit-vm")]
+    FailedToDetectGlamorousAppVersion,
+    #[error("Failed to detect the version of the gtoolkit")]
+    FailedToDetectGlamorousImageVersion,
+    #[error("Failed to parse the loader {0}")]
+    LoaderParseError(String),
+    #[error("Workspace already exists: {0}")]
+    WorkspaceAlreadyExists(PathBuf),
+    #[error("Failed to find the latest release of the Glamorous Toolkit VM")]
+    GlamorousToolkitAppIsNotYetReleased,
+    #[error("Command {0:?} failed. See install.log or install-errors.log for more info")]
+    CommandExecutionFailed(Command),
+    #[error("Both private {0:?} and public key {1:?} must be set, or none")]
+    SshKeysConfigurationError(Option<PathBuf>, Option<PathBuf>),
+    #[error("Specified private key {0} does not exist")]
+    PrivateKeyDoesNotExist(PathBuf),
+    #[error("Specified public key {0} does not exist")]
+    PublicKeyDoesNotExist(PathBuf),
+    #[error("Failed to download {0}, status code {1}")]
+    DownloadError(Url, StatusCode),
+    #[error("Failed to read the file name of {0}")]
+    FailedToReadFileName(PathBuf),
+    #[error("Failed to read the file extension of {0}")]
+    FailedToReadFileExtension(PathBuf),
 }
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.what)?;
-        if let Some(error) = &self.source {
-            write!(f, "\nCaused by: {}", error)?;
-        }
-        Ok(())
-    }
-}
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match &self.source {
-            Some(error) => Some(error.as_ref()),
-            None => None,
-        }
+
+impl<T> From<InstallerError> for std::result::Result<T, InstallerError> {
+    fn from(error: InstallerError) -> Self {
+        Err(error)
     }
 }

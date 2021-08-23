@@ -1,5 +1,4 @@
-use crate::{ExecutableSmalltalk, SmalltalkEvaluator};
-use std::error::Error;
+use crate::{ExecutableSmalltalk, Result, SmalltalkEvaluator};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -16,7 +15,7 @@ impl SmalltalkScriptToExecute {
 }
 
 impl ExecutableSmalltalk for SmalltalkScriptToExecute {
-    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command, Box<dyn Error>> {
+    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command> {
         let mut command = evaluator.command();
         command
             .arg("st")

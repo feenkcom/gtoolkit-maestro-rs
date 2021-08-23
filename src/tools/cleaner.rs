@@ -1,5 +1,5 @@
 use crate::gtoolkit::GToolkit;
-use crate::options::AppOptions;
+use crate::{Application, Result};
 
 pub struct Cleaner;
 
@@ -8,8 +8,8 @@ impl Cleaner {
         Self {}
     }
 
-    pub async fn clean(&self, options: &AppOptions) -> Result<(), Box<dyn std::error::Error>> {
-        options.gtoolkit().perform_iceberg_clean_up()?;
+    pub async fn clean(&self, application: &Application) -> Result<()> {
+        application.gtoolkit().perform_iceberg_clean_up()?;
 
         Ok(())
     }

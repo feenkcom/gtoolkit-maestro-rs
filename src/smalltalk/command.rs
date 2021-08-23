@@ -1,5 +1,4 @@
-use crate::{ExecutableSmalltalk, SmalltalkEvaluator};
-use std::error::Error;
+use crate::{ExecutableSmalltalk, Result, SmalltalkEvaluator};
 use std::process::Command;
 
 pub struct SmalltalkCommand {
@@ -39,7 +38,7 @@ impl SmalltalkCommand {
 }
 
 impl ExecutableSmalltalk for SmalltalkCommand {
-    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command, Box<dyn Error>> {
+    fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command> {
         let mut command = evaluator.command();
         command.arg(&self.command);
         command.args(&self.arguments);

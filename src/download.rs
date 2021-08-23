@@ -1,11 +1,11 @@
-use crate::error::BoxError;
 use futures::{stream, StreamExt};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use reqwest::{header, Client, Url};
-use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
+
+use crate::{InstallerError, Result};
 
 #[derive(Debug, Clone)]
 pub struct FileToDownload {
@@ -48,7 +48,21 @@ impl FilesToDownload {
         Self { files }
     }
 
-    pub async fn download(self) -> Result<(), Box<dyn Error>> {
+    pub fn maybe_add(self, file_to_download: Option<FileToDownload>) -> Self {
+        if let Some(file_to_download) = file_to_download {
+            self.add(file_to_download)
+        } else {
+            self
+        }
+    }
+
+    pub fn extend(self, files_to_download: Self) -> Self {
+        let mut files = self.files.clone();
+        files.extend(files_to_download.files);
+        Self { files }
+    }
+
+    pub async fn download(self) -> Result<()> {
         // Set up a new multi-progress bar.
         // The bar is stored in an `Arc` to facilitate sharing between threads.
         let multibar = std::sync::Arc::new(indicatif::MultiProgress::new());
@@ -119,9 +133,9 @@ impl FilesToDownload {
 pub async fn download_task(
     file_to_download: FileToDownload,
     multibar: Arc<MultiProgress>,
-) -> Result<(), BoxError> {
+) -> Result<()> {
     // Parse URL into Url type
-    let url = Url::parse(&file_to_download.url)?;
+    let url = Url::parse(file_to_download.url.as_str())?;
 
     // Create a reqwest Client
     let client = Client::new();
@@ -137,10 +151,7 @@ pub async fn download_task(
                 .and_then(|ct_len| ct_len.parse().ok()) // Parses the Option as u64
                 .unwrap_or(0) // Fallback to 0
         } else {
-            // We return an Error if something goes wrong here
-            return Err(
-                format!("Couldn't download URL: {}. Error: {:?}", url, resp.status(),).into(),
-            );
+            return InstallerError::DownloadError(url, resp.status()).into();
         }
     };
 

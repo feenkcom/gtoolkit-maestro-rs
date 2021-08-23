@@ -1,3 +1,4 @@
+use crate::Result;
 use std::path::PathBuf;
 
 pub struct FileToCreate {
@@ -13,7 +14,7 @@ impl FileToCreate {
         }
     }
 
-    pub async fn create(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn create(&self) -> Result<()> {
         tokio::fs::write(&self.destination, &self.content).await?;
         Ok(())
     }
