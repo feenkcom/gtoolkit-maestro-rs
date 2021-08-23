@@ -6,9 +6,13 @@ Metacello new
     load.
 
 MCCacheRepository disableCacheDuring: [
-    #GtRlProjectsLoader asClass new
+    [ #GtRlProjectsLoader asClass new
         loadBaseline: 'GToolkitForPharo9'
-        fromRepository: 'github://feenkcom/gtoolkit:main/src' ].
+        fromRepository: 'github://feenkcom/gtoolkit:main/src' ]
+            on: Warning
+            do: [ :anException |
+                MetacelloNotification signal: anException description.
+            	anException resume ] ].
 
 EpMonitor current enable.
 
