@@ -14,8 +14,6 @@ NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo9 image...';
     cr.
 
-"   Patch Pharo9 random crashes   "
-
 patcher patch: Context source:
 'copyTo: aContext
     "Copy self and my sender chain down to, but not including, aContext.
@@ -80,9 +78,7 @@ patcher patch: CompiledMethod source: 'basicAsMCMethodDefinition
 		  category: self protocol
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'.
-	
 
-"   Pharo9 Deprecations  "
 patcher patch: Object source: 'gtDisplayString
     "This offers a means to customize how the object is shown in the GlamorousToolkit UI.
     Do not override this method. Override gtDisplayOn: instead"
@@ -98,9 +94,6 @@ patcher patch: Object source: 'gtDisplayOn: stream
 	"This offers a means to customize how the object is shown in the GlamorousToolkit UI"
 	^ self printOn: stream'
 classified: 'printing'.
-
-"          Pharo9 Bugs        "
-"See https://github.com/pharo-vcs/iceberg/issues/1520"
 
 patcher patch: ExternalData source: 'readStringUTF8
 	"Assume that the receiver represents a C string containing UTF8 characters and convert
@@ -118,12 +111,10 @@ patcher patch: ExternalData source: 'readStringUTF8
 	^ [ ZnCharacterEncoder utf8 decodeBytes: stream contents ] on: ZnInvalidUTF8 do: [ stream contents asString ]'
 classified: '*UnifiedFFI'.
 
-"See https://github.com/pharo-project/pharo/issues/9630"
 patcher patch: CommandLineUIManager source: 'activate
 	NonInteractiveTranscript stdout install'
 classified: 'private'.
 
-"    Patch Library names    "
 patcher patch: #LGitLibrary asClass source:
 'macLibraryName
 
@@ -157,7 +148,6 @@ patcher patch: #FFIUnixLibraryFinder asClass source:
 	Smalltalk vm directory }'
 classified: 'accessing'.
 
-"See https://github.com/pharo-project/pharo/issues/9643"
 patcher patch: #FFIUnix64LibraryFinder asClass source:
 'knownPaths
 	^ #(
@@ -179,7 +169,6 @@ patcher patch: #CairoLibrary asClass source:
 
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
 classified: 'accessing - platform'.
-"   Clean up   "
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
