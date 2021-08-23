@@ -6,7 +6,7 @@ Metacello new
     load.
 
 MCCacheRepository disableCacheDuring: [
-    GtRlProjectsLoader new
+    #GtRlProjectsLoader asClass new
         loadBaseline: 'GToolkitForPharo9'
         fromRepository: 'github://feenkcom/gtoolkit:main/src' ].
 
