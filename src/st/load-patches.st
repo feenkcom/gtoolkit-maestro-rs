@@ -14,9 +14,7 @@ NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo9 image...';
     cr.
 
-"===================================
-    Patch Pharo8 random crashes
-==================================="
+"   Patch Pharo9 random crashes   "
 
 patcher patch: Context source:
 'copyTo: aContext
@@ -84,9 +82,7 @@ patcher patch: CompiledMethod source: 'basicAsMCMethodDefinition
 		  source: self sourceCode'.
 	
 
-"===================================
-        Pharo9 Deprecations
-==================================="
+"   Pharo9 Deprecations  "
 patcher patch: Object source: 'gtDisplayString
     "This offers a means to customize how the object is shown in the GlamorousToolkit UI.
     Do not override this method. Override gtDisplayOn: instead"
@@ -103,9 +99,7 @@ patcher patch: Object source: 'gtDisplayOn: stream
 	^ self printOn: stream'
 classified: 'printing'.
 
-"===================================
-            Pharo9 Bugs
-==================================="
+"          Pharo9 Bugs        "
 "See https://github.com/pharo-vcs/iceberg/issues/1520"
 
 patcher patch: ExternalData source: 'readStringUTF8
@@ -128,9 +122,8 @@ classified: '*UnifiedFFI'.
 patcher patch: CommandLineUIManager source: 'activate
 	NonInteractiveTranscript stdout install'
 classified: 'private'.
-"===================================
-        Patch Library names
-==================================="
+
+"    Patch Library names    "
 patcher patch: #LGitLibrary asClass source:
 'macLibraryName
 
@@ -186,9 +179,7 @@ patcher patch: #CairoLibrary asClass source:
 
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
 classified: 'accessing - platform'.
-"===================================
-            Clean up
-==================================="
+"   Clean up   "
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
