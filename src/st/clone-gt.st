@@ -5,6 +5,12 @@ Metacello new
     repository: 'github://feenkcom/gtoolkit-releaser:main/src';
     load.
 
+Metacello new
+    baseline: 'Beacon';
+    repository: 'github://feenkcom/pharo-beacon/src';
+    onConflictUseIncoming;
+    load.
+
 MCCacheRepository disableCacheDuring: [
     [ #GtRlProjectsLoader asClass new
         loadBaseline: 'GToolkitForPharo9'
