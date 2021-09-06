@@ -54,7 +54,7 @@ async fn run() -> Result<()> {
     let options: AppOptions = AppOptions::parse();
 
     let gtoolkit_vm_version = options.fetch_vm_version().await?;
-    let gtoolkit_image_version = options.fetch_image_version().await?;
+    let gtoolkit_image_version = Application::latest_gtoolkit_image_version().await?;
     let image_seed = ImageSeed::Url(Url::parse(DEFAULT_PHARO_IMAGE)?);
 
     let mut application = Application::new(
@@ -81,33 +81,24 @@ async fn run() -> Result<()> {
         SubCommand::Test(test_options) => {
             Tester::new().test(&application, &test_options).await?;
         }
-        SubCommand::LocalBuild => {
-            let build_options = BuildOptions::new();
-            let setup_options = SetupOptions::new();
+        SubCommand::LocalBuild(local_build) => {
+            let mut setup_options = SetupOptions::new();
+            setup_options.target(SetupTarget::LocalBuild);
+            setup_options.gt_world(!local_build.no_gt_world);
+
             Builder::new()
-                .build(&mut application, &build_options)
+                .build(&mut application, &local_build.build_options)
                 .await?;
             Setup::new().setup(&mut application, &setup_options).await?;
         }
         SubCommand::ReleaseBuild(release_build) => {
-            let mut build_options = BuildOptions::new();
-            build_options.overwrite(true);
-
-            if let Some(loader) = release_build.loader {
-                build_options.loader(loader);
-            } else {
-                build_options.loader(Loader::Metacello);
-            }
-            build_options.private_key = release_build.private_key;
-            build_options.public_key = release_build.public_key;
-
             let mut setup_options = SetupOptions::new();
             setup_options.target(SetupTarget::Release);
             setup_options.gt_world(!release_build.no_gt_world);
             setup_options.bump(release_build.bump);
 
             Builder::new()
-                .build(&mut application, &build_options)
+                .build(&mut application, &release_build.build_options)
                 .await?;
             Setup::new().setup(&mut application, &setup_options).await?;
         }

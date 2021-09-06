@@ -11,7 +11,7 @@ mod tester;
 
 use console::Emoji;
 
-pub use builder::{BuildOptions, Builder, Loader, ReleaseBuildOptions, DEFAULT_PHARO_IMAGE};
+pub use builder::{BuildOptions, Builder, Loader, ReleaseBuildOptions, LocalBuildOptions, DEFAULT_PHARO_IMAGE};
 pub use checker::Checker;
 pub use cleaner::Cleaner;
 pub use copier::{Copier, CopyOptions};

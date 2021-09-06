@@ -1,6 +1,6 @@
-use crate::Result;
+use crate::{Result, LocalBuildOptions};
 use crate::{
-    AppVersion, BuildOptions, CopyOptions, ImageVersion, InstallerError, ReleaseBuildOptions,
+    AppVersion, BuildOptions, CopyOptions, InstallerError, ReleaseBuildOptions,
     ReleaseOptions, ReleaserOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
 };
 use clap::{AppSettings, Clap};
@@ -8,9 +8,6 @@ use feenk_releaser::{GitHub, Version};
 use std::path::PathBuf;
 
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
-
-pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
-pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
 
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
@@ -33,7 +30,7 @@ pub struct AppOptions {
 pub enum SubCommand {
     /// Creates a typical local build of GlamorousToolkit with GtWorld opened and sets the image up. This is intended to be used by developers and contributors.
     #[clap(display_order = 1)]
-    LocalBuild,
+    LocalBuild(LocalBuildOptions),
     /// Creates a release build of GlamorousToolkit with GtWorld opened and sets up the image to be deployed. This is intended to be used by the Continuous Integration server.
     #[clap(display_order = 2)]
     ReleaseBuild(ReleaseBuildOptions),
@@ -96,19 +93,6 @@ impl AppOptions {
         };
 
         InstallerError::FailedToDetectGlamorousAppVersion.into()
-    }
-
-    pub async fn fetch_image_version(&self) -> Result<ImageVersion> {
-        let latest_version: Option<Version> =
-            GitHub::new(GTOOLKIT_REPOSITORY_OWNER, GTOOLKIT_REPOSITORY_NAME, None)
-                .latest_release_version()
-                .await?;
-
-        if let Some(latest_version) = latest_version {
-            return Ok(latest_version.into());
-        };
-
-        InstallerError::FailedToDetectGlamorousImageVersion.into()
     }
 
     pub fn workspace(&self) -> PathBuf {

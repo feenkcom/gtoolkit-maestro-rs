@@ -5,6 +5,7 @@ use crate::{AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smallta
 use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
 use std::fs::File;
 use std::io::Write;
+use feenk_releaser::{Version, GitHub};
 
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
@@ -16,6 +17,9 @@ pub const DEFAULT_PHARO_VM_WINDOWS: &str =
     "https://dl.feenk.com/pharo/pharo64-win-headless-stable.zip";
 
 pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
+
+pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
+pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Application {
@@ -276,6 +280,19 @@ impl Application {
             PlatformOS::WindowsX8664 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 => "bin/GlamorousToolkit-cli",
         })
+    }
+
+    pub async fn latest_gtoolkit_image_version() -> Result<ImageVersion> {
+        let latest_version: Option<Version> =
+            GitHub::new(GTOOLKIT_REPOSITORY_OWNER, GTOOLKIT_REPOSITORY_NAME, None)
+                .latest_release_version()
+                .await?;
+
+        if let Some(latest_version) = latest_version {
+            return Ok(latest_version.into());
+        };
+
+        InstallerError::FailedToDetectGlamorousImageVersion.into()
     }
 }
 

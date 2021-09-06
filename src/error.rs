@@ -28,8 +28,12 @@ pub enum InstallerError {
     UrlParseError(#[from] url::ParseError),
     #[error("Task join error")]
     JoinError(#[from] JoinError),
+    #[error("Mustache template error")]
+    MustacheErrorr(#[from] mustache::Error),
     #[error("Failed to detect the version of the gtoolkit-vm")]
     FailedToDetectGlamorousAppVersion,
+    #[error("Failed to download releaser version from {0}, with status code {1}")]
+    FailedToDownloadReleaserVersion(Url, StatusCode),
     #[error("Failed to detect the version of the gtoolkit")]
     FailedToDetectGlamorousImageVersion,
     #[error("Failed to parse the loader {0}")]

@@ -2,19 +2,13 @@ EpMonitor current disable.
 
 Metacello new
     baseline: 'GToolkitReleaser';
-    repository: 'github://feenkcom/gtoolkit-releaser:main/src';
-    load.
-
-Metacello new
-    baseline: 'Beacon';
-    repository: 'github://feenkcom/pharo-beacon/src';
-    onConflictUseIncoming;
+    repository: 'github://feenkcom/gtoolkit-releaser:{{releaser_version}}/src';
     load.
 
 MCCacheRepository disableCacheDuring: [
     [ #GtRlProjectsLoader asClass new
         loadBaseline: 'GToolkitForPharo9'
-        fromRepository: 'github://feenkcom/gtoolkit:main/src' ]
+        fromRepository: 'github://feenkcom/gtoolkit:{{gtoolkit_version}}/src' ]
             on: Warning
             do: [ :anException |
                 MetacelloNotification signal: anException description.

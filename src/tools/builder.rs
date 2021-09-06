@@ -7,9 +7,10 @@ use crate::{
 };
 use crate::{FileToUnzip, FilesToUnzip};
 use clap::{AppSettings, ArgEnum, Clap};
-use feenk_releaser::VersionBump;
+use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
+use reqwest::StatusCode;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -43,6 +44,9 @@ pub struct BuildOptions {
     /// Private ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub private_key: Option<PathBuf>,
+    /// Specify a named version to load: 'bleeding-edge', 'latest-release' or 'vX.Y.Z'
+    #[clap(long, parse(try_from_str = BuildVersion::from_str), default_value = BuildVersion::BleedingEdge.abstract_name())]
+    pub version: BuildVersion,
 }
 
 impl BuildOptions {
@@ -73,21 +77,25 @@ fn url_parse(val: &str) -> Result<Url> {
 #[clap(setting = AppSettings::ColorAlways)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct ReleaseBuildOptions {
-    #[clap(long, possible_values = Loader::VARIANTS, case_insensitive = true)]
-    /// Specify a loader to install GToolkit code in a Pharo image.
-    pub loader: Option<Loader>,
-    /// Do not open a default GtWorld
-    #[clap(long)]
-    pub no_gt_world: bool,
+    #[clap(flatten)]
+    pub build_options: BuildOptions,
     /// When building an image for a release, specify which component version to bump
     #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
     pub bump: VersionBump,
-    /// Public ssh key to use when pushing to the repositories
-    #[clap(long, parse(from_os_str))]
-    pub public_key: Option<PathBuf>,
-    /// Private ssh key to use when pushing to the repositories
-    #[clap(long, parse(from_os_str))]
-    pub private_key: Option<PathBuf>,
+    /// Do not open a default GtWorld
+    #[clap(long)]
+    pub no_gt_world: bool,
+}
+
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColorAlways)]
+#[clap(setting = AppSettings::ColoredHelp)]
+pub struct LocalBuildOptions {
+    #[clap(flatten)]
+    pub build_options: BuildOptions,
+    /// Do not open a default GtWorld
+    #[clap(long)]
+    pub no_gt_world: bool,
 }
 
 impl BuildOptions {
@@ -141,6 +149,7 @@ impl BuildOptions {
             image_file: None,
             public_key: None,
             private_key: None,
+            version: BuildVersion::BleedingEdge,
         }
     }
     pub fn should_overwrite(&self) -> bool {
@@ -181,11 +190,108 @@ impl ToString for Loader {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum BuildVersion {
+    LatestRelease,
+    BleedingEdge,
+    Version(Version),
+}
+
+impl BuildVersion {
+    pub fn abstract_name(&self) -> &str {
+        match self {
+            BuildVersion::LatestRelease => "latest-release",
+            BuildVersion::BleedingEdge => "bleeding-edge",
+            BuildVersion::Version(_) => "vX.Y.Z",
+        }
+    }
+}
+
+impl FromStr for BuildVersion {
+    type Err = InstallerError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let version = s.to_string().to_lowercase();
+        let version_str = version.as_str();
+        match version_str {
+            "latest-release" => Ok(BuildVersion::LatestRelease),
+            "bleeding-edge" => Ok(BuildVersion::BleedingEdge),
+            _ => Ok(BuildVersion::Version(Version::parse(version_str)?)),
+        }
+    }
+}
+
+impl ToString for BuildVersion {
+    fn to_string(&self) -> String {
+        match self {
+            BuildVersion::Version(version) => version.to_string(),
+            _ => self.abstract_name().to_string(),
+        }
+    }
+}
+
 pub struct Builder;
+
+#[derive(Serialize)]
+pub struct LoaderVersionInfo {
+    gtoolkit_version: String,
+    releaser_version: String,
+}
 
 impl Builder {
     pub fn new() -> Self {
         Self {}
+    }
+
+    pub async fn resolve_loader_version_info(
+        &self,
+        build_options: &BuildOptions,
+    ) -> Result<LoaderVersionInfo> {
+        let gtoolkit_version_string = match &build_options.version {
+            BuildVersion::LatestRelease => {
+                format!(
+                    "v{}",
+                    Application::latest_gtoolkit_image_version()
+                        .await?
+                        .to_string()
+                )
+            }
+            BuildVersion::BleedingEdge => "main".to_string(),
+            BuildVersion::Version(version) => {
+                format!("v{}", version.to_string())
+            }
+        };
+
+        let releaser_version_string = match &build_options.version {
+            BuildVersion::BleedingEdge => "main".to_string(),
+            _ => {
+                let releaser_version_file_url_string = format!(
+                    "https://raw.githubusercontent.com/feenkcom/gtoolkit/{}/gtoolkit-releaser.version",
+                    &gtoolkit_version_string
+                );
+
+                let releaser_version_file_url = Url::parse(&releaser_version_file_url_string)?;
+
+                let releaser_version_file_response =
+                    reqwest::get(releaser_version_file_url.clone()).await?;
+                if releaser_version_file_response.status() != StatusCode::OK {
+                    return InstallerError::FailedToDownloadReleaserVersion(
+                        releaser_version_file_url.clone(),
+                        releaser_version_file_response.status(),
+                    )
+                    .into();
+                }
+
+                let releaser_version_file_content = releaser_version_file_response.text().await?;
+                let releaser_version = Version::parse(releaser_version_file_content)?;
+                format!("v{}", releaser_version.to_string())
+            }
+        };
+
+        Ok(LoaderVersionInfo {
+            gtoolkit_version: gtoolkit_version_string,
+            releaser_version: releaser_version_string,
+        })
     }
 
     pub async fn build(
@@ -261,10 +367,16 @@ impl Builder {
             .await?;
         }
 
-        let loader_st = match build_options.loader {
+        let loader_template_string = match build_options.loader {
             Loader::Cloner => include_str!("../st/clone-gt.st"),
             Loader::Metacello => include_str!("../st/load-gt.st"),
         };
+
+        let loader_template = mustache::compile_str(loader_template_string)?;
+        let loader_version_info = self.resolve_loader_version_info(build_options).await?;
+        let loader_script = loader_template.render_to_string(&loader_version_info)?;
+        let loader_script_file_name =
+            format!("load-gt-{}.st", &loader_version_info.gtoolkit_version);
 
         println!("{}Creating build scripts...", CREATING);
         FileToCreate::new(
@@ -279,9 +391,12 @@ impl Builder {
         )
         .create()
         .await?;
-        FileToCreate::new(application.workspace().join("load-gt.st"), loader_st)
-            .create()
-            .await?;
+        FileToCreate::new(
+            application.workspace().join(&loader_script_file_name),
+            loader_script,
+        )
+        .create()
+        .await?;
 
         let gtoolkit = application.gtoolkit();
         let pharo = application.pharo();
@@ -311,7 +426,7 @@ impl Builder {
         }
 
         scripts_to_execute
-            .add(SmalltalkScriptToExecute::new("load-gt.st"))
+            .add(SmalltalkScriptToExecute::new(&loader_script_file_name))
             .execute(gtoolkit.evaluator().save(true))
             .await?;
 

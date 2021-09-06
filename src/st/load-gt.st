@@ -2,7 +2,7 @@ EpMonitor current disable.
 
 Metacello new
     baseline: 'GToolkitForPharo9';
-    repository: 'github://feenkcom/gtoolkit:main/src';
+    repository: 'github://feenkcom/gtoolkit:{{gtoolkit_version}}/src';
     silently;
     onConflictUseIncoming;
     load.
