@@ -91,7 +91,6 @@ impl Release {
             FileNamed::wildmatch("*.image"),
             FileNamed::wildmatch("*.changes"),
             FileNamed::wildmatch("*.sources"),
-            FileNamed::exact(application.serialization_file_name()),
         ]
         .into_iter()
         .map(|each| each.within(application.workspace()))
