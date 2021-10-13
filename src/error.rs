@@ -30,7 +30,7 @@ pub enum InstallerError {
     JoinError(#[from] JoinError),
     #[error("Mustache template error")]
     MustacheErrorr(#[from] mustache::Error),
-    #[error("Failed to detect the version of the gtoolkit-vm")]
+    #[error("Failed to detect the latest released version of the gtoolkit-vm from its GitHub repository")]
     FailedToDetectGlamorousAppVersion,
     #[error("Failed to download releaser version from {0}, with status code {1}")]
     FailedToDownloadReleaserVersion(Url, StatusCode),

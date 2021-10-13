@@ -33,6 +33,7 @@ feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", tag = "v0.10
 file-matcher = "0.6.0"
 mustache = "0.9"
 to_absolute = "0.1"
+path-slash = "0.1.4"
 parse_duration = "2.1"
 user-error = "1.2.8"
 thiserror = "1.0.26"
