@@ -53,7 +53,7 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
             let directory_name = if cfg!(windows) {
                 Path::new(name).to_slash().unwrap_or(name.to_string())
             } else {
-                name
+                name.to_string()
             };
             zip.add_directory(directory_name, zip_options)?;
         }
