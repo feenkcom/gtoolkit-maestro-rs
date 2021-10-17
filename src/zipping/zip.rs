@@ -1,5 +1,4 @@
 use crate::Result;
-use path_slash::PathExt;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -49,13 +48,7 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
             zip.write_all(&*buffer)?;
             buffer.clear();
         } else if name.len() != 0 {
-            // zip requires that folder separator is /, even on windows
-            let directory_name = if cfg!(windows) {
-                Path::new(name).to_slash().unwrap_or(name.to_string())
-            } else {
-                name.to_string()
-            };
-            zip.add_directory(directory_name, zip_options)?;
+            zip.add_directory(name, zip_options)?;
         }
     }
 
