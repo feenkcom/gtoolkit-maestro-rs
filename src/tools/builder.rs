@@ -17,7 +17,7 @@ use std::time::Instant;
 use url::Url;
 
 pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1532.sha.e58ef49.arch.64bit.zip";
+    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1564.sha.f5f541c.arch.64bit.zip";
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColorAlways)]
