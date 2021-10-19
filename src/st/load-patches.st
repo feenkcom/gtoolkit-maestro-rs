@@ -173,7 +173,8 @@ classified: 'accessing - platform'.
 "ZnHTTPSTest>>testGForceInria assumes it is being run on the Inria CI.
 It has been removed in Pharo 10."
 ZnHTTPSTest removeSelector: #testGForceInria.
-
+NonInteractiveTranscript stdout
+	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
