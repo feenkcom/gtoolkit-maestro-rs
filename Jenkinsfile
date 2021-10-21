@@ -142,7 +142,7 @@ pipeline {
                 TARGET = "${MACOS_M1_TARGET}"
                 PATH = "$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
                 CERT = credentials('devcertificate')
-                APPLEPASSWORD = credentials('notarizepassword')
+                APPLEPASSWORD = credentials('notarizepassword-manager')
             }
 
             steps {
