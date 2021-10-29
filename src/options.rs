@@ -1,8 +1,8 @@
-use crate::{Result, LocalBuildOptions};
 use crate::{
-    AppVersion, BuildOptions, CopyOptions, InstallerError, ReleaseBuildOptions,
-    ReleaseOptions, ReleaserOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
+    AppVersion, BuildOptions, CopyOptions, InstallerError, ReleaseBuildOptions, ReleaseOptions,
+    ReleaserOptions, RenameOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
 };
+use crate::{LocalBuildOptions, Result};
 use clap::{AppSettings, Clap};
 use feenk_releaser::{GitHub, Version};
 use std::path::PathBuf;
@@ -44,36 +44,39 @@ pub enum SubCommand {
     /// Does not copy temporary files or logs
     #[clap(display_order = 5)]
     CopyTo(CopyOptions),
-    /// Starts an application interactively, waits for a duration of delay to let it load completely then saves and quits.
+    /// Rename the image deleting the old one
     #[clap(display_order = 6)]
+    RenameTo(RenameOptions),
+    /// Starts an application interactively, waits for a duration of delay to let it load completely then saves and quits.
+    #[clap(display_order = 7)]
     Start(StartOptions),
     /// Cleans up an image after loading Glamorous Toolkit. It cleans up ssh keys, removes iceberg repositories
     /// and garbage collects objects
-    #[clap(display_order = 7)]
+    #[clap(display_order = 8)]
     CleanUp,
     /// Tests Glamorous Toolkit and exports the results.
-    #[clap(display_order = 8)]
+    #[clap(display_order = 9)]
     Test(TestOptions),
     /// Package the GlamorousToolkit image as a tentative release.
-    #[clap(display_order = 9)]
+    #[clap(display_order = 10)]
     PackageTentative(TentativeOptions),
     /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
-    #[clap(display_order = 10)]
+    #[clap(display_order = 11)]
     UnpackageTentative(TentativeOptions),
     /// Package the GlamorousToolkit image and App for a release. Prints the path to the created package in the `stdout`
-    #[clap(display_order = 11)]
+    #[clap(display_order = 12)]
     PackageRelease(ReleaseOptions),
     /// Run the gtoolkit-releaser to release glamorous toolkit
-    #[clap(display_order = 12)]
+    #[clap(display_order = 13)]
     RunReleaser(ReleaserOptions),
     /// Display the Debug information of the AppOptions
-    #[clap(display_order = 13)]
+    #[clap(display_order = 14)]
     PrintDebug,
     /// Display the version of the glamorous toolkit
-    #[clap(display_order = 14)]
+    #[clap(display_order = 15)]
     PrintGtoolkitImageVersion,
     /// Display the version of the glamorous toolkit app
-    #[clap(display_order = 15)]
+    #[clap(display_order = 16)]
     PrintGtoolkitAppVersion,
 }
 

@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 use crate::{AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk};
+use feenk_releaser::{GitHub, Version};
 use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
 use std::fs::File;
 use std::io::Write;
-use feenk_releaser::{Version, GitHub};
 
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
@@ -109,9 +109,9 @@ impl Application {
                     .and_then(|name| Some(name.to_string()));
 
                 self.image_name =
-                    file_name.ok_or_else(|| InstallerError::FailedToReadFileName(self.image()))?;
+                    file_name.ok_or_else(|| InstallerError::FailedToReadFileName(image_file.clone()))?;
                 self.image_extension = file_extension
-                    .ok_or_else(|| InstallerError::FailedToReadFileExtension(self.image()))?;
+                    .ok_or_else(|| InstallerError::FailedToReadFileExtension(image_file.clone()))?;
             }
             _ => {}
         }

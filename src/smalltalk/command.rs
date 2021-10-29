@@ -1,9 +1,10 @@
+use std::ffi::{OsString};
 use crate::{ExecutableSmalltalk, Result, SmalltalkEvaluator};
 use std::process::Command;
 
 pub struct SmalltalkCommand {
     command: String,
-    arguments: Vec<String>,
+    arguments: Vec<OsString>,
 }
 
 impl SmalltalkCommand {
@@ -14,7 +15,7 @@ impl SmalltalkCommand {
         }
     }
 
-    pub fn arg(self, arg: impl Into<String>) -> Self {
+    pub fn arg(self, arg: impl Into<OsString>) -> Self {
         let arg = arg.into();
         if arg.is_empty() {
             return self;

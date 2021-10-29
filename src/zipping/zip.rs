@@ -1,8 +1,8 @@
 use crate::Result;
+use path_slash::PathExt;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use path_slash::PathExt;
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use zip::ZipWriter;

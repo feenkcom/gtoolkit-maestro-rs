@@ -105,6 +105,11 @@ async fn run() -> Result<()> {
         SubCommand::CopyTo(copy_options) => {
             Copier::new().copy(&mut application, &copy_options).await?;
         }
+        SubCommand::RenameTo(rename_options) => {
+            Renamer::new()
+                .rename(&mut application, &rename_options)
+                .await?;
+        }
         SubCommand::CleanUp => {
             Cleaner::new().clean(&application).await?;
         }
