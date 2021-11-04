@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use file_matcher::{FileNamed, OneEntry};
 
 use crate::{
-    zip_file, zip_folder, Application, Checker, Downloader, FileToUnzip, FilesToUnzip, Result,
+    zip_file, zip_folder, Application, Downloader, FileToUnzip, FilesToUnzip, Result,
 };
 
 #[derive(Clap, Debug, Clone)]
@@ -68,7 +68,6 @@ impl Tentative {
         application: &mut Application,
         tentative_options: &TentativeOptions,
     ) -> Result<()> {
-        Checker::new().check(&application, false).await?;
 
         let files_to_unzip = FilesToUnzip::new().add(FileToUnzip::new(
             tentative_options.tentative.as_path(),
