@@ -28,13 +28,6 @@ patcher patch: Context source:
         copy privSender: (self sender copyTo: aContext)].
     ^ copy'.
 
-patcher patch: SourceFileArray source: 'deferFlushDuring: aBlock
-	flushChanges ifFalse: [ ^ aBlock value ].
-	"flushChanges := false."
-	^ [ aBlock value ] ensure: [
-		flushChanges := true.
-		self flushChangesFile ]'.
-
 patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtensionName
 	"return nil if no package is not found"
 	| tmpPackageName |
