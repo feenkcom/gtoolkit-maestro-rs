@@ -51,7 +51,7 @@ patcher patch: Object source:
 patcher patch: Month class source:
 'indexOfMonth: aMonthName
 	1 to: 12 do: [ :i |
-		((MonthNames at: i) beginsWith:  aMonthName caseSensitive: false) ifTrue: [^i] ].
+		((MonthNames at: i) beginsWithEmpty:  aMonthName caseSensitive: false) ifTrue: [^i] ].
  	self error: aMonthName , '' is not a recognized month name'''.
 
 patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtensionName
