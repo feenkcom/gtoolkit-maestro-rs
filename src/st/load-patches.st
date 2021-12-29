@@ -48,6 +48,12 @@ patcher patch: Object source:
 
  	^ self retrySetPinnedInMemory: aBoolean'.
 
+patcher patch: Month class source:
+'indexOfMonth: aMonthName
+	1 to: 12 do: [ :i |
+		((MonthNames at: i) beginsWith:  aMonthName caseSensitive: false) ifTrue: [^i] ].
+ 	self error: aMonthName , '' is not a recognized month name'''.
+
 patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtensionName
 	"return nil if no package is not found"
 	| tmpPackageName |
