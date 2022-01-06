@@ -48,6 +48,22 @@ patcher patch: Object source:
 
  	^ self retrySetPinnedInMemory: aBoolean'.
 
+patcher patch: Metaclass source:
+'hasClassVarNamed: aString
+ 	"Return whether the receiver has a class variables (shared variables among its class and subclasses) named: aString"
+
+ 	^self instanceSide
+ 		ifNil: [ false ]
+ 		ifNotNil: [ :class | class hasClassVarNamed: aString ]'.
+
+patcher patch: Metaclass source:
+'classVariableNamed: aString ifAbsent: absentBlock
+	"Answer the Class Variable"
+
+	^ self instanceSide
+		ifNil: absentBlock
+		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'.
+
 patcher patch: Month class source:
 'indexOfMonth: aMonthName
 	1 to: 12 do: [ :i |
