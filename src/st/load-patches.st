@@ -205,13 +205,10 @@ patcher patch: #CairoLibrary asClass source:
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
 classified: 'accessing - platform'.
 
-"ZnHTTPSTest>>testGForceInria assumes it is being run on the Inria CI.
-It has been removed in Pharo 10."
 ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
 
-"Modify the SystemAnnouncer to use the FastSubscriptionRegistry"
 patcher patch: #Announcer asClass source:
 'initialize
 	super initialize.
