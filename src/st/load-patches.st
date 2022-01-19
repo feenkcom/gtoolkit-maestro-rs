@@ -211,5 +211,16 @@ ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
 
+"Modify the SystemAnnouncer to use the FastSubscriptionRegistry"
+patcher patch: #Announcer asClass source:
+'initialize
+	super initialize.
+	registry := FastSubscriptionRegistry new.'
+classified: 'initialization'.
+
+SystemAnnouncer uniqueInstance 
+	instVarNamed: #registry 
+	put: (FastSubscriptionRegistry new copyFromSlowRegistry: (SystemAnnouncer uniqueInstance instVarNamed: #registry)).
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
