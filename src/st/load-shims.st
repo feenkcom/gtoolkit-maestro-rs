@@ -1,13 +1,6 @@
 EpMonitor current disable.
 Iceberg enableMetacelloIntegration: false.
 
-PharoPatcher updatePackages:
-{
-    #'TaskIt'.
-    #'TaskIt-Tests'.
-    #'BaselineOfTaskIt'.
-}
-during: [
 Metacello new
     githubUser: 'syrel' project: 'pharo-shims' commitish: 'main' path: 'src';
     baseline: 'PharoShims';
@@ -23,16 +16,6 @@ Metacello new
 NonInteractiveTranscript stdout
     nextPutAll: 'CollectionExtensions';
     cr.
-Metacello new
-    githubUser: 'feenkcom' project: 'taskit' commitish: 'feenk102' path: '';
-    baseline: 'TaskIt';
-    onConflictUseIncoming;
-    load.
-
-NonInteractiveTranscript stdout
-    nextPutAll: 'Loaded TaskIt';
-    cr.
-].
 
 Iceberg enableMetacelloIntegration: true.
 EpMonitor current enable

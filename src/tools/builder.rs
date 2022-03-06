@@ -386,8 +386,8 @@ impl Builder {
         .create()
         .await?;
         FileToCreate::new(
-            application.workspace().join("load-taskit.st"),
-            include_str!("../st/load-taskit.st"),
+            application.workspace().join("load-shims.st"),
+            include_str!("../st/load-shims.st"),
         )
         .create()
         .await?;
@@ -404,7 +404,7 @@ impl Builder {
         println!("{}Preparing the image...", BUILDING);
         SmalltalkScriptsToExecute::new()
             .add(SmalltalkScriptToExecute::new("load-patches.st"))
-            .add(SmalltalkScriptToExecute::new("load-taskit.st"))
+            .add(SmalltalkScriptToExecute::new("load-shims.st"))
             .execute(pharo.evaluator().save(true))
             .await?;
 
