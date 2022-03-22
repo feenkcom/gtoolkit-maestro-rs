@@ -185,9 +185,9 @@ dependencies = [
 [[package]]
 name = "commander"
 version = "0.1.0"
-source = "git+https://github.com/feenkcom/build-helpers-rs#874c03b6ca1a7a72f7e618102a3b1b2693016b0f"
+source = "git+https://github.com/feenkcom/build-helpers-rs#7f8747b1d194b3fce8b148fa6e40fb704a060cdc"
 dependencies = [
- "indicatif",
+ "indicatif 0.16.2",
  "new_string_template",
 ]
 
@@ -200,7 +200,9 @@ dependencies = [
  "encode_unicode",
  "libc",
  "once_cell",
+ "regex",
  "terminal_size",
+ "unicode-width",
  "winapi",
 ]
 
@@ -453,12 +455,10 @@ dependencies = [
  "file-matcher",
  "fs_extra",
  "futures",
- "indicatif",
+ "indicatif 0.16.2",
  "mustache",
  "octocrab",
  "parse_duration",
- "path-slash",
- "regex",
  "reqwest",
  "rustc_version",
  "semver 1.0.6",
@@ -473,9 +473,7 @@ dependencies = [
  "unzipper",
  "url",
  "user-error",
- "walkdir",
  "which",
- "zip",
  "zipper",
 ]
 
@@ -640,6 +638,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "indicatif"
+version = "0.17.0-rc.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e540eeecee89ed4391cbbe2c86a9df6c061fc93f7710e2af69cbfccdc6564eae"
+dependencies = [
+ "console",
+ "number_prefix",
+ "unicode-width",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -708,14 +717,14 @@ version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 dependencies = [
- "log 0.4.15",
+ "log 0.4.16",
 ]
 
 [[package]]
 name = "log"
-version = "0.4.15"
+version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c4dcd960cc540667f619483fc99102f88d6118b87730e24e8fbe8054b7445e4"
+checksum = "6389c490849ff5bc16be905ae24bc913a9c8892e19b2341dbc175e14c341c2b8"
 dependencies = [
  "cfg-if",
 ]
@@ -755,7 +764,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52da4364ffb0e4fe33a9841a98a3f3014fb964045ce4f7a45a398243c8d6b0c9"
 dependencies = [
  "libc",
- "log 0.4.15",
+ "log 0.4.16",
  "miow",
  "ntapi",
  "wasi 0.11.0+wasi-snapshot-preview1",
@@ -789,7 +798,7 @@ checksum = "48ba9f7719b5a0f42f338907614285fb5fd70e53858141f69898a1fb7203b24d"
 dependencies = [
  "lazy_static",
  "libc",
- "log 0.4.15",
+ "log 0.4.16",
  "openssl",
  "openssl-probe",
  "openssl-sys",
@@ -1155,7 +1164,7 @@ dependencies = [
  "ipnet",
  "js-sys",
  "lazy_static",
- "log 0.4.15",
+ "log 0.4.16",
  "mime",
  "native-tls",
  "percent-encoding",
@@ -1549,7 +1558,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.15",
+ "log 0.4.16",
  "pin-project-lite",
  "tokio",
 ]
@@ -1611,6 +1620,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "unicode-width"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
+
+[[package]]
 name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1619,10 +1634,10 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 [[package]]
 name = "unzipper"
 version = "0.2.0"
-source = "git+https://github.com/feenkcom/build-helpers-rs#874c03b6ca1a7a72f7e618102a3b1b2693016b0f"
+source = "git+https://github.com/feenkcom/build-helpers-rs#7f8747b1d194b3fce8b148fa6e40fb704a060cdc"
 dependencies = [
  "futures",
- "indicatif",
+ "indicatif 0.17.0-rc.9",
  "thiserror",
  "zip",
 ]
@@ -1675,7 +1690,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ce8a968cb1cd110d136ff8b819a556d6fb6d919363c61534f6860c7eb172ba0"
 dependencies = [
- "log 0.4.15",
+ "log 0.4.16",
  "try-lock",
 ]
 
@@ -1709,7 +1724,7 @@ checksum = "8b21c0df030f5a177f3cba22e9bc4322695ec43e7257d865302900290bcdedca"
 dependencies = [
  "bumpalo",
  "lazy_static",
- "log 0.4.15",
+ "log 0.4.16",
  "proc-macro2",
  "quote",
  "syn",
@@ -1893,7 +1908,7 @@ dependencies = [
 [[package]]
 name = "zipper"
 version = "0.1.0"
-source = "git+https://github.com/feenkcom/build-helpers-rs#874c03b6ca1a7a72f7e618102a3b1b2693016b0f"
+source = "git+https://github.com/feenkcom/build-helpers-rs#7f8747b1d194b3fce8b148fa6e40fb704a060cdc"
 dependencies = [
  "file-matcher",
  "path-slash",

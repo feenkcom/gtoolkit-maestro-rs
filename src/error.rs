@@ -12,8 +12,8 @@ pub enum InstallerError {
     IoError(#[from] std::io::Error),
     #[error("File matcher error")]
     FileMatcherError(#[from] file_matcher::FileMatcherError),
-    #[error("Zip error")]
-    ZipError(#[from] zip::result::ZipError),
+    #[error("Unzipper error")]
+    UnzipperError(#[from] unzipper::UnzipperError),
     #[error("Zipper error")]
     ZipperError(#[from] zipper::ZipperError),
     #[error("Failed to perform a request")]
@@ -24,8 +24,6 @@ pub enum InstallerError {
     SerializationAsYamlError(#[from] serde_yaml::Error),
     #[error("Version parse error")]
     ReleaserError(#[from] feenk_releaser::ReleaserError),
-    #[error("Walkdir error")]
-    WalkdirError(#[from] walkdir::Error),
     #[error("Failed to parse URL")]
     UrlParseError(#[from] url::ParseError),
     #[error("Task join error")]

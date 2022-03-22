@@ -29,9 +29,6 @@ semver = "1.0"
 reqwest = { version = "0.11", features = [ "stream" ] }
 indicatif = "0.16.2"
 console = { version = ">=0.9.1, <1.0.0", default-features = false }
-zip = "0.5.13"
-regex = "1"
-walkdir = "2.3.2"
 feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", tag = "v0.10.0" }
 zipper = { git = "https://github.com/feenkcom/build-helpers-rs" }
 unzipper = { git = "https://github.com/feenkcom/build-helpers-rs" }
@@ -40,7 +37,6 @@ commander = { git = "https://github.com/feenkcom/build-helpers-rs" }
 file-matcher = "0.7.0"
 mustache = "0.9"
 to_absolute = "0.1"
-path-slash = "0.1.4"
 parse_duration = "2.1"
 user-error = "1.2.8"
 thiserror = "1.0"

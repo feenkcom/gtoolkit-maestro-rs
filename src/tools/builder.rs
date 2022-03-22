@@ -5,7 +5,6 @@ use crate::{
     Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
     SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
-use crate::{FileToUnzip, FilesToUnzip};
 use clap::{ArgEnum, Parser};
 use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
@@ -14,6 +13,7 @@ use reqwest::StatusCode;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use unzipper::{FilesToUnzip, FileToUnzip};
 use url::Url;
 
 pub const DEFAULT_PHARO_IMAGE: &str =

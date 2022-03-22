@@ -1,9 +1,11 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-use file_matcher::{FileNamed, OneEntry};
+use file_matcher::FileNamed;
+use unzipper::{FileToUnzip, FilesToUnzip};
+use zipper::ToZip;
 
-use crate::{zip_file, zip_folder, Application, Downloader, FileToUnzip, FilesToUnzip, Result};
+use crate::{Application, Downloader, Result};
 
 #[derive(Parser, Debug, Clone)]
 pub struct TentativeOptions {
@@ -27,36 +29,25 @@ impl Tentative {
         &self,
         application: &Application,
         tentative_options: &TentativeOptions,
-    ) -> Result<()> {
-        let file = std::fs::File::create(&tentative_options.tentative).unwrap();
-        let mut zip = zip::ZipWriter::new(file);
-
-        let zip_options =
-            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-
-        let filters = vec![
-            FileNamed::wildmatch("*.image"),
-            FileNamed::wildmatch("*.changes"),
-            FileNamed::wildmatch("*.sources"),
-            FileNamed::exact(application.serialization_file_name()),
-        ]
-        .into_iter()
-        .map(|each| each.within(application.workspace()))
-        .collect::<Vec<OneEntry>>();
-
-        for ref filter in filters {
-            zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
-        }
+    ) -> Result<PathBuf> {
+        let mut zip = ToZip::new(tentative_options.tentative.as_path())
+            .one_entry(FileNamed::wildmatch("*.image").within(application.workspace()))
+            .one_entry(FileNamed::wildmatch("*.changes").within(application.workspace()))
+            .one_entry(FileNamed::wildmatch("*.sources").within(application.workspace()))
+            .one_entry(
+                FileNamed::exact(application.serialization_file_name())
+                    .within(application.workspace()),
+            )
+            .folder(application.workspace().join("gt-extra"))
+            .one_entries(application.gtoolkit_app_folders());
 
         let gt_extra = application.workspace().join("gt-extra");
 
         if gt_extra.exists() || !tentative_options.ignore_absent {
-            zip_folder(&mut zip, &gt_extra, zip_options)?;
+            zip.add_folder(gt_extra);
         }
 
-        zip.finish()?;
-
-        Ok(())
+        zip.zip().map_err(|error| error.into())
     }
 
     pub async fn unpackage(

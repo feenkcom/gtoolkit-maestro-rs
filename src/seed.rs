@@ -1,6 +1,6 @@
-use crate::FileToUnzip;
 use crate::{Application, FileToDownload};
 use std::path::PathBuf;
+use unzipper::FileToUnzip;
 use url::Url;
 
 /// Represents a seed from which to build am image.

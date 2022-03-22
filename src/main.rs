@@ -3,13 +3,11 @@ extern crate console;
 extern crate feenk_releaser;
 extern crate file_matcher;
 extern crate octocrab as github;
-extern crate regex;
 extern crate reqwest;
 extern crate semver;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate mustache;
 extern crate parse_duration;
 extern crate thiserror;
 extern crate to_absolute;
@@ -17,8 +15,6 @@ extern crate tokio;
 extern crate tokio_stream;
 extern crate tokio_util;
 extern crate user_error;
-extern crate walkdir;
-extern crate zip;
 
 mod application;
 mod create;
@@ -31,7 +27,6 @@ mod seed;
 mod smalltalk;
 mod tools;
 mod version;
-mod zipping;
 
 pub use application::*;
 pub use download::*;
@@ -42,7 +37,6 @@ pub use seed::*;
 pub use smalltalk::*;
 pub use tools::*;
 pub use version::*;
-pub use zipping::*;
 
 use crate::options::SubCommand;
 use clap::Parser;
