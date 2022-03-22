@@ -238,10 +238,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 
 [[package]]
-name = "either"
-version = "1.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+name = "downloader"
+version = "0.1.0"
+source = "git+https://github.com/feenkcom/build-helpers-rs#7f8747b1d194b3fce8b148fa6e40fb704a060cdc"
+dependencies = [
+ "futures",
+ "indicatif 0.16.2",
+ "reqwest",
+ "thiserror",
+ "tokio",
+ "url",
+]
 
 [[package]]
 name = "encode_unicode"
@@ -451,6 +458,7 @@ dependencies = [
  "clap",
  "commander",
  "console",
+ "downloader",
  "feenk-releaser",
  "file-matcher",
  "fs_extra",
@@ -459,7 +467,6 @@ dependencies = [
  "mustache",
  "octocrab",
  "parse_duration",
- "reqwest",
  "rustc_version",
  "semver 1.0.6",
  "serde",
@@ -468,12 +475,9 @@ dependencies = [
  "thiserror",
  "to_absolute",
  "tokio",
- "tokio-stream",
- "tokio-util",
  "unzipper",
  "url",
  "user-error",
- "which",
  "zipper",
 ]
 
@@ -1539,17 +1543,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-stream"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50145484efff8818b5ccd256697f36863f587da82cf8b409c53adf1e840798e3"
-dependencies = [
- "futures-core",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "tokio-util"
 version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1780,17 +1773,6 @@ checksum = "c060b319f29dd25724f09a2ba1418f142f539b2be99fbf4d2d5a8f7330afb8eb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "which"
-version = "4.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c4fb54e6113b6a8772ee41c3404fb0301ac79604489467e0a9ce1f3e97c24ae"
-dependencies = [
- "either",
- "lazy_static",
- "libc",
 ]
 
 [[package]]

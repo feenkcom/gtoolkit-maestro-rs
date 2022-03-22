@@ -1,4 +1,3 @@
-use reqwest::{StatusCode, Url};
 use std::path::PathBuf;
 use std::process::Command;
 use thiserror::Error;
@@ -16,8 +15,8 @@ pub enum InstallerError {
     UnzipperError(#[from] unzipper::UnzipperError),
     #[error("Zipper error")]
     ZipperError(#[from] zipper::ZipperError),
-    #[error("Failed to perform a request")]
-    ReqwestError(#[from] reqwest::Error),
+    #[error("Downloader error")]
+    DownloaderError(#[from] downloader::DownloaderError),
     #[error("Failed to canonicalize a path {0}")]
     CanonicalizeError(PathBuf, #[source] to_absolute::Error),
     #[error("Failed to serialize as yaml")]
@@ -32,8 +31,6 @@ pub enum InstallerError {
     MustacheErrorr(#[from] mustache::Error),
     #[error("Failed to detect the latest released version of the gtoolkit-vm from its GitHub repository")]
     FailedToDetectGlamorousAppVersion,
-    #[error("Failed to download releaser version from {0}, with status code {1}")]
-    FailedToDownloadReleaserVersion(Url, StatusCode),
     #[error("Failed to detect the version of the gtoolkit")]
     FailedToDetectGlamorousImageVersion,
     #[error("Failed to parse the loader {0}")]
@@ -50,8 +47,6 @@ pub enum InstallerError {
     PrivateKeyDoesNotExist(PathBuf),
     #[error("Specified public key {0} does not exist")]
     PublicKeyDoesNotExist(PathBuf),
-    #[error("Failed to download {0}, status code {1}")]
-    DownloadError(Url, StatusCode),
     #[error("Failed to read the file name of {0}")]
     FailedToReadFileName(PathBuf),
     #[error("Failed to read the file extension of {0}")]

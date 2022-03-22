@@ -1,19 +1,18 @@
 use crate::create::FileToCreate;
-use crate::download::{FileToDownload, FilesToDownload};
 use crate::{
     Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
     Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
     SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use clap::{ArgEnum, Parser};
+use downloader::{FileToDownload, FilesToDownload};
 use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
-use reqwest::StatusCode;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use unzipper::{FilesToUnzip, FileToUnzip};
+use unzipper::{FileToUnzip, FilesToUnzip};
 use url::Url;
 
 pub const DEFAULT_PHARO_IMAGE: &str =
@@ -229,7 +228,6 @@ pub struct Builder;
 #[derive(Serialize)]
 pub struct LoaderVersionInfo {
     gtoolkit_version: String,
-    releaser_version: String,
 }
 
 impl Builder {
@@ -256,35 +254,8 @@ impl Builder {
             }
         };
 
-        let releaser_version_string = match &build_options.version {
-            BuildVersion::BleedingEdge => "main".to_string(),
-            _ => {
-                let releaser_version_file_url_string = format!(
-                    "https://raw.githubusercontent.com/feenkcom/gtoolkit/{}/gtoolkit-releaser.version",
-                    &gtoolkit_version_string
-                );
-
-                let releaser_version_file_url = Url::parse(&releaser_version_file_url_string)?;
-
-                let releaser_version_file_response =
-                    reqwest::get(releaser_version_file_url.clone()).await?;
-                if releaser_version_file_response.status() != StatusCode::OK {
-                    return InstallerError::FailedToDownloadReleaserVersion(
-                        releaser_version_file_url.clone(),
-                        releaser_version_file_response.status(),
-                    )
-                    .into();
-                }
-
-                let releaser_version_file_content = releaser_version_file_response.text().await?;
-                let releaser_version = Version::parse(releaser_version_file_content)?;
-                format!("v{}", releaser_version.to_string())
-            }
-        };
-
         Ok(LoaderVersionInfo {
-            gtoolkit_version: gtoolkit_version_string,
-            releaser_version: releaser_version_string,
+            gtoolkit_version: gtoolkit_version_string
         })
     }
 

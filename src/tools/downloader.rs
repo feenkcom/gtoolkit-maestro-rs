@@ -1,6 +1,6 @@
-use unzipper::{FilesToUnzip, FileToUnzip};
-use crate::download::{FileToDownload, FilesToDownload};
 use crate::{Application, Result, DOWNLOADING, EXTRACTING};
+use downloader::{FileToDownload, FilesToDownload};
+use unzipper::{FileToUnzip, FilesToUnzip};
 
 pub struct Downloader;
 

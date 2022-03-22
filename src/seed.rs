@@ -1,4 +1,5 @@
-use crate::{Application, FileToDownload};
+use crate::Application;
+use downloader::FileToDownload;
 use std::path::PathBuf;
 use unzipper::FileToUnzip;
 use url::Url;

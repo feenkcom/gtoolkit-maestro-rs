@@ -12,13 +12,13 @@ mod tester;
 
 use console::Emoji;
 
+pub use self::downloader::Downloader;
 pub use builder::{
     BuildOptions, Builder, Loader, LocalBuildOptions, ReleaseBuildOptions, DEFAULT_PHARO_IMAGE,
 };
 pub use checker::Checker;
 pub use cleaner::Cleaner;
 pub use copier::{Copier, CopyOptions};
-pub use downloader::Downloader;
 pub use release::{Release, ReleaseOptions, ReleaserOptions};
 pub use renamer::{RenameOptions, Renamer};
 pub use setup::{Setup, SetupOptions, SetupTarget};
