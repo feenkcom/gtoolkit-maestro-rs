@@ -45,7 +45,7 @@ pub use version::*;
 pub use zipping::*;
 
 use crate::options::SubCommand;
-use clap::Clap;
+use clap::Parser;
 use options::AppOptions;
 use url::Url;
 use user_error::{UserFacingError, UFE};

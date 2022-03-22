@@ -1,13 +1,11 @@
 use crate::gtoolkit::GToolkit;
 use crate::Application;
 use crate::Result;
-use clap::{AppSettings, Clap};
+use clap::Parser;
 
 pub struct Tester;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct TestOptions {
     /// Select packages to test. If not specified will run all tests, all slides and architectural reports.
     #[clap(long, min_values = 1)]

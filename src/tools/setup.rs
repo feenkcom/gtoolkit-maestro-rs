@@ -1,23 +1,21 @@
 use crate::gtoolkit::GToolkit;
 use crate::{Application, Result, StartOptions, Starter, BUILDING, CREATING};
-use clap::{AppSettings, ArgEnum, Clap};
+use clap::{ArgEnum, Parser};
 use feenk_releaser::VersionBump;
 use std::str::FromStr;
 
 pub struct Setup;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct SetupOptions {
     /// Do not open a default GtWorld
     #[clap(long)]
     pub no_gt_world: bool,
     /// Specify a setup target
-    #[clap(long, default_value = "local-build", possible_values = SetupTarget::VARIANTS, case_insensitive = true)]
+    #[clap(long, default_value = "local-build", arg_enum, ignore_case = true)]
     pub target: SetupTarget,
     /// When building an image for a release, specify which component version to bump
-    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
+    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), ignore_case = true)]
     pub bump: VersionBump,
 }
 
@@ -64,7 +62,7 @@ impl FromStr for SetupTarget {
 
 impl ToString for SetupTarget {
     fn to_string(&self) -> String {
-        (SetupTarget::VARIANTS[*self as usize]).to_owned()
+        self.to_possible_value().unwrap().get_name().to_string()
     }
 }
 

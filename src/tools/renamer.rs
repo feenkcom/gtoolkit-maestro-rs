@@ -1,11 +1,9 @@
 use crate::{Application, ExecutableSmalltalk, ImageSeed, Result, SmalltalkCommand};
-use clap::{AppSettings, Clap};
+use clap::Parser;
 
 pub struct Renamer;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct RenameOptions {
     /// A new name of the image without the extension
     pub name: String,

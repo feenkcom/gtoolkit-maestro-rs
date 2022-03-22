@@ -3,7 +3,7 @@ use crate::{
     ReleaserOptions, RenameOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
 };
 use crate::{LocalBuildOptions, Result};
-use clap::{AppSettings, Clap};
+use clap::Parser;
 use feenk_releaser::{GitHub, Version};
 use std::path::PathBuf;
 
@@ -12,10 +12,8 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
 
-#[derive(Clap, Clone, Debug)]
-#[clap(author = "feenk gmbh <contact@feenk.com>")]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Clone, Debug)]
+#[clap(author)]
 pub struct AppOptions {
     #[clap(subcommand)]
     sub_command: SubCommand,
@@ -26,7 +24,7 @@ pub struct AppOptions {
     workspace: PathBuf,
 }
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 pub enum SubCommand {
     /// Creates a typical local build of GlamorousToolkit with GtWorld opened and sets the image up. This is intended to be used by developers and contributors.
     #[clap(display_order = 1)]

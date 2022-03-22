@@ -108,8 +108,8 @@ impl Application {
                     .and_then(|name| name.to_str())
                     .and_then(|name| Some(name.to_string()));
 
-                self.image_name =
-                    file_name.ok_or_else(|| InstallerError::FailedToReadFileName(image_file.clone()))?;
+                self.image_name = file_name
+                    .ok_or_else(|| InstallerError::FailedToReadFileName(image_file.clone()))?;
                 self.image_extension = file_extension
                     .ok_or_else(|| InstallerError::FailedToReadFileExtension(image_file.clone()))?;
             }

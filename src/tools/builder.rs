@@ -6,7 +6,7 @@ use crate::{
     SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use crate::{FileToUnzip, FilesToUnzip};
-use clap::{AppSettings, ArgEnum, Clap};
+use clap::{ArgEnum, Parser};
 use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
@@ -19,14 +19,12 @@ use url::Url;
 pub const DEFAULT_PHARO_IMAGE: &str =
     "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1564.sha.f5f541c.arch.64bit.zip";
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct BuildOptions {
     /// Delete existing installation of the gtoolkit if present
     #[clap(long)]
     pub overwrite: bool,
-    #[clap(long, default_value = "cloner", possible_values = Loader::VARIANTS, case_insensitive = true)]
+    #[clap(long, default_value = "cloner", arg_enum, ignore_case = true)]
     /// Specify a loader to install GToolkit code in a Pharo image.
     pub loader: Loader,
     /// Specify a URL to a clean seed image on top of which to build the glamorous toolkit
@@ -73,23 +71,19 @@ fn url_parse(val: &str) -> Result<Url> {
     Url::parse(val).map_err(|error| error.into())
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct ReleaseBuildOptions {
     #[clap(flatten)]
     pub build_options: BuildOptions,
     /// When building an image for a release, specify which component version to bump
-    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
+    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), ignore_case = true)]
     pub bump: VersionBump,
     /// Do not open a default GtWorld
     #[clap(long)]
     pub no_gt_world: bool,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct LocalBuildOptions {
     #[clap(flatten)]
     pub build_options: BuildOptions,
@@ -186,7 +180,7 @@ impl FromStr for Loader {
 
 impl ToString for Loader {
     fn to_string(&self) -> String {
-        (Loader::VARIANTS[*self as usize]).to_owned()
+        self.to_possible_value().unwrap().get_name().to_string()
     }
 }
 

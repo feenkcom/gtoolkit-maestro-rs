@@ -1,14 +1,11 @@
-use crate::{
-    zip_file, zip_folder, Application, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand,
-};
-use clap::{AppSettings, Clap};
+use crate::{Application, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand};
+use clap::Parser;
 use feenk_releaser::VersionBump;
-use file_matcher::{FileNamed, OneEntry};
+use file_matcher::FileNamed;
 use std::path::{Path, PathBuf};
+use zipper::ToZip;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct ReleaseOptions {
     /// Path to the .zip with the release image build. Supports mustache syntax to inject various release related information.
     /// The following properties are supported:
@@ -19,12 +16,10 @@ pub struct ReleaseOptions {
     pub release: PathBuf,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct ReleaserOptions {
     /// Specify a releaser version bump strategy
-    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), case_insensitive = true)]
+    #[clap(long, default_value = VersionBump::Patch.to_str(), possible_values = VersionBump::variants(), ignore_case = true)]
     pub bump: VersionBump,
 }
 
@@ -81,35 +76,14 @@ impl Release {
     ) -> Result<PathBuf> {
         let package = Self::process_template_path(application, release_options.release.as_path());
 
-        let file = std::fs::File::create(&package).unwrap();
-        let mut zip = zip::ZipWriter::new(file);
-
-        let zip_options =
-            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-
-        let filters = vec![
-            FileNamed::wildmatch("*.image"),
-            FileNamed::wildmatch("*.changes"),
-            FileNamed::wildmatch("*.sources"),
-        ]
-        .into_iter()
-        .map(|each| each.within(application.workspace()))
-        .collect::<Vec<OneEntry>>();
-
-        for ref filter in filters {
-            zip_file(&mut zip, filter.as_path_buf()?, zip_options)?;
-        }
-
-        let gt_extra = application.workspace().join("gt-extra");
-        zip_folder(&mut zip, &gt_extra, zip_options)?;
-
-        for folder in application.gtoolkit_app_folders() {
-            zip_folder(&mut zip, folder.as_path_buf()?, zip_options)?;
-        }
-
-        zip.finish()?;
-
-        Ok(package)
+        ToZip::new(package)
+            .one_entry(FileNamed::wildmatch("*.image").within(application.workspace()))
+            .one_entry(FileNamed::wildmatch("*.changes").within(application.workspace()))
+            .one_entry(FileNamed::wildmatch("*.sources").within(application.workspace()))
+            .folder(application.workspace().join("gt-extra"))
+            .one_entries(application.gtoolkit_app_folders())
+            .zip()
+            .map_err(|error| error.into())
     }
 
     pub async fn run_releaser(

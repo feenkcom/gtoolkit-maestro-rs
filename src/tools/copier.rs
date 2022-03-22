@@ -1,12 +1,10 @@
-use clap::{AppSettings, Clap};
+use clap::Parser;
 use std::path::PathBuf;
 
 use crate::{Application, Result};
 use file_matcher::{FileNamed, FolderNamed, OneEntry, OneEntryCopier, OneEntryNamed};
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct CopyOptions {
     /// A folder in which to copy the image, changes and sources with some extra files
     #[clap(parse(from_os_str), default_value = crate::options::DEFAULT_DIRECTORY)]

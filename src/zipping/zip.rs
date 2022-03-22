@@ -29,6 +29,13 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
             .to_str()
             .expect("Could not convert file name to Unicode");
 
+        // zip requires that folder separator is /, even on windows
+        let name = if cfg!(windows) {
+            Path::new(name).to_slash().unwrap_or(name.to_owned())
+        } else {
+            name.to_owned()
+        };
+
         // Write file or directory explicitly
         // Some unzip tools unzip files with directory paths correctly, some do not!
         if path.is_file() {
@@ -49,13 +56,7 @@ pub fn zip_folder<F: std::io::Write + std::io::Seek>(
             zip.write_all(&*buffer)?;
             buffer.clear();
         } else if name.len() != 0 {
-            // zip requires that folder separator is /, even on windows
-            let directory_name = if cfg!(windows) {
-                Path::new(name).to_slash().unwrap_or(name.to_owned())
-            } else {
-                name.to_owned()
-            };
-            zip.add_directory(directory_name, zip_options)?;
+            zip.add_directory(name, zip_options)?;
         }
     }
 

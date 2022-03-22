@@ -1,4 +1,4 @@
-use clap::{AppSettings, Clap};
+use clap::Parser;
 use parse_duration::parse as duration_parse;
 use std::time::Duration;
 
@@ -7,9 +7,7 @@ use crate::{Application, ExecutableSmalltalk, Result, SmalltalkExpressionBuilder
 const DEFAULT_APPLICATION_STARTER: &str = "GtWorld openDefault";
 const DEFAULT_DELAY: &str = "5 seconds";
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColorAlways)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser, Debug, Clone)]
 pub struct StartOptions {
     /// An amount of time to wait before saving and closing an app
     #[clap(long, parse(try_from_str = duration_parse), default_value = DEFAULT_DELAY)]

@@ -1,5 +1,5 @@
-use std::ffi::{OsString};
 use crate::{ExecutableSmalltalk, Result, SmalltalkEvaluator};
+use std::ffi::OsString;
 use std::process::Command;
 
 pub struct SmalltalkCommand {

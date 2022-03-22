@@ -14,6 +14,8 @@ pub enum InstallerError {
     FileMatcherError(#[from] file_matcher::FileMatcherError),
     #[error("Zip error")]
     ZipError(#[from] zip::result::ZipError),
+    #[error("Zipper error")]
+    ZipperError(#[from] zipper::ZipperError),
     #[error("Failed to perform a request")]
     ReqwestError(#[from] reqwest::Error),
     #[error("Failed to canonicalize a path {0}")]
