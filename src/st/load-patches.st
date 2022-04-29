@@ -100,6 +100,11 @@ patcher patch: RPackageOrganizer source: 'hasPackageMatchingExtensionName: anExt
 			ifTrue: [ ^ true]].
 	^ false'.
 
+patcher patch: RPackage source: 'toTagName: aSymbol
+	^ (aSymbol beginsWith: self name asString, ''-'')
+		ifTrue: [ (aSymbol allButFirst: self name size + 1) asSymbol ]
+		ifFalse: [ aSymbol ]'.
+
 patcher patch: MCPackageLoader source: 'tryToLoad: aDefinition
 	aDefinition isClassDefinition ifTrue: [ ^ false ].
 
