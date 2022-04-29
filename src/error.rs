@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 use std::process::Command;
+use reqwest::StatusCode;
 use thiserror::Error;
 use tokio::task::JoinError;
+use url::Url;
 
 pub type Result<T> = core::result::Result<T, InstallerError>;
 
@@ -29,6 +31,10 @@ pub enum InstallerError {
     JoinError(#[from] JoinError),
     #[error("Mustache template error")]
     MustacheErrorr(#[from] mustache::Error),
+    #[error("Reqwest error")]
+    ReqwestError(#[from] reqwest::Error),
+    #[error("Failed to download releaser version from {0}, with status code {1}")]
+    FailedToDownloadReleaserVersion(Url, StatusCode),
     #[error("Failed to detect the latest released version of the gtoolkit-vm from its GitHub repository")]
     FailedToDetectGlamorousAppVersion,
     #[error("Failed to detect the version of the gtoolkit")]

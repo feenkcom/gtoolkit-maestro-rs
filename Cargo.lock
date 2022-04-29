@@ -467,6 +467,7 @@ dependencies = [
  "mustache",
  "octocrab",
  "parse_duration",
+ "reqwest",
  "rustc_version",
  "semver 1.0.6",
  "serde",
