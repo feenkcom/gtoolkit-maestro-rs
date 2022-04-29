@@ -38,7 +38,6 @@ impl Tentative {
                 FileNamed::exact(application.serialization_file_name())
                     .within(application.workspace()),
             )
-            .folder(application.workspace().join("gt-extra"))
             .one_entries(application.gtoolkit_app_folders());
 
         let gt_extra = application.workspace().join("gt-extra");
