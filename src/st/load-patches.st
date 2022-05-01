@@ -119,6 +119,30 @@ patcher patch: CompiledMethod source: 'basicAsMCMethodDefinition
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'.
 
+patcher patch: RBParser source: 'parseKeywordMessageWith: node 
+	| args isKeyword keywordsStartPositions selector selectorStream |
+	args := OrderedCollection new: 3.
+	keywordsStartPositions := OrderedCollection new: 3.
+	selectorStream := WriteStream on: String new.
+	isKeyword := false.
+	[currentToken isKeyword] whileTrue: 
+			[keywordsStartPositions add: currentToken start.
+			selectorStream nextPutAll: currentToken value.
+			self step.
+			args add: self parseBinaryMessage.
+			isKeyword := true].
+	^isKeyword
+		ifTrue: 
+			[selector := self selectorNodeClass value: selectorStream contents.
+			selector keywordPositions: keywordsStartPositions.
+			self messageNodeClass 
+				receiver: node
+				selector: selector
+				keywordsPositions: keywordsStartPositions
+				arguments: args]
+		ifFalse: [node]'
+classified: 'private - parsing'.
+
 patcher patch: Object source: 'gtDisplayString
     "This offers a means to customize how the object is shown in the GlamorousToolkit UI.
     Do not override this method. Override gtDisplayOn: instead"
