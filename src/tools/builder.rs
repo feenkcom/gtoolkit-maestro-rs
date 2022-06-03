@@ -2,22 +2,20 @@ use crate::create::FileToCreate;
 use crate::{
     Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
     Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
-    SmalltalkScriptsToExecute, BUILDING, CREATING, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+    SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE, DOWNLOADING, EXTRACTING,
+    MOVING, SPARKLE,
 };
 use clap::{ArgEnum, Parser};
 use downloader::{FileToDownload, FilesToDownload};
 use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
+use reqwest::StatusCode;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use reqwest::StatusCode;
 use unzipper::{FileToUnzip, FilesToUnzip};
 use url::Url;
-
-pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1564.sha.f5f541c.arch.64bit.zip";
 
 #[derive(Parser, Debug, Clone)]
 pub struct BuildOptions {
@@ -229,7 +227,7 @@ pub struct Builder;
 #[derive(Serialize)]
 pub struct LoaderVersionInfo {
     gtoolkit_version: String,
-    releaser_version: String
+    releaser_version: String,
 }
 
 impl Builder {
@@ -273,7 +271,7 @@ impl Builder {
                         releaser_version_file_url.clone(),
                         releaser_version_file_response.status(),
                     )
-                        .into();
+                    .into();
                 }
 
                 let releaser_version_file_content = releaser_version_file_response.text().await?;
@@ -284,7 +282,7 @@ impl Builder {
 
         Ok(LoaderVersionInfo {
             gtoolkit_version: gtoolkit_version_string,
-            releaser_version: releaser_version_string
+            releaser_version: releaser_version_string,
         })
     }
 

@@ -1,6 +1,6 @@
+use reqwest::StatusCode;
 use std::path::PathBuf;
 use std::process::Command;
-use reqwest::StatusCode;
 use thiserror::Error;
 use tokio::task::JoinError;
 use url::Url;
