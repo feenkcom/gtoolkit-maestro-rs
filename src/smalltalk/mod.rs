@@ -10,4 +10,4 @@ pub use evaluator::SmalltalkEvaluator;
 pub use execution::SmalltalkScriptsToExecute;
 pub use expression::{SmalltalkExpression, SmalltalkExpressionBuilder};
 pub use script::SmalltalkScriptToExecute;
-pub use smalltalk::{ExecutableSmalltalk, Smalltalk};
+pub use smalltalk::{ExecutableSmalltalk, Smalltalk, SmalltalkFlags};

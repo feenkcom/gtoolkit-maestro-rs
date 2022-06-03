@@ -38,11 +38,6 @@ impl ExecutableSmalltalk for SmalltalkExpression {
             } else {
                 "--no-quit"
             })
-            .arg(if evaluator.wants_interactive() {
-                "--interactive"
-            } else {
-                ""
-            })
             .arg(&expression);
 
         Ok(command)

@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use crate::{AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk};
+use crate::{
+    AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
+};
 use feenk_releaser::{GitHub, Version};
 use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
 use std::fs::File;
@@ -142,11 +144,21 @@ impl Application {
     }
 
     pub fn gtoolkit(&self) -> Smalltalk {
-        Smalltalk::new(self.gtoolkit_app_cli(), self.image(), self)
+        Smalltalk::new(
+            self.gtoolkit_app_cli(),
+            self.image(),
+            SmalltalkFlags::gtoolkit(),
+            self,
+        )
     }
 
     pub fn pharo(&self) -> Smalltalk {
-        Smalltalk::new(self.pharo_executable(), self.image(), self)
+        Smalltalk::new(
+            self.pharo_executable(),
+            self.image(),
+            SmalltalkFlags::pharo(),
+            self,
+        )
     }
 
     pub fn serialization_file_name(&self) -> &str {

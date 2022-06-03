@@ -1,9 +1,9 @@
 use crate::create::FileToCreate;
 use crate::{
     Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
-    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkScriptToExecute,
-    SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE, DOWNLOADING, EXTRACTING,
-    MOVING, SPARKLE,
+    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkFlags,
+    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE,
+    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 use clap::{ArgEnum, Parser};
 use downloader::{FileToDownload, FilesToDownload};
@@ -34,6 +34,9 @@ pub struct BuildOptions {
     /// Specify a path to the .image in which to install the glamorous toolkit
     #[clap(long, parse(from_os_str), conflicts_with_all(&["image_url", "image_zip"]))]
     pub image_file: Option<PathBuf>,
+    /// Specify a URL to a pharo vm which will be used to prepare a seed image
+    #[clap(long, parse(try_from_str = url_parse))]
+    pub pharo_vm_url: Option<Url>,
     /// Public ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub public_key: Option<PathBuf>,
@@ -139,6 +142,7 @@ impl BuildOptions {
             image_url: None,
             image_zip: None,
             image_file: None,
+            pharo_vm_url: None,
             public_key: None,
             private_key: None,
             version: BuildVersion::BleedingEdge,
@@ -286,6 +290,18 @@ impl Builder {
         })
     }
 
+    fn pharo_vm_url(
+        &self,
+        application: &mut Application,
+        build_options: &BuildOptions,
+    ) -> Result<Url> {
+        if let Some(ref custom_vm_url) = build_options.pharo_vm_url {
+            Ok(custom_vm_url.clone())
+        } else {
+            Url::parse(application.pharo_vm_url()).map_err(|err| err.into())
+        }
+    }
+
     pub async fn build(
         &self,
         application: &mut Application,
@@ -305,7 +321,7 @@ impl Builder {
         println!("{}Downloading files...", DOWNLOADING);
 
         let pharo_vm = FileToDownload::new(
-            Url::parse(application.pharo_vm_url())?,
+            self.pharo_vm_url(application, build_options)?,
             application.workspace(),
             "pharo-vm.zip",
         );
@@ -335,9 +351,14 @@ impl Builder {
             let seed_image = FileNamed::wildmatch(format!("*.{}", application.image_extension()))
                 .within(image_seed.seed_image_directory(application))
                 .find()?;
-            let seed_smalltalk =
-                Smalltalk::new(application.pharo_executable(), seed_image, application);
-            let seed_evaluator = seed_smalltalk.evaluator();
+            let seed_smalltalk = Smalltalk::new(
+                application.pharo_executable(),
+                seed_image,
+                SmalltalkFlags::pharo(),
+                application,
+            );
+            let mut seed_evaluator = seed_smalltalk.evaluator();
+            seed_evaluator.interactive(false);
 
             SmalltalkCommand::new("save")
                 .arg(

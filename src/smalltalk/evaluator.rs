@@ -67,6 +67,12 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         self.interactive
     }
 
+    pub fn interactive_or_headless_flag(&self) -> Option<&str> {
+        self.smalltalk
+            .flags()
+            .interactive_or_headless_flag(self.wants_interactive())
+    }
+
     pub fn is_verbose(&self) -> bool {
         self.verbose
     }
@@ -112,8 +118,12 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         command
             .current_dir(self.workspace())
             .stdout(self.stdout())
-            .stderr(self.stderr())
-            .arg(self.image());
+            .stderr(self.stderr());
+
+        if let Some(flag) = self.interactive_or_headless_flag() {
+            command.arg(flag);
+        }
+        command.arg(self.image());
         command
     }
 }

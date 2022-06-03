@@ -41,18 +41,21 @@ pub struct Smalltalk<'application> {
     executable: PathBuf,
     image: PathBuf,
     application: &'application Application,
+    flags: SmalltalkFlags,
 }
 
 impl<'application> Smalltalk<'application> {
     pub fn new(
         executable: impl Into<PathBuf>,
         image: impl Into<PathBuf>,
+        flags: SmalltalkFlags,
         application: &'application Application,
     ) -> Self {
         Self {
             executable: executable.into(),
             image: image.into(),
             application,
+            flags,
         }
     }
 
@@ -74,11 +77,45 @@ impl<'application> Smalltalk<'application> {
         evaluator
     }
 
+    pub fn flags(&self) -> &SmalltalkFlags {
+        &self.flags
+    }
+
     pub fn verbose(&self) -> bool {
         self.application.is_verbose()
     }
 
     pub fn application(&self) -> &Application {
         self.application
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SmalltalkFlags {
+    interactive: Option<String>,
+    headless: Option<String>,
+}
+
+impl SmalltalkFlags {
+    pub fn pharo() -> Self {
+        Self {
+            interactive: None,
+            headless: Some("--headless".to_string()),
+        }
+    }
+
+    pub fn gtoolkit() -> Self {
+        Self {
+            interactive: Some("--interactive".to_string()),
+            headless: None,
+        }
+    }
+
+    pub fn interactive_or_headless_flag(&self, is_interactive: bool) -> Option<&str> {
+        if is_interactive {
+            self.interactive.as_ref().map(|flag| flag.as_str())
+        } else {
+            self.headless.as_ref().map(|flag| flag.as_str())
+        }
     }
 }
