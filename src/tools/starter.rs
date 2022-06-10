@@ -44,6 +44,7 @@ impl Starter {
                 "{} milliSeconds wait",
                 &start_options.delay.as_millis()
             ))
+            .add("GtSpaceTallyHistory recordDefaultSystemWideDataLabeled: 'Open Default GtWorld End'")
             .add("BlHost pickHost universe snapshot: true andQuit: true")
             .build()
             .execute(
