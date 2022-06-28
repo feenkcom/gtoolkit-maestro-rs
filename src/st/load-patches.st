@@ -64,10 +64,20 @@ patcher patch: Metaclass source:
 		ifNil: absentBlock
 		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'.
 
+patcher patch: String source:
+'beginsWith: prefix caseSensitive: aBoolean 
+	aBoolean ifTrue: [ ^self beginsWith: prefix ].
+	self size < prefix size ifTrue: [^ false].
+	(self class isBytes and: [prefix class isBytes]) ifTrue: [
+		^ (self findSubstring: prefix in: self startingAt: 1 matchTable: CaseInsensitiveOrder) = 1 ].
+	prefix withIndexDo: [ :each :index | 
+		(self at: index) asLowercase = each asLowercase ifFalse: [ ^false ] ].
+	^true'.
+
 patcher patch: Month class source:
 'indexOfMonth: aMonthName
 	1 to: 12 do: [ :i |
-		((MonthNames at: i) beginsWithEmpty:  aMonthName caseSensitive: false) ifTrue: [^i] ].
+		((MonthNames at: i) beginsWith: aMonthName caseSensitive: false) ifTrue: [^i] ].
  	self error: aMonthName , '' is not a recognized month name'''.
 
 patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtensionName
@@ -81,7 +91,7 @@ patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtens
 	"if no package was found, we try to find one matching the begining of the name specified"
 	tmpPackageName := ''''.
 	packages keysDo: [:aSymbol |
-		(anExtensionName beginsWithEmpty: (aSymbol asString, ''-'') caseSensitive: false)
+		(anExtensionName beginsWith: (aSymbol asString, ''-'') caseSensitive: false)
 			ifTrue: [
 				"we keep the longest package name found"
 				(aSymbol size > tmpPackageName size)
@@ -96,7 +106,7 @@ patcher patch: RPackageOrganizer source: 'hasPackageMatchingExtensionName: anExt
 		ifTrue: [ ^true ].
 
 	packages keysDo: [ :aSymbol |
-		(anExtensionName beginsWithEmpty: (aSymbol asString, ''-'') caseSensitive: false)
+		(anExtensionName beginsWith: (aSymbol asString, ''-'') caseSensitive: false)
 			ifTrue: [ ^ true]].
 	^ false'.
 
