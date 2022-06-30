@@ -19,7 +19,7 @@ pub const DEFAULT_PHARO_VM_WINDOWS: &str =
     "https://dl.feenk.com/pharo/pharo64-win-headless-stable.zip";
 
 pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo9.0-SNAPSHOT.build.1575.sha.9bb5f99.arch.64bit.zip";
+    "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.521.sha.14f5413.arch.64bit.zip";
 
 pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
 
