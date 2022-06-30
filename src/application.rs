@@ -12,11 +12,11 @@ use std::io::Write;
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
 
-pub const DEFAULT_PHARO_VM_MAC: &str = "https://dl.feenk.com/pharo/pharo64-mac-headless-stable.zip";
+pub const DEFAULT_PHARO_VM_MAC: &str = "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Darwin-x86_64-bin.zip";
 pub const DEFAULT_PHARO_VM_LINUX: &str =
-    "https://dl.feenk.com/pharo/pharo64-linux-headless-stable.zip";
+    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b487900-Linux-x86_64-bin.zip";
 pub const DEFAULT_PHARO_VM_WINDOWS: &str =
-    "https://dl.feenk.com/pharo/pharo64-win-headless-stable.zip";
+    "PharoVM-9.0.15-b4879008-Windows-x86_64-bin.zip";
 
 pub const DEFAULT_PHARO_IMAGE: &str =
     "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.521.sha.14f5413.arch.64bit.zip";

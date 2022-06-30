@@ -1,20 +1,33 @@
-| patcher |
+| externalAddressMethodsToPatch |
 
 EpMonitor current disable.
 Iceberg enableMetacelloIntegration: false.
-
-Metacello new
-    githubUser: 'syrel' project: 'pharo9-backport' commitish: 'main' path: '';
-    baseline: 'PharoPatcher';
-    load.
-
-patcher := #PharoPatcher asClass.
 
 NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo9 image...';
     cr.
 
-patcher patch: Context source:
+externalAddressMethodsToPatch := #(
+    boolean8AtOffset: boolean8AtOffset:put:
+    char8AtOffset: char8AtOffset:put:
+    char16AtOffset: char16AtOffset:put:
+    char32AtOffset: char32AtOffset:put:
+    int8AtOffset: int8AtOffset:put:
+    int16AtOffset: int16AtOffset:put:
+    int32AtOffset: int32AtOffset:put:
+    int64AtOffset: int64AtOffset:put:
+    uint8AtOffset: uint8AtOffset:put:
+    uint16AtOffset: uint16AtOffset:put:
+    uint32AtOffset: uint32AtOffset:put:
+    uint64AtOffset: uint64AtOffset:put:).
+
+externalAddressMethodsToPatch do: [ :each |
+	(RBRemovePragmaTransformation
+		pragma: '<primitive: nil>'
+		inMethod: each
+		inClass: #ExternalAddress) asRefactoring execute ].
+
+Context compile:
 'copyTo: aContext
     "Copy self and my sender chain down to, but not including, aContext.
     End of copied chain will have nil sender."
@@ -26,10 +39,10 @@ patcher patch: Context source:
     copy := self copy.
     self sender ifNotNil: [
         copy privSender: (self sender copyTo: aContext)].
-    ^ copy'.
+    ^ copy'
+classified: (Context >> #copyTo:) protocol.
 
-
-patcher patch: Object source:
+Object compile:
 'setPinnedInMemory: aBoolean
  	"The VM''s garbage collector routinely moves objects as it reclaims and compacts
  	 memory. But it can also pin an object so that it will not be moved around in memory,
@@ -46,41 +59,36 @@ patcher patch: Object source:
  	Smalltalk garbageCollect < (self sizeInMemory * 2) ifTrue:
  		[Smalltalk growMemoryByAtLeast: self sizeInMemory * 2 ].
 
- 	^ self retrySetPinnedInMemory: aBoolean'.
+ 	^ self retrySetPinnedInMemory: aBoolean'
+classified: (Object >> #setPinnedInMemory:) protocol.
 
-patcher patch: Metaclass source:
+Metaclass compile:
 'hasClassVarNamed: aString
  	"Return whether the receiver has a class variables (shared variables among its class and subclasses) named: aString"
 
  	^self instanceSide
  		ifNil: [ false ]
- 		ifNotNil: [ :class | class hasClassVarNamed: aString ]'.
+ 		ifNotNil: [ :class | class hasClassVarNamed: aString ]'
+classified: 'class variables'.
 
-patcher patch: Metaclass source:
+Metaclass compile:
 'classVariableNamed: aString ifAbsent: absentBlock
 	"Answer the Class Variable"
 
 	^ self instanceSide
 		ifNil: absentBlock
-		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'.
+		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'
+classified: 'class variables'.
 
-patcher patch: String source:
-'beginsWith: prefix caseSensitive: aBoolean 
-	aBoolean ifTrue: [ ^self beginsWith: prefix ].
-	self size < prefix size ifTrue: [^ false].
-	(self class isBytes and: [prefix class isBytes]) ifTrue: [
-		^ (self findSubstring: prefix in: self startingAt: 1 matchTable: CaseInsensitiveOrder) = 1 ].
-	prefix withIndexDo: [ :each :index | 
-		(self at: index) asLowercase = each asLowercase ifFalse: [ ^false ] ].
-	^true'.
-
-patcher patch: Month class source:
+Month class compile:
 'indexOfMonth: aMonthName
 	1 to: 12 do: [ :i |
 		((MonthNames at: i) beginsWith: aMonthName caseSensitive: false) ifTrue: [^i] ].
- 	self error: aMonthName , '' is not a recognized month name'''.
+ 	self error: aMonthName , '' is not a recognized month name'''
+classified: (Month class >> #indexOfMonth:) protocol.
 
-patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtensionName
+RPackageOrganizer compile:
+'packageMatchingExtensionName: anExtensionName
 	"return nil if no package is not found"
 	| tmpPackageName |
 
@@ -99,37 +107,42 @@ patcher patch: RPackageOrganizer source: 'packageMatchingExtensionName: anExtens
 
 	^ tmpPackageName = ''''
 		ifTrue: [ nil ]
-		ifFalse: [ self packageNamed: tmpPackageName ]'.
+		ifFalse: [ self packageNamed: tmpPackageName ]'
+classified: (RPackageOrganizer >> #packageMatchingExtensionName:) protocol.
 
-patcher patch: RPackageOrganizer source: 'hasPackageMatchingExtensionName: anExtensionName
+RPackageOrganizer compile: 'hasPackageMatchingExtensionName: anExtensionName
 	(self hasPackageExactlyMatchingExtensionName: anExtensionName)
 		ifTrue: [ ^true ].
 
 	packages keysDo: [ :aSymbol |
 		(anExtensionName beginsWith: (aSymbol asString, ''-'') caseSensitive: false)
 			ifTrue: [ ^ true]].
-	^ false'.
+	^ false'
+classified: (RPackageOrganizer >> #hasPackageMatchingExtensionName:) protocol.
 
-patcher patch: RPackage source: 'toTagName: aSymbol
+RPackage compile: 'toTagName: aSymbol
 	^ (aSymbol beginsWith: self name asString, ''-'')
 		ifTrue: [ (aSymbol allButFirst: self name size + 1) asSymbol ]
-		ifFalse: [ aSymbol ]'.
+		ifFalse: [ aSymbol ]'
+classified: (RPackage >> #toTagName:) protocol.
 
-patcher patch: MCPackageLoader source: 'tryToLoad: aDefinition
+MCPackageLoader compile: 'tryToLoad: aDefinition
 	aDefinition isClassDefinition ifTrue: [ ^ false ].
 
-	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'.
+	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
+classified: (MCPackageLoader >> #tryToLoad:) protocol.
 
-patcher patch: CompiledMethod source: 'basicAsMCMethodDefinition
+CompiledMethod compile: 'basicAsMCMethodDefinition
 	^ MCMethodDefinition
 		  className: self methodClass instanceSide name
-		  classIsMeta: self methodClass isClassSide
+		  classIsMeta: self isClassSide
 		  selector: self selector
 		  category: self protocol
 		  timeStamp: '''' "self stamp"
-		  source: self sourceCode'.
+		  source: self sourceCode'
+classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol.
 
-patcher patch: RBParser source: 'parseKeywordMessageWith: node 
+RBParser compile: 'parseKeywordMessageWith: node 
 	| args isKeyword keywordsStartPositions selector selectorStream |
 	args := OrderedCollection new: 3.
 	keywordsStartPositions := OrderedCollection new: 3.
@@ -151,9 +164,10 @@ patcher patch: RBParser source: 'parseKeywordMessageWith: node
 				keywordsPositions: keywordsStartPositions
 				arguments: args]
 		ifFalse: [node]'
-classified: 'private - parsing'.
+classified: (RBParser >> #parseKeywordMessageWith:) protocol.
 
-patcher patch: Object source: 'gtDisplayString
+Object compile:
+'gtDisplayString
     "This offers a means to customize how the object is shown in the GlamorousToolkit UI.
     Do not override this method. Override gtDisplayOn: instead"
 
@@ -164,12 +178,14 @@ patcher patch: Object source: 'gtDisplayString
     ^ limitedString , '' ...'''
 classified: 'printing'.
 
-patcher patch: Object source: 'gtDisplayOn: stream
+Object compile:
+'gtDisplayOn: stream
 	"This offers a means to customize how the object is shown in the GlamorousToolkit UI"
 	^ self printOn: stream'
 classified: 'printing'.
 
-patcher patch: ExternalData source: 'readStringUTF8
+ExternalData compile:
+'readStringUTF8
 	"Assume that the receiver represents a C string containing UTF8 characters and convert
 	 it to a Smalltalk string."
 	| stream index char |
@@ -183,19 +199,23 @@ patcher patch: ExternalData source: 'readStringUTF8
 		stream nextPut: char.
 		index := index + 1].
 	^ [ ZnCharacterEncoder utf8 decodeBytes: stream contents ] on: ZnInvalidUTF8 do: [ stream contents asString ]'
-classified: '*UnifiedFFI'.
+classified: (ExternalData >> #readStringUTF8) protocol.
 
-patcher patch: CommandLineUIManager source: 'activate
-	NonInteractiveTranscript stdout install'
-classified: 'private'.
+FFIUnixLibraryFinder compile:
+'basePaths
+	^ {
+	(Smalltalk vm directory asFileReference parent / ''lib'') pathString.
+	Smalltalk imageDirectory fullName.
+	Smalltalk vm directory }'
+classified: (FFIUnixLibraryFinder >> #basePaths) protocol.
 
-patcher patch: #LGitLibrary asClass source:
+LGitLibrary compile:
 'macLibraryName
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libgit2.dylib'' ''libgit2.1.0.1.dylib'' ''libgit2.1.0.0.dylib'' ''libgit2.0.25.1.dylib'')'
-classified: 'accessing - platform'.
+classified: (LGitLibrary >> #macLibraryName) protocol.
 
-patcher patch: #LGitLibrary asClass source:
+LGitLibrary compile:
 'unix64LibraryName
 
 	^ FFIUnix64LibraryFinder findAnyLibrary: #(
@@ -206,47 +226,30 @@ patcher patch: #LGitLibrary asClass source:
 		''libgit2.so.1.0''
 		''libgit2.so.1.1''
 		''libgit2.so.0.25.1'')'
-classified: 'accessing - platform'.
+classified: (LGitLibrary >> #unix64LibraryName) protocol.
 
-patcher patch: #LGitLibrary asClass source:
+LGitLibrary compile:
 'win32LibraryName
 
     ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
-classified: 'accessing - platform'.
+classified: (LGitLibrary >> #win32LibraryName) protocol.
 
-patcher patch: #FFIUnixLibraryFinder asClass source:
-'basePaths
-	^ {
-	(Smalltalk vm directory asFileReference parent / ''lib'') pathString.
-	Smalltalk imageDirectory fullName.
-	Smalltalk vm directory }'
-classified: 'accessing'.
-
-patcher patch: #FFIUnix64LibraryFinder asClass source:
-'knownPaths
-	^ #(
-    	''/lib/x86_64-linux-gnu''
-    	''/lib64''
-    	''/usr/lib64''
-    	''/usr/lib''
-    	''/usr/lib/x86_64-linux-gnu''
-    	''/usr/local/lib'')'
-classified: 'accessing'.
-
-patcher patch: #CairoLibrary asClass source:
+CairoLibrary compile:
 'macLibraryName
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libcairo.dylib'' ''libcairo.2.dylib'')'
-classified: 'accessing - platform'.
-patcher patch: #CairoLibrary asClass source:
+classified: (CairoLibrary >> #macLibraryName) protocol.
+
+CairoLibrary compile:
 'win32LibraryName
 
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
-classified: 'accessing - platform'.
+classified: (CairoLibrary >> #win32LibraryName) protocol.
 
 ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
+
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
