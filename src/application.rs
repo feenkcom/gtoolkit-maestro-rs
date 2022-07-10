@@ -199,6 +199,7 @@ impl Application {
             ("macos", "x86_64") => PlatformOS::MacOSX8664,
             ("linux", "x86_64") => PlatformOS::LinuxX8664,
             ("windows", "x86_64") => PlatformOS::WindowsX8664,
+            ("windows", "aarch64") => PlatformOS::WindowsAarch64,
             (os, arch) => {
                 panic!("Unsupported {}-{}", os, arch);
             }
@@ -214,6 +215,9 @@ impl Application {
                 vec![FolderNamed::exact("GlamorousToolkit.app")]
             }
             PlatformOS::WindowsX8664 => {
+                vec![FolderNamed::exact("bin")]
+            }
+            PlatformOS::WindowsAarch64 => {
                 vec![FolderNamed::exact("bin")]
             }
             PlatformOS::LinuxX8664 => {
@@ -232,6 +236,7 @@ impl Application {
             PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC,
             PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC,
             PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
+            PlatformOS::WindowsAarch64 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX,
         }
     }
@@ -241,6 +246,7 @@ impl Application {
             PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
             PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
             PlatformOS::WindowsX8664 => "bin/GlamorousToolkit.exe",
+            PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit.exe",
             PlatformOS::LinuxX8664 => "bin/GlamorousToolkit",
         }
     }
@@ -257,6 +263,9 @@ impl Application {
             PlatformOS::WindowsX8664 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-pc-windows-msvc.zip", &version)
             }
+            PlatformOS::WindowsAarch64 => {
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-pc-windows-msvc.zip", &version)
+            }
             PlatformOS::LinuxX8664 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-unknown-linux-gnu.zip", &version)
             }
@@ -268,7 +277,7 @@ impl Application {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
                 vec![FolderNamed::wildmatch("*.app").boxed()]
             }
-            PlatformOS::WindowsX8664 => {
+            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => {
                 vec![FolderNamed::exact("bin").boxed()]
             }
             PlatformOS::LinuxX8664 => {
@@ -285,6 +294,7 @@ impl Application {
             PlatformOS::MacOSX8664 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
             PlatformOS::MacOSAarch64 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
             PlatformOS::WindowsX8664 => "pharo-vm/PharoConsole.exe",
+            PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
             PlatformOS::LinuxX8664 => "pharo-vm/pharo",
         })
     }
@@ -294,6 +304,7 @@ impl Application {
             PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
             PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
             PlatformOS::WindowsX8664 => "bin/GlamorousToolkit-cli.exe",
+            PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 => "bin/GlamorousToolkit-cli",
         })
     }
@@ -318,5 +329,6 @@ pub enum PlatformOS {
     MacOSX8664,
     MacOSAarch64,
     WindowsX8664,
+    WindowsAarch64,
     LinuxX8664,
 }

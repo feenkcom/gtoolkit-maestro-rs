@@ -41,9 +41,8 @@ impl Release {
         let new_version = application.image_version();
 
         let platform = match application.platform() {
-            PlatformOS::MacOSX8664 => "MacOS",
-            PlatformOS::MacOSAarch64 => "MacOS",
-            PlatformOS::WindowsX8664 => "Windows",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "MacOS",
+            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "Windows",
             PlatformOS::LinuxX8664 => "Linux",
         };
 
@@ -51,6 +50,7 @@ impl Release {
             PlatformOS::MacOSX8664 => "x86_64",
             PlatformOS::MacOSAarch64 => "aarch64",
             PlatformOS::WindowsX8664 => "x86_64",
+            PlatformOS::WindowsAarch64 => "aarch64",
             PlatformOS::LinuxX8664 => "x86_64",
         };
 
