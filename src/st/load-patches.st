@@ -246,6 +246,14 @@ CairoLibrary compile:
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
 classified: (CairoLibrary >> #win32LibraryName) protocol.
 
+ShMetaclassChanged compile:
+'propagateToSubclasses: anotherBuilder
+	anotherBuilder changes
+		add: (self class new
+				builder: anotherBuilder;
+				yourself)'
+classified: (ShMetaclassChanged >> #propagateToSubclasses:) protocol.
+
 ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
