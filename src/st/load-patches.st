@@ -254,6 +254,16 @@ ShMetaclassChanged compile:
 				yourself)'
 classified: (ShMetaclassChanged >> #propagateToSubclasses:) protocol.
 
+ShMetaclassChangeDetector compile:
+'newChanges
+	^ {ShMetaclassChanged new
+			builder: builder;
+			yourself.
+		ShInstanceShapeChanged new
+			builder: builder;
+			yourself}'
+classified: (ShMetaclassChangeDetector >> #newChanges) protocol.
+
 ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
