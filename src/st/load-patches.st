@@ -264,6 +264,10 @@ ShMetaclassChangeDetector compile:
 			yourself}'
 classified: (ShMetaclassChangeDetector >> #newChanges) protocol.
 
+RBCommentChange compile: 'primitiveExecute
+	self changeClass classComment: comment stamp: self changeStamp.'
+classified: (RBCommentChange >> #primitiveExecute) protocol.
+
 ZnHTTPSTest removeSelector: #testGForceInria.
 NonInteractiveTranscript stdout
 	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
