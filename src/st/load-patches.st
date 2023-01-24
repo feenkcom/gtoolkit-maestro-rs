@@ -4,7 +4,7 @@ EpMonitor current disable.
 Iceberg enableMetacelloIntegration: false.
 
 NonInteractiveTranscript stdout
-    nextPutAll: 'Patching Pharo9 image...';
+    nextPutAll: 'Patching Pharo 10 image...';
     cr.
 
 externalAddressMethodsToPatch := #(
@@ -61,15 +61,6 @@ Object compile:
 
  	^ self retrySetPinnedInMemory: aBoolean'
 classified: (Object >> #setPinnedInMemory:) protocol.
-
-Metaclass compile:
-'hasClassVarNamed: aString
- 	"Return whether the receiver has a class variables (shared variables among its class and subclasses) named: aString"
-
- 	^self instanceSide
- 		ifNil: [ false ]
- 		ifNotNil: [ :class | class hasClassVarNamed: aString ]'
-classified: 'class variables'.
 
 Metaclass compile:
 'classVariableNamed: aString ifAbsent: absentBlock
