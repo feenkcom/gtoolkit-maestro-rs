@@ -27,21 +27,6 @@ externalAddressMethodsToPatch do: [ :each |
 		inMethod: each
 		inClass: #ExternalAddress) asRefactoring execute ].
 
-Context compile:
-'copyTo: aContext
-    "Copy self and my sender chain down to, but not including, aContext.
-    End of copied chain will have nil sender."
-    | copy |
-    self == aContext ifTrue: [^ nil].
-    "Workaround for the regular VM crash that occurs when copying self below.
-    Accessing the pc seems to be enough to prevent the crash."
-    self pc.
-    copy := self copy.
-    self sender ifNotNil: [
-        copy privSender: (self sender copyTo: aContext)].
-    ^ copy'
-classified: (Context >> #copyTo:) protocol.
-
 Object compile:
 'setPinnedInMemory: aBoolean
  	"The VM''s garbage collector routinely moves objects as it reclaims and compacts
