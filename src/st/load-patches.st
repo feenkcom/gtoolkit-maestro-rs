@@ -193,10 +193,5 @@ RBCommentChange compile: 'primitiveExecute
 	self changeClass classComment: comment stamp: self changeStamp.'
 classified: (RBCommentChange >> #primitiveExecute) protocol.
 
-ZnHTTPSTest removeSelector: #testGForceInria.
-NonInteractiveTranscript stdout
-	nextPutAll: '   ZnHTTPSTest>>#testGForceInria removed.'; cr.
-
-
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
