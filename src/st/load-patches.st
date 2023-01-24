@@ -87,39 +87,6 @@ Month class compile:
  	self error: aMonthName , '' is not a recognized month name'''
 classified: (Month class >> #indexOfMonth:) protocol.
 
-RPackageOrganizer compile:
-'packageMatchingExtensionName: anExtensionName
-	"return nil if no package is not found"
-	| tmpPackageName |
-
-	"we first look if their is a package matching exactly the name specified"
-	(self packageExactlyMatchingExtensionName: anExtensionName)
-		ifNotNil: [ :package | ^ package ].
-
-	"if no package was found, we try to find one matching the begining of the name specified"
-	tmpPackageName := ''''.
-	packages keysDo: [:aSymbol |
-		(anExtensionName beginsWith: (aSymbol asString, ''-'') caseSensitive: false)
-			ifTrue: [
-				"we keep the longest package name found"
-				(aSymbol size > tmpPackageName size)
-					ifTrue: [ tmpPackageName := aSymbol ]]].
-
-	^ tmpPackageName = ''''
-		ifTrue: [ nil ]
-		ifFalse: [ self packageNamed: tmpPackageName ]'
-classified: (RPackageOrganizer >> #packageMatchingExtensionName:) protocol.
-
-RPackageOrganizer compile: 'hasPackageMatchingExtensionName: anExtensionName
-	(self hasPackageExactlyMatchingExtensionName: anExtensionName)
-		ifTrue: [ ^true ].
-
-	packages keysDo: [ :aSymbol |
-		(anExtensionName beginsWith: (aSymbol asString, ''-'') caseSensitive: false)
-			ifTrue: [ ^ true]].
-	^ false'
-classified: (RPackageOrganizer >> #hasPackageMatchingExtensionName:) protocol.
-
 RPackage compile: 'toTagName: aSymbol
 	^ (aSymbol beginsWith: self name asString, ''-'')
 		ifTrue: [ (aSymbol allButFirst: self name size + 1) asSymbol ]
