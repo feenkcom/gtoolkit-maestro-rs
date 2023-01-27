@@ -70,10 +70,12 @@ pub enum SubCommand {
     /// Display the Debug information of the AppOptions
     #[clap(display_order = 14)]
     PrintDebug,
-    /// Display the version of the glamorous toolkit
+    /// Display the version of the glamorous toolkit image from the .yaml file in the workspace.
+    /// Fails if the .yaml file wasn't found.
     #[clap(display_order = 15)]
     PrintGtoolkitImageVersion,
-    /// Display the version of the glamorous toolkit app
+    /// Display the version of the glamorous toolkit app from the .yaml file in the workspace.
+    /// Fails if the .yaml file wasn't found.
     #[clap(display_order = 16)]
     PrintGtoolkitAppVersion,
 }

@@ -118,10 +118,12 @@ async fn run() -> Result<()> {
             println!("{:?}", &application);
         }
         SubCommand::PrintGtoolkitImageVersion => {
-            println!("v{}", &application.image_version());
+            let deserialized_application = application.deserialize_application_from_file()?;
+            println!("v{}", &deserialized_application.image_version());
         }
         SubCommand::PrintGtoolkitAppVersion => {
-            println!("v{}", &application.app_version());
+            let deserialized_application = application.deserialize_application_from_file()?;
+            println!("v{}", &deserialized_application.app_version());
         }
     };
 

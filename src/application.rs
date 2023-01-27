@@ -1,13 +1,14 @@
-use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
+
+use feenk_releaser::{GitHub, Version};
+use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
 };
-use feenk_releaser::{GitHub, Version};
-use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
-use std::fs::File;
-use std::io::Write;
 
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
@@ -177,9 +178,7 @@ impl Application {
     }
 
     pub fn deserialize_from_file(&mut self) -> Result<()> {
-        let application: Self =
-            serde_yaml::from_str(std::fs::read_to_string(self.serialization_file())?.as_str())
-                .map_err(|error| Into::<InstallerError>::into(error))?;
+        let application = self.deserialize_application_from_file()?;
 
         self.image_extension = application.image_extension;
         self.image_name = application.image_name;
@@ -188,6 +187,18 @@ impl Application {
         self.image_version = application.image_version;
 
         Ok(())
+    }
+
+    pub fn deserialize_application_from_file(&self) -> Result<Application> {
+        let serialization_file = self.serialization_file();
+
+        let file_content =
+            std::fs::read_to_string(serialization_file.as_path()).map_err(|error| {
+                InstallerError::SerializationFileReadError(serialization_file.clone(), error)
+            })?;
+
+        serde_yaml::from_str(file_content.as_str())
+            .map_err(|error| Into::<InstallerError>::into(error))
     }
 
     pub fn platform(&self) -> PlatformOS {

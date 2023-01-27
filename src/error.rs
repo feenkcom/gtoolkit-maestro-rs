@@ -23,6 +23,8 @@ pub enum InstallerError {
     CanonicalizeError(PathBuf, #[source] to_absolute::Error),
     #[error("Failed to serialize as yaml")]
     SerializationAsYamlError(#[from] serde_yaml::Error),
+    #[error("Failed to read serialized state file {0}")]
+    SerializationFileReadError(PathBuf, #[source] std::io::Error),
     #[error("Version parse error")]
     ReleaserError(#[from] feenk_releaser::ReleaserError),
     #[error("Failed to parse URL")]
