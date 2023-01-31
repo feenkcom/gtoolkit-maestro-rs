@@ -15,7 +15,15 @@ fi
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [ ! -f "$installer" ]; then
-    curl -o "$installer" -L -s -S "https://github.com/feenkcom/gtoolkit-maestro-rs/releases/latest/download/$installer-x86_64-unknown-linux-gnu" > /dev/null
+    arch_name="$(uname -m)"
+    if [ "${arch_name}" = "x86_64" ]; then
+      curl -o "$installer" -L -s -S "https://github.com/feenkcom/gtoolkit-maestro-rs/releases/latest/download/$installer-x86_64-unknown-linux-gnu" > /dev/null
+    elif [ "${arch_name}" = "aarch64" ]; then
+      curl -o "$installer" -L -s -S "https://github.com/feenkcom/gtoolkit-maestro-rs/releases/latest/download/$installer-aarch64-unknown-linux-gnu" > /dev/null
+    else
+      echo "$arch_name architecture is unsupported. Please submit an issue at https://github.com/feenkcom/gtoolkit/issues".
+      exit 1
+    fi
   fi
   chmod +x "$installer"
   ./$installer $arguments
