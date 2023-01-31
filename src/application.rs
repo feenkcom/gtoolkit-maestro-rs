@@ -209,6 +209,7 @@ impl Application {
             ("macos", "aarch64") => PlatformOS::MacOSAarch64,
             ("macos", "x86_64") => PlatformOS::MacOSX8664,
             ("linux", "x86_64") => PlatformOS::LinuxX8664,
+            ("linux", "aarch64") => PlatformOS::LinuxAarch64,
             ("windows", "x86_64") => PlatformOS::WindowsX8664,
             ("windows", "aarch64") => PlatformOS::WindowsAarch64,
             (os, arch) => {
