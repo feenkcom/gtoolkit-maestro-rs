@@ -43,7 +43,7 @@ impl Release {
         let platform = match application.platform() {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "MacOS",
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "Windows",
-            PlatformOS::LinuxX8664 => "Linux",
+            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "Linux",
         };
 
         let arch = match application.platform() {
@@ -52,6 +52,7 @@ impl Release {
             PlatformOS::WindowsX8664 => "x86_64",
             PlatformOS::WindowsAarch64 => "aarch64",
             PlatformOS::LinuxX8664 => "x86_64",
+            PlatformOS::LinuxAarch64 => "aarch64",
         };
 
         let info = ReleaseInfo {

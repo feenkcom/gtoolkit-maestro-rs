@@ -233,6 +233,9 @@ impl Application {
             }
             PlatformOS::LinuxX8664 => {
                 vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
+            },
+            PlatformOS::LinuxAarch64 => {
+                vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
             }
         };
 
@@ -249,16 +252,15 @@ impl Application {
             PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::WindowsAarch64 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX,
+            PlatformOS::LinuxAarch64 => DEFAULT_PHARO_VM_LINUX,
         }
     }
 
     pub fn gtoolkit_app(&self) -> &str {
         match self.platform() {
-            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
-            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
-            PlatformOS::WindowsX8664 => "bin/GlamorousToolkit.exe",
-            PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit.exe",
-            PlatformOS::LinuxX8664 => "bin/GlamorousToolkit",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit.exe",
+            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit",
         }
     }
 
@@ -280,6 +282,9 @@ impl Application {
             PlatformOS::LinuxX8664 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-unknown-linux-gnu.zip", &version)
             }
+            PlatformOS::LinuxAarch64 => {
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-unknown-linux-gnu.zip", &version)
+            }
         }
     }
 
@@ -291,7 +296,7 @@ impl Application {
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => {
                 vec![FolderNamed::exact("bin").boxed()]
             }
-            PlatformOS::LinuxX8664 => {
+            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => {
                 vec![
                     FolderNamed::exact("bin").boxed(),
                     FolderNamed::exact("lib").boxed(),
@@ -302,21 +307,17 @@ impl Application {
 
     pub fn pharo_executable(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
-            PlatformOS::MacOSAarch64 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
-            PlatformOS::WindowsX8664 => "pharo-vm/PharoConsole.exe",
-            PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
-            PlatformOS::LinuxX8664 => "pharo-vm/pharo",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
+            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
+            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "pharo-vm/pharo",
         })
     }
 
     pub fn gtoolkit_app_cli(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
-            PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
-            PlatformOS::WindowsX8664 => "bin/GlamorousToolkit-cli.exe",
-            PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
-            PlatformOS::LinuxX8664 => "bin/GlamorousToolkit-cli",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
+            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
+            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit-cli",
         })
     }
 
@@ -342,4 +343,5 @@ pub enum PlatformOS {
     WindowsX8664,
     WindowsAarch64,
     LinuxX8664,
+    LinuxAarch64,
 }
