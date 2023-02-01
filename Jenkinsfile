@@ -64,10 +64,9 @@ pipeline {
                     }
 
                     steps {
-                        sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
-                        sh "mv target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
+                        sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
@@ -83,10 +82,9 @@ pipeline {
                     }
 
                     steps {
-                        sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
-                        sh "mv target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
+                        sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
@@ -102,10 +100,9 @@ pipeline {
                     }
 
                     steps {
-                        sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
-                        sh "mv target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
+                        sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
@@ -120,10 +117,9 @@ pipeline {
                     }
 
                     steps {
-                        sh 'git clean -fdx'
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
-                        sh "mv target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
+                        sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
                     }
@@ -142,10 +138,8 @@ pipeline {
                     }
 
                     steps {
-                        powershell 'git clean -fdx'
-
                         powershell "cargo build --bin ${TOOL_NAME} --release"
-                        powershell "Move-Item -Path target/release/${TOOL_NAME}.exe -Destination ${TOOL_NAME}-${TARGET}.exe"
+                        powershell "Move-Item -Force -Path target/release/${TOOL_NAME}.exe -Destination ${TOOL_NAME}-${TARGET}.exe"
                         stash includes: "${TOOL_NAME}-${TARGET}.exe", name: "${TARGET}"
                     }
                 }
@@ -162,10 +156,8 @@ pipeline {
                     }
 
                     steps {
-                        powershell 'git clean -fdx'
-
                         powershell "cargo build --bin ${TOOL_NAME} --release"
-                        powershell "Move-Item -Path target/release/${TOOL_NAME}.exe -Destination ${TOOL_NAME}-${TARGET}.exe"
+                        powershell "Move-Item -Force -Path target/release/${TOOL_NAME}.exe -Destination ${TOOL_NAME}-${TARGET}.exe"
                         stash includes: "${TOOL_NAME}-${TARGET}.exe", name: "${TARGET}"
                     }
                 }
@@ -184,9 +176,9 @@ pipeline {
             }
 
             steps {
-                sh 'git clean -fdx'
                 unstash "${MACOS_INTEL_TARGET}"
                 unstash "${MACOS_M1_TARGET}"
+                sh "rm -rf feenk-signer"
                 sh "curl -o feenk-signer -LsS  https://github.com/feenkcom/feenk-signer/releases/download/${FEENK_SIGNER_VERSION}/feenk-signer-${TARGET}"
                 sh "chmod +x feenk-signer"
 
@@ -217,6 +209,7 @@ pipeline {
                 unstash "${WINDOWS_AMD64_TARGET}"
                 unstash "${WINDOWS_ARM64_TARGET}"
 
+                sh "rm -rf feenk-releaser"
                 sh "curl -o feenk-releaser -LsS https://github.com/feenkcom/releaser-rs/releases/download/${FEENK_RELEASER_VERSION}/feenk-releaser-${TARGET}"
                 sh "chmod +x feenk-releaser"
 

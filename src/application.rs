@@ -8,25 +8,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
+    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_VM_LINUX_AARCH64,
+    DEFAULT_PHARO_VM_LINUX_X86_64, DEFAULT_PHARO_VM_MAC_AARCH64, DEFAULT_PHARO_VM_MAC_X86_64,
+    DEFAULT_PHARO_VM_WINDOWS, GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER,
+    SERIALIZATION_FILE,
 };
-
-pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
-pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
-
-pub const DEFAULT_PHARO_VM_MAC: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Darwin-x86_64-bin.zip";
-pub const DEFAULT_PHARO_VM_LINUX: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b487900-Linux-x86_64-bin.zip";
-pub const DEFAULT_PHARO_VM_WINDOWS: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Windows-x86_64-bin.zip";
-
-pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.521.sha.14f5413.arch.64bit.zip";
-
-pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
-
-pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
-pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Application {
@@ -234,7 +220,7 @@ impl Application {
             }
             PlatformOS::LinuxX8664 => {
                 vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
-            },
+            }
             PlatformOS::LinuxAarch64 => {
                 vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
             }
@@ -248,18 +234,20 @@ impl Application {
 
     pub fn pharo_vm_url(&self) -> &str {
         match self.platform() {
-            PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC,
-            PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC,
+            PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC_X86_64,
+            PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC_AARCH64,
             PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::WindowsAarch64 => DEFAULT_PHARO_VM_WINDOWS,
-            PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX,
-            PlatformOS::LinuxAarch64 => DEFAULT_PHARO_VM_LINUX,
+            PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX_X86_64,
+            PlatformOS::LinuxAarch64 => DEFAULT_PHARO_VM_LINUX_AARCH64,
         }
     }
 
     pub fn gtoolkit_app(&self) -> &str {
         match self.platform() {
-            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
+                "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit"
+            }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit",
         }
@@ -308,7 +296,9 @@ impl Application {
 
     pub fn pharo_executable(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "pharo-vm/Pharo.app/Contents/MacOS/Pharo",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
+                "pharo-vm/Pharo.app/Contents/MacOS/Pharo"
+            }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "pharo-vm/pharo",
         })
@@ -316,7 +306,9 @@ impl Application {
 
     pub fn gtoolkit_app_cli(&self) -> PathBuf {
         PathBuf::from(match self.platform() {
-            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli",
+            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
+                "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli"
+            }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit-cli",
         })
