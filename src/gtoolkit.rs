@@ -13,6 +13,7 @@ pub trait GToolkit {
     fn run_examples(&self, packages: &Vec<String>, test_options: &TestOptions) -> Result<()>;
     fn run_release_examples(&self, test_options: &TestOptions) -> Result<()>;
     fn run_release_slides(&self, test_options: &TestOptions) -> Result<()>;
+    fn run_tests(&self, packages: &Vec<String>) -> Result<()>;
     fn run_architectural_report(&self) -> Result<()>;
 }
 
@@ -96,6 +97,13 @@ impl<'application> GToolkit for Smalltalk<'application> {
                 || "".to_string(),
                 |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
             ))
+            .execute(&self.evaluator())
+    }
+
+    fn run_tests(&self, packages: &Vec<String>) -> Result<()> {
+        SmalltalkCommand::new("test")
+            .args(packages)
+            .arg("--junit-xml-output")
             .execute(&self.evaluator())
     }
 

@@ -13,6 +13,9 @@ pub struct TestOptions {
     /// Disable automatic deprecation rewrites during testing phase
     #[clap(long)]
     pub disable_deprecation_rewrites: bool,
+    /// Disable running Pharo's TestCase when packages are provided. Please note that Pharo's `test` runner does not support skipping packages
+    #[clap(long)]
+    pub disable_tests: bool,
     #[clap(long, min_values = 1)]
     pub skip_packages: Option<Vec<String>>,
 }
@@ -27,6 +30,9 @@ impl Tester {
 
         if let Some(ref packages) = test_options.packages {
             gtoolkit.run_examples(packages, test_options)?;
+            if !test_options.disable_tests {
+                gtoolkit.run_tests(packages)?;
+            }
         } else {
             gtoolkit.run_release_examples(test_options)?;
             gtoolkit.run_release_slides(test_options)?;
