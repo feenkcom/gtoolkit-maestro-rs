@@ -5,13 +5,15 @@ use std::path::{Path, PathBuf};
 use feenk_releaser::{GitHub, Version};
 use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
+use crate::options::{VM_REPOSITORY_NAME, VM_REPOSITORY_OWNER};
 use crate::{
     AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
-    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_VM_LINUX_AARCH64,
-    DEFAULT_PHARO_VM_LINUX_X86_64, DEFAULT_PHARO_VM_MAC_AARCH64, DEFAULT_PHARO_VM_MAC_X86_64,
-    DEFAULT_PHARO_VM_WINDOWS, GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER,
-    SERIALIZATION_FILE,
+    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE,
+    DEFAULT_PHARO_VM_LINUX_AARCH64, DEFAULT_PHARO_VM_LINUX_X86_64, DEFAULT_PHARO_VM_MAC_AARCH64,
+    DEFAULT_PHARO_VM_MAC_X86_64, DEFAULT_PHARO_VM_WINDOWS, GTOOLKIT_REPOSITORY_NAME,
+    GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,22 +28,67 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(
+    /// Try to setup an installer for a given workspace directory.
+    /// First it probes it for the serialized state file and if it exists,
+    /// the installer will be deserialized from it, otherwise it fetches
+    /// the versions from the internet.
+    pub async fn for_workspace(workspace: impl AsRef<Path>) -> Result<Self> {
+        let workspace = workspace.as_ref();
+        let serialization_file = workspace.join(Self::serialization_file_name());
+        if serialization_file.exists() {
+            Self::try_from_file(workspace, serialization_file.as_path())
+        } else {
+            Self::try_fetch_latest(workspace).await
+        }
+    }
+
+    /// Deserializes an installer from the state file in the given workspace.
+    /// Fails if the file does not exist
+    pub fn for_workspace_from_file(workspace: impl AsRef<Path>) -> Result<Self> {
+        let workspace = workspace.as_ref();
+        let serialization_file = workspace.join(Self::serialization_file_name());
+        Self::try_from_file(workspace, serialization_file.as_path())
+    }
+
+    fn try_from_file(
+        workspace: impl AsRef<Path>,
+        serialization_file: impl AsRef<Path>,
+    ) -> Result<Self> {
+        let serialization_file = serialization_file.as_ref();
+
+        let file_content = std::fs::read_to_string(serialization_file).map_err(|error| {
+            InstallerError::SerializationFileReadError(serialization_file.to_path_buf(), error)
+        })?;
+
+        let mut application: Application = serde_yaml::from_str(file_content.as_str())
+            .map_err(|error| Into::<InstallerError>::into(error))?;
+
+        application.workspace = workspace.as_ref().to_path_buf();
+        Ok(application)
+    }
+
+    async fn try_fetch_latest(workspace: impl AsRef<Path>) -> Result<Self> {
+        let gtoolkit_vm_version = Application::fetch_vm_version().await?;
+        let gtoolkit_image_version = Application::latest_gtoolkit_image_version().await?;
+        let image_seed = ImageSeed::Url(Url::parse(DEFAULT_PHARO_IMAGE)?);
+
+        Self::new(
+            workspace,
+            gtoolkit_vm_version,
+            gtoolkit_image_version,
+            image_seed,
+        )
+    }
+
+    fn new(
         workspace: impl AsRef<Path>,
         app_version: AppVersion,
         image_version: ImageVersion,
         image_seed: ImageSeed,
     ) -> Result<Self> {
-        let workspace = workspace.as_ref();
-        let workspace = if workspace.is_relative() {
-            std::env::current_dir()?.join(workspace)
-        } else {
-            workspace.to_path_buf()
-        };
-
         Ok(Self {
             verbose: false,
-            workspace,
+            workspace: workspace.as_ref().to_path_buf(),
             app_version,
             image_version,
             image_name: DEFAULT_IMAGE_NAME.to_string(),
@@ -149,42 +196,18 @@ impl Application {
         )
     }
 
-    pub fn serialization_file_name(&self) -> &str {
+    pub fn serialization_file_name() -> &'static str {
         SERIALIZATION_FILE
     }
 
     pub fn serialization_file(&self) -> PathBuf {
-        self.workspace().join(self.serialization_file_name())
+        self.workspace().join(Self::serialization_file_name())
     }
 
     pub fn serialize_into_file(&self) -> Result<()> {
         let mut file = File::create(self.serialization_file())?;
         file.write(serde_yaml::to_string(self)?.as_bytes())?;
         Ok(())
-    }
-
-    pub fn deserialize_from_file(&mut self) -> Result<()> {
-        let application = self.deserialize_application_from_file()?;
-
-        self.image_extension = application.image_extension;
-        self.image_name = application.image_name;
-        self.image_seed = application.image_seed;
-        self.app_version = application.app_version;
-        self.image_version = application.image_version;
-
-        Ok(())
-    }
-
-    pub fn deserialize_application_from_file(&self) -> Result<Application> {
-        let serialization_file = self.serialization_file();
-
-        let file_content =
-            std::fs::read_to_string(serialization_file.as_path()).map_err(|error| {
-                InstallerError::SerializationFileReadError(serialization_file.clone(), error)
-            })?;
-
-        serde_yaml::from_str(file_content.as_str())
-            .map_err(|error| Into::<InstallerError>::into(error))
     }
 
     pub fn platform(&self) -> PlatformOS {
@@ -312,6 +335,19 @@ impl Application {
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit-cli",
         })
+    }
+
+    pub async fn fetch_vm_version() -> Result<AppVersion> {
+        let latest_version: Option<Version> =
+            GitHub::new(VM_REPOSITORY_OWNER, VM_REPOSITORY_NAME, None)
+                .latest_release_version()
+                .await?;
+
+        if let Some(latest_version) = latest_version {
+            return Ok(latest_version.into());
+        };
+
+        InstallerError::FailedToDetectGlamorousAppVersion.into()
     }
 
     pub async fn latest_gtoolkit_image_version() -> Result<ImageVersion> {

@@ -35,7 +35,7 @@ impl Tentative {
             .one_entry(FileNamed::wildmatch("*.changes").within(application.workspace()))
             .one_entry(FileNamed::wildmatch("*.sources").within(application.workspace()))
             .one_entry(
-                FileNamed::exact(application.serialization_file_name())
+                FileNamed::exact(Application::serialization_file_name())
                     .within(application.workspace()),
             )
             .one_entries(application.gtoolkit_app_folders());
@@ -61,7 +61,7 @@ impl Tentative {
 
         files_to_unzip.unzip().await?;
 
-        application.deserialize_from_file()?;
+        let application = Application::for_workspace_from_file(application.workspace())?;
 
         Downloader::new()
             .download_glamorous_toolkit_vm(&application)

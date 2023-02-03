@@ -27,7 +27,7 @@ impl Copier {
             FileNamed::wildmatch("*.image").boxed(),
             FileNamed::wildmatch("*.changes").boxed(),
             FileNamed::wildmatch("*.sources").boxed(),
-            FileNamed::exact(application.serialization_file_name()).boxed(),
+            FileNamed::exact(Application::serialization_file_name()).boxed(),
             FolderNamed::exact("gt-extra").boxed(),
         ];
 

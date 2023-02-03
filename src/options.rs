@@ -1,11 +1,12 @@
-use crate::{
-    AppVersion, BuildOptions, CopyOptions, InstallerError, ReleaseBuildOptions, ReleaseOptions,
-    ReleaserOptions, RenameOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
-};
-use crate::{LocalBuildOptions, Result};
-use clap::Parser;
-use feenk_releaser::{GitHub, Version};
 use std::path::PathBuf;
+
+use clap::Parser;
+
+use crate::LocalBuildOptions;
+use crate::{
+    BuildOptions, CopyOptions, ReleaseBuildOptions, ReleaseOptions, ReleaserOptions, RenameOptions,
+    SetupOptions, StartOptions, TentativeOptions, TestOptions,
+};
 
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 
@@ -85,23 +86,13 @@ impl AppOptions {
         self.sub_command.clone()
     }
 
-    pub async fn fetch_vm_version(&self) -> Result<AppVersion> {
-        let latest_version: Option<Version> =
-            GitHub::new(VM_REPOSITORY_OWNER, VM_REPOSITORY_NAME, None)
-                .latest_release_version()
-                .await?;
-
-        if let Some(latest_version) = latest_version {
-            return Ok(latest_version.into());
-        };
-
-        InstallerError::FailedToDetectGlamorousAppVersion.into()
-    }
-
     pub fn workspace(&self) -> PathBuf {
-        std::env::current_dir()
-            .unwrap()
-            .join(self.workspace.as_path())
+        let workspace = self.workspace.as_path();
+        if workspace.is_relative() {
+            std::env::current_dir().unwrap().join(workspace)
+        } else {
+            workspace.to_path_buf()
+        }
     }
 
     pub fn verbose(&self) -> bool {

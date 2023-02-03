@@ -24,7 +24,6 @@ pub use version::*;
 use crate::options::SubCommand;
 use clap::Parser;
 use options::AppOptions;
-use url::Url;
 use user_error::{UserFacingError, UFE};
 
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
@@ -52,21 +51,8 @@ pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
 async fn run() -> Result<()> {
     let options: AppOptions = AppOptions::parse();
 
-    let gtoolkit_vm_version = options.fetch_vm_version().await?;
-    let gtoolkit_image_version = Application::latest_gtoolkit_image_version().await?;
-    let image_seed = ImageSeed::Url(Url::parse(DEFAULT_PHARO_IMAGE)?);
-
-    let mut application = Application::new(
-        options.workspace(),
-        gtoolkit_vm_version,
-        gtoolkit_image_version,
-        image_seed,
-    )?;
+    let mut application = Application::for_workspace(options.workspace()).await?;
     application.set_verbose(options.verbose());
-
-    if application.serialization_file().exists() {
-        application.deserialize_from_file()?;
-    }
 
     match options.command() {
         SubCommand::Build(build_options) => {
@@ -140,11 +126,13 @@ async fn run() -> Result<()> {
             println!("{:?}", &application);
         }
         SubCommand::PrintGtoolkitImageVersion => {
-            let deserialized_application = application.deserialize_application_from_file()?;
+            let deserialized_application =
+                Application::for_workspace_from_file(options.workspace())?;
             println!("v{}", &deserialized_application.image_version());
         }
         SubCommand::PrintGtoolkitAppVersion => {
-            let deserialized_application = application.deserialize_application_from_file()?;
+            let deserialized_application =
+                Application::for_workspace_from_file(options.workspace())?;
             println!("v{}", &deserialized_application.app_version());
         }
     };
