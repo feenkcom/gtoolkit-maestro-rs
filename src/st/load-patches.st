@@ -193,5 +193,14 @@ RBCommentChange compile: 'primitiveExecute
 	self changeClass classComment: comment stamp: self changeStamp.'
 classified: (RBCommentChange >> #primitiveExecute) protocol.
 
+WriteStream compile: 'pastEndPut: anObject
+	"Grow the collection, then put <anObject> at the current write position."
+
+	collection := collection grownBy: (collection size max: 20).
+	writeLimit := collection size.
+	collection at: (position := position + 1) put: anObject.
+	^ anObject'
+classified: (WriteStream >> #pastEndPut:) protocol.
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
