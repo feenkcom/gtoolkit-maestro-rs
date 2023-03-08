@@ -327,7 +327,10 @@ impl Builder {
         );
 
         let files_to_download = FilesToDownload::new()
-            .extend(Downloader::files_to_download(application))
+            .extend(Downloader::files_to_download(
+                application,
+                application.host_platform(),
+            ))
             .add(pharo_vm.clone())
             .maybe_add(image_seed.file_to_download(application));
 
@@ -336,7 +339,10 @@ impl Builder {
         println!("{}Extracting files...", EXTRACTING);
 
         let files_to_unzip = FilesToUnzip::new()
-            .extend(Downloader::files_to_unzip(application))
+            .extend(Downloader::files_to_unzip(
+                application,
+                application.host_platform(),
+            ))
             .add(FileToUnzip::new(
                 pharo_vm.path(),
                 application.workspace().join("pharo-vm"),

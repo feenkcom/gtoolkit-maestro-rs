@@ -64,7 +64,7 @@ impl Tentative {
         let application = Application::for_workspace_from_file(application.workspace())?;
 
         Downloader::new()
-            .download_glamorous_toolkit_vm(&application)
+            .download_glamorous_toolkit_vm(&application, application.host_platform())
             .await?;
 
         Ok(())

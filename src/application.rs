@@ -1,3 +1,4 @@
+use clap::ArgEnum;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -210,7 +211,7 @@ impl Application {
         Ok(())
     }
 
-    pub fn platform(&self) -> PlatformOS {
+    pub fn host_platform(&self) -> PlatformOS {
         let os = std::env::consts::OS;
         let arch = std::env::consts::ARCH;
 
@@ -227,8 +228,22 @@ impl Application {
         }
     }
 
+    /// Return a location of the gtoolkit app (vm) for a given platform.
+    /// If the target platform is the same as the host, the VM is placed in the workspace
+    pub fn gtoolkit_app_location(&self, target: PlatformOS) -> PathBuf {
+        if self.host_platform() == target {
+            self.workspace().to_path_buf()
+        } else {
+            self.workspace().join(target.as_str())
+        }
+    }
+
     pub fn gtoolkit_app_folders(&self) -> Vec<OneEntry> {
-        let folders = match self.platform() {
+        self.gtoolkit_app_entries_for_target(self.host_platform())
+    }
+
+    pub fn gtoolkit_app_entries_for_target(&self, target: PlatformOS) -> Vec<OneEntry> {
+        let folders = match target {
             PlatformOS::MacOSX8664 => {
                 vec![FolderNamed::exact("GlamorousToolkit.app")]
             }
@@ -247,38 +262,52 @@ impl Application {
             PlatformOS::LinuxAarch64 => {
                 vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
             }
+            PlatformOS::AndroidAarch64 => {
+                vec![FolderNamed::exact("lib")]
+            }
         };
 
         folders
             .into_iter()
-            .map(|each| each.within(self.workspace()))
+            .map(|each| each.within(self.gtoolkit_app_location(target)))
             .collect::<Vec<OneEntry>>()
     }
 
     pub fn pharo_vm_url(&self) -> &str {
-        match self.platform() {
+        match self.host_platform() {
             PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC_X86_64,
             PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC_AARCH64,
             PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::WindowsAarch64 => DEFAULT_PHARO_VM_WINDOWS,
             PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX_X86_64,
             PlatformOS::LinuxAarch64 => DEFAULT_PHARO_VM_LINUX_AARCH64,
+            PlatformOS::AndroidAarch64 => {
+                panic!("Pharo VM is not available for Android")
+            }
         }
     }
 
     pub fn gtoolkit_app(&self) -> &str {
-        match self.platform() {
+        match self.host_platform() {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
                 "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit"
             }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit",
+            PlatformOS::AndroidAarch64 => {
+                panic!("Installer is unable to run GlamorousToolkit on Android")
+            }
         }
     }
 
-    pub fn gtoolkit_app_url(&self) -> String {
+    /// Return a URL of the gtoolkit app (VM) for the current host
+    pub fn gtoolkit_app_host_url(&self) -> String {
+        self.gtoolkit_app_url_for_target(self.host_platform())
+    }
+
+    pub fn gtoolkit_app_url_for_target(&self, platform: PlatformOS) -> String {
         let version = self.app_version().to_string();
-        match self.platform() {
+        match platform {
             PlatformOS::MacOSX8664 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-apple-darwin.app.zip", &version)
             }
@@ -297,11 +326,14 @@ impl Application {
             PlatformOS::LinuxAarch64 => {
                 format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-unknown-linux-gnu.zip", &version)
             }
+            PlatformOS::AndroidAarch64 => {
+                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-linux-android.apk", &version)
+            }
         }
     }
 
     pub fn gtoolkit_app_entries(&self) -> Vec<Box<dyn OneEntryNamed>> {
-        match self.platform() {
+        match self.host_platform() {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
                 vec![FolderNamed::wildmatch("*.app").boxed()]
             }
@@ -314,27 +346,40 @@ impl Application {
                     FolderNamed::exact("lib").boxed(),
                 ]
             }
+            PlatformOS::AndroidAarch64 => {
+                vec![FolderNamed::exact("lib").boxed()]
+            }
         }
     }
 
     pub fn pharo_executable(&self) -> PathBuf {
-        PathBuf::from(match self.platform() {
+        PathBuf::from(match self.host_platform() {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
                 "pharo-vm/Pharo.app/Contents/MacOS/Pharo"
             }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "pharo-vm/pharo",
+            PlatformOS::AndroidAarch64 => {
+                panic!("Installer can not run on Android as a host")
+            }
         })
     }
 
     pub fn gtoolkit_app_cli(&self) -> PathBuf {
-        PathBuf::from(match self.platform() {
+        self.gtoolkit_app_cli_for_target(self.host_platform())
+    }
+
+    pub fn gtoolkit_app_cli_for_target(&self, target: PlatformOS) -> PathBuf {
+        let location = self.gtoolkit_app_location(target);
+        let cli = PathBuf::from(match target {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
                 "GlamorousToolkit.app/Contents/MacOS/GlamorousToolkit-cli"
             }
             PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "bin/GlamorousToolkit-cli.exe",
             PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "bin/GlamorousToolkit-cli",
-        })
+            PlatformOS::AndroidAarch64 => "lib/arm64-v8a/libvm_client_android.so",
+        });
+        location.join(cli)
     }
 
     pub async fn fetch_vm_version() -> Result<AppVersion> {
@@ -364,13 +409,40 @@ impl Application {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
 #[repr(u32)]
 pub enum PlatformOS {
+    #[clap(name = "x86_64-apple-darwin")]
     MacOSX8664,
+    #[clap(name = "aarch64-apple-darwin")]
     MacOSAarch64,
+    #[clap(name = "x86_64-pc-windows-msvc")]
     WindowsX8664,
+    #[clap(name = "aarch64-pc-windows-msvc")]
     WindowsAarch64,
+    #[clap(name = "x86_64-unknown-linux-gnu")]
     LinuxX8664,
+    #[clap(name = "aarch64-unknown-linux-gnu")]
     LinuxAarch64,
+    #[clap(name = "aarch64-linux-android")]
+    AndroidAarch64,
+}
+
+impl PlatformOS {
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
+    pub fn is_android(&self) -> bool {
+        match self {
+            PlatformOS::AndroidAarch64 => true,
+            _ => false,
+        }
+    }
+}
+
+impl AsRef<str> for PlatformOS {
+    fn as_ref(&self) -> &str {
+        self.to_possible_value().unwrap().get_name()
+    }
 }

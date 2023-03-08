@@ -1,4 +1,4 @@
-use crate::{Application, Result, DOWNLOADING, EXTRACTING};
+use crate::{Application, PlatformOS, Result, DOWNLOADING, EXTRACTING};
 use downloader::{FileToDownload, FilesToDownload};
 use unzipper::{FileToUnzip, FilesToUnzip};
 
@@ -9,37 +9,63 @@ impl Downloader {
         Self {}
     }
 
-    pub fn gtoolkit_vm_to_download(application: &Application) -> FileToDownload {
+    pub fn gtoolkit_vm_to_download(
+        application: &Application,
+        target: PlatformOS,
+    ) -> FileToDownload {
+        let suffix = if application.host_platform() != target {
+            format!("-{}", target.as_str())
+        } else {
+            "".to_string()
+        };
+
+        let extension = if target == PlatformOS::AndroidAarch64 {
+            "apk"
+        } else {
+            "zip"
+        };
+
+        let file_name = format!(
+            "GlamorousToolkitApp{}-v{}.{}",
+            suffix,
+            application.app_version().to_string(),
+            extension
+        );
+
         FileToDownload::new(
-            application.gtoolkit_app_url(),
-            application.workspace(),
-            format!(
-                "GlamorousToolkitApp-v{}.zip",
-                application.app_version().to_string()
-            ),
+            application.gtoolkit_app_url_for_target(target),
+            application.gtoolkit_app_location(target),
+            file_name,
         )
     }
 
-    pub fn files_to_download(application: &Application) -> FilesToDownload {
-        FilesToDownload::new().add(Self::gtoolkit_vm_to_download(application))
+    pub fn files_to_download(application: &Application, target: PlatformOS) -> FilesToDownload {
+        FilesToDownload::new().add(Self::gtoolkit_vm_to_download(application, target))
     }
 
-    pub fn files_to_unzip(application: &Application) -> FilesToUnzip {
-        let gtoolkit_vm = Self::gtoolkit_vm_to_download(application);
+    pub fn files_to_unzip(application: &Application, target: PlatformOS) -> FilesToUnzip {
+        let gtoolkit_vm = Self::gtoolkit_vm_to_download(application, target);
         FilesToUnzip::new().add(FileToUnzip::new(
             gtoolkit_vm.path(),
-            application.workspace(),
+            application.gtoolkit_app_location(target),
         ))
     }
 
-    pub async fn download_glamorous_toolkit_vm(&self, application: &Application) -> Result<()> {
+    pub async fn download_glamorous_toolkit_vm(
+        &self,
+        application: &Application,
+        target: PlatformOS,
+    ) -> Result<()> {
         println!(
-            "{}Downloading GlamorousToolkit App (v{})...",
+            "{}Downloading GlamorousToolkit App (v{}, {})...",
             DOWNLOADING,
-            application.app_version().to_string()
+            application.app_version().to_string(),
+            target.as_str()
         );
 
-        Self::files_to_download(application).download().await?;
+        Self::files_to_download(application, target)
+            .download()
+            .await?;
 
         println!(
             "{}Extracting GlamorousToolkit App (v{})...",
@@ -47,7 +73,7 @@ impl Downloader {
             application.app_version().to_string()
         );
 
-        Self::files_to_unzip(application).unzip().await?;
+        Self::files_to_unzip(application, target).unzip().await?;
 
         Ok(())
     }

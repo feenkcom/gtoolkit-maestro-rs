@@ -28,7 +28,7 @@ impl SetupOptions {
         }
     }
 
-    pub fn target(&mut self, target: SetupTarget) {
+    pub fn setup_target(&mut self, target: SetupTarget) {
         self.target = target;
     }
 

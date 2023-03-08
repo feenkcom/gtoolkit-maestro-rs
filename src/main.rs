@@ -68,7 +68,7 @@ async fn run() -> Result<()> {
         }
         SubCommand::LocalBuild(local_build) => {
             let mut setup_options = SetupOptions::new();
-            setup_options.target(SetupTarget::LocalBuild);
+            setup_options.setup_target(SetupTarget::LocalBuild);
             setup_options.gt_world(!local_build.no_gt_world);
 
             Builder::new()
@@ -78,7 +78,7 @@ async fn run() -> Result<()> {
         }
         SubCommand::ReleaseBuild(release_build) => {
             let mut setup_options = SetupOptions::new();
-            setup_options.target(SetupTarget::Release);
+            setup_options.setup_target(SetupTarget::Release);
             setup_options.gt_world(!release_build.no_gt_world);
             setup_options.bump(release_build.bump);
 
