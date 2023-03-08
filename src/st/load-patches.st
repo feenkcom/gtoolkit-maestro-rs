@@ -202,5 +202,20 @@ WriteStream compile: 'pastEndPut: anObject
 	^ anObject'
 classified: (WriteStream >> #pastEndPut:) protocol.
 
+ZnHTTPSTest compile: 'testGmailEncrypted
+	| client |
+	self ensureSocketStreamFactory.
+	self isNativeSSLPluginPresent ifFalse: [ ^ self ].  
+	
+	(client := ZnClient new) 
+		maxNumberOfRedirects: 10;
+		get: ''https://www.gmail.com''.
+	
+	self assert: client isSuccess.
+	self assert: (client contents includesSubstring: ''Google'').    
+	self assert: (client contents includesSubstring: ''mail''). 
+	client close'
+classified: (ZnHTTPSTest >> #testGmailEncrypted) protocol.
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
