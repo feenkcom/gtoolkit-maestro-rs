@@ -12,11 +12,13 @@ use crate::{Application, Downloader, ExecutableSmalltalk, PlatformOS, Result, Sm
 #[derive(Parser, Debug, Clone)]
 pub struct ReleaseOptions {
     /// Path to the .zip with the release image build. Supports mustache syntax to inject various release related information.
+    /// For example: "GlamorousToolkit-{{os}}-{{arch}}-v{{version}}.zip"
+    ///
     /// The following properties are supported:
     /// - {{version}} - the release version in a form of X.Y.Z
     /// - {{os}} - the OS we release for. (`MacOS`, `Linux`, `Windows`, `Android`)
     /// - {{arch}} - the target release architecture. (`x86_64`, `aarch64`)
-    #[clap(parse(from_os_str))]
+    #[clap(parse(from_os_str), verbatim_doc_comment)]
     pub release: PathBuf,
     #[clap(long, arg_enum)]
     pub target: Option<PlatformOS>,
