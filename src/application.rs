@@ -188,6 +188,7 @@ impl Application {
         )
     }
 
+    #[deprecated(since="0.2.0", note="please use `gtoolkit` instead")]
     pub fn pharo(&self) -> Smalltalk {
         Smalltalk::new(
             self.pharo_executable(),

@@ -1,21 +1,23 @@
-use crate::create::FileToCreate;
-use crate::{
-    Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
-    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkFlags,
-    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE,
-    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
-};
+use std::path::PathBuf;
+use std::str::FromStr;
+use std::time::Instant;
+
 use clap::{ArgEnum, Parser};
-use downloader::{FileToDownload, FilesToDownload};
+use downloader::FilesToDownload;
 use feenk_releaser::{Version, VersionBump};
 use file_matcher::FileNamed;
 use indicatif::HumanDuration;
 use reqwest::StatusCode;
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::time::Instant;
-use unzipper::{FileToUnzip, FilesToUnzip};
+use unzipper::FilesToUnzip;
 use url::Url;
+
+use crate::{
+    Application, BUILDING, Checker, CREATING, DEFAULT_PHARO_IMAGE, Downloader, DOWNLOADING,
+    ExecutableSmalltalk, EXTRACTING, FileToMove, ImageSeed, InstallerError,
+    MOVING, Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder,
+    SmalltalkFlags, SmalltalkScriptsToExecute, SmalltalkScriptToExecute, SPARKLE,
+};
+use crate::create::FileToCreate;
 
 #[derive(Parser, Debug, Clone)]
 pub struct BuildOptions {
@@ -320,18 +322,11 @@ impl Builder {
 
         println!("{}Downloading files...", DOWNLOADING);
 
-        let pharo_vm = FileToDownload::new(
-            self.pharo_vm_url(application, build_options)?,
-            application.workspace(),
-            "pharo-vm.zip",
-        );
-
         let files_to_download = FilesToDownload::new()
             .extend(Downloader::files_to_download(
                 application,
                 application.host_platform(),
             ))
-            .add(pharo_vm.clone())
             .maybe_add(image_seed.file_to_download(application));
 
         files_to_download.download().await?;
@@ -342,10 +337,6 @@ impl Builder {
             .extend(Downloader::files_to_unzip(
                 application,
                 application.host_platform(),
-            ))
-            .add(FileToUnzip::new(
-                pharo_vm.path(),
-                application.workspace().join("pharo-vm"),
             ))
             .maybe_add(image_seed.file_to_unzip(application));
 
@@ -358,9 +349,9 @@ impl Builder {
                 .within(image_seed.seed_image_directory(application))
                 .find()?;
             let seed_smalltalk = Smalltalk::new(
-                application.pharo_executable(),
+                application.gtoolkit_app_cli(),
                 seed_image,
-                SmalltalkFlags::pharo(),
+                SmalltalkFlags::gtoolkit(),
                 application,
             );
             let mut seed_evaluator = seed_smalltalk.evaluator();
@@ -412,12 +403,11 @@ impl Builder {
         .await?;
 
         let gtoolkit = application.gtoolkit();
-        let pharo = application.pharo();
 
         println!("{}Preparing the image...", BUILDING);
         SmalltalkScriptsToExecute::new()
             .add(SmalltalkScriptToExecute::new("load-patches.st"))
-            .execute(pharo.evaluator().save(true))
+            .execute(gtoolkit.evaluator().save(true))
             .await?;
 
         println!("{}Building Glamorous Toolkit...", BUILDING);

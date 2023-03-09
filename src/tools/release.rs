@@ -1,13 +1,13 @@
-use crate::{Application, Downloader, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand};
-use clap::Parser;
-use feenk_releaser::VersionBump;
-use file_matcher::FileNamed;
-use ndk_build::apk::{ApkConfig, StripConfig};
-use ndk_build::ndk::Ndk;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
+
+use clap::Parser;
+use feenk_releaser::VersionBump;
+use file_matcher::FileNamed;
 use zipper::ToZip;
+
+use crate::{Application, Downloader, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand};
 
 #[derive(Parser, Debug, Clone)]
 pub struct ReleaseOptions {
@@ -146,6 +146,8 @@ impl Release {
             IntentFilter as AndroidIntentFilter, MetaData as AndroidMetaData,
             Permission as AndroidPermission,
         };
+        use ndk_build::apk::{ApkConfig, StripConfig};
+        use ndk_build::ndk::Ndk;
 
         use ndk_build::target::Target as AndroidTarget;
 

@@ -3,7 +3,7 @@ resolver = "2"
 
 [package]
 name = "gt-installer"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["feenk gmbh <contact@feenk.com>"]
 edition = "2021"
 
