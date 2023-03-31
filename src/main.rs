@@ -31,19 +31,8 @@ use user_error::{UserFacingError, UFE};
 pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
 
-pub const DEFAULT_PHARO_VM_MAC_X86_64: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Darwin-x86_64-bin.zip";
-pub const DEFAULT_PHARO_VM_MAC_AARCH64: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Darwin-arm64-bin.zip";
-pub const DEFAULT_PHARO_VM_LINUX_X86_64: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b487900-Linux-x86_64-bin.zip";
-pub const DEFAULT_PHARO_VM_LINUX_AARCH64: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b487900-Linux-aarch64-bin.zip";
-pub const DEFAULT_PHARO_VM_WINDOWS: &str =
-    "https://dl.feenk.com/pharo/PharoVM-9.0.15-b4879008-Windows-x86_64-bin.zip";
-
 pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.521.sha.14f5413.arch.64bit.zip";
+    "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.538.sha.179ef65.arch.64bit.zip";
 
 pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
 

@@ -11,13 +11,13 @@ use reqwest::StatusCode;
 use unzipper::FilesToUnzip;
 use url::Url;
 
-use crate::{
-    Application, BUILDING, Checker, CREATING, DEFAULT_PHARO_IMAGE, Downloader, DOWNLOADING,
-    ExecutableSmalltalk, EXTRACTING, FileToMove, ImageSeed, InstallerError,
-    MOVING, Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder,
-    SmalltalkFlags, SmalltalkScriptsToExecute, SmalltalkScriptToExecute, SPARKLE,
-};
 use crate::create::FileToCreate;
+use crate::{
+    Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
+    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkFlags,
+    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE,
+    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+};
 
 #[derive(Parser, Debug, Clone)]
 pub struct BuildOptions {
@@ -290,18 +290,6 @@ impl Builder {
             gtoolkit_version: gtoolkit_version_string,
             releaser_version: releaser_version_string,
         })
-    }
-
-    fn pharo_vm_url(
-        &self,
-        application: &mut Application,
-        build_options: &BuildOptions,
-    ) -> Result<Url> {
-        if let Some(ref custom_vm_url) = build_options.pharo_vm_url {
-            Ok(custom_vm_url.clone())
-        } else {
-            Url::parse(application.pharo_vm_url()).map_err(|err| err.into())
-        }
     }
 
     pub async fn build(

@@ -143,12 +143,12 @@ impl Release {
     }
 
     fn create_apk(&self, application: &Application, target: PlatformOS) -> Result<PathBuf> {
+        use ndk_build::apk::{ApkConfig, StripConfig};
         use ndk_build::manifest::{
             Activity as AndroidActivity, AndroidManifest, Application as AndroidApplication,
             IntentFilter as AndroidIntentFilter, MetaData as AndroidMetaData,
             Permission as AndroidPermission,
         };
-        use ndk_build::apk::{ApkConfig, StripConfig};
         use ndk_build::ndk::Ndk;
 
         use ndk_build::target::Target as AndroidTarget;

@@ -11,9 +11,7 @@ use url::Url;
 use crate::options::{VM_REPOSITORY_NAME, VM_REPOSITORY_OWNER};
 use crate::{
     AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
-    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE,
-    DEFAULT_PHARO_VM_LINUX_AARCH64, DEFAULT_PHARO_VM_LINUX_X86_64, DEFAULT_PHARO_VM_MAC_AARCH64,
-    DEFAULT_PHARO_VM_MAC_X86_64, DEFAULT_PHARO_VM_WINDOWS, GTOOLKIT_REPOSITORY_NAME,
+    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE, GTOOLKIT_REPOSITORY_NAME,
     GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE,
 };
 
@@ -188,7 +186,7 @@ impl Application {
         )
     }
 
-    #[deprecated(since="0.2.0", note="please use `gtoolkit` instead")]
+    #[deprecated(since = "0.2.0", note = "please use `gtoolkit` instead")]
     pub fn pharo(&self) -> Smalltalk {
         Smalltalk::new(
             self.pharo_executable(),
@@ -272,20 +270,6 @@ impl Application {
             .into_iter()
             .map(|each| each.within(self.gtoolkit_app_location(target)))
             .collect::<Vec<OneEntry>>()
-    }
-
-    pub fn pharo_vm_url(&self) -> &str {
-        match self.host_platform() {
-            PlatformOS::MacOSX8664 => DEFAULT_PHARO_VM_MAC_X86_64,
-            PlatformOS::MacOSAarch64 => DEFAULT_PHARO_VM_MAC_AARCH64,
-            PlatformOS::WindowsX8664 => DEFAULT_PHARO_VM_WINDOWS,
-            PlatformOS::WindowsAarch64 => DEFAULT_PHARO_VM_WINDOWS,
-            PlatformOS::LinuxX8664 => DEFAULT_PHARO_VM_LINUX_X86_64,
-            PlatformOS::LinuxAarch64 => DEFAULT_PHARO_VM_LINUX_AARCH64,
-            PlatformOS::AndroidAarch64 => {
-                panic!("Pharo VM is not available for Android")
-            }
-        }
     }
 
     pub fn gtoolkit_app(&self) -> &str {
