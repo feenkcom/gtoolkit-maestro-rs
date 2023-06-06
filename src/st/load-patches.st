@@ -238,7 +238,7 @@ ZnBufferedReadStream compile: 'back
 				[ char := buffer at: position.
 				position := position - 1.
 				char ] ]'
-classified: (ZnBufferedReadStream >> #back) protocol.
+classified: 'accessing'.
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
