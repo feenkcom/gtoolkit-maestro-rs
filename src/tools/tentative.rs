@@ -1,11 +1,11 @@
-use clap::Parser;
 use std::path::PathBuf;
 
+use clap::Parser;
 use file_matcher::FileNamed;
 use unzipper::{FileToUnzip, FilesToUnzip};
 use zipper::ToZip;
 
-use crate::{Application, Downloader, Result};
+use crate::{Application, Downloader, Package, Result};
 
 #[derive(Parser, Debug, Clone)]
 pub struct TentativeOptions {
@@ -38,7 +38,7 @@ impl Tentative {
                 FileNamed::exact(Application::serialization_file_name())
                     .within(application.workspace()),
             )
-            .one_entries(application.gtoolkit_app_folders());
+            .one_entries(Package::gtoolkit_app_folders(application));
 
         let gt_extra = application.workspace().join("gt-extra");
 

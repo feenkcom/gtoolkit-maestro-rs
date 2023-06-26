@@ -30,7 +30,7 @@ impl ExecutableSmalltalk for SmalltalkExpression {
             self.expression.clone()
         };
 
-        let mut command = evaluator.command();
+        let mut command = evaluator.command()?;
         command
             .arg("eval")
             .arg(if evaluator.should_quit() {

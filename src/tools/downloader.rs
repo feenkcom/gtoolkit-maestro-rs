@@ -1,6 +1,7 @@
-use crate::{Application, PlatformOS, Result, DOWNLOADING, EXTRACTING};
 use downloader::{FileToDownload, FilesToDownload};
 use unzipper::{FileToUnzip, FilesToUnzip};
+
+use crate::{Application, PlatformOS, Result, DOWNLOADING, EXTRACTING};
 
 pub struct Downloader;
 
@@ -40,15 +41,25 @@ impl Downloader {
     }
 
     pub fn files_to_download(application: &Application, target: PlatformOS) -> FilesToDownload {
-        FilesToDownload::new().add(Self::gtoolkit_vm_to_download(application, target))
+        let files_to_download = FilesToDownload::new();
+        if application.has_explicit_app_cli_binary() {
+            files_to_download
+        } else {
+            files_to_download.add(Self::gtoolkit_vm_to_download(application, target))
+        }
     }
 
     pub fn files_to_unzip(application: &Application, target: PlatformOS) -> FilesToUnzip {
-        let gtoolkit_vm = Self::gtoolkit_vm_to_download(application, target);
-        FilesToUnzip::new().add(FileToUnzip::new(
-            gtoolkit_vm.path(),
-            application.gtoolkit_app_location(target),
-        ))
+        let files_to_unzip = FilesToUnzip::new();
+        if application.has_explicit_app_cli_binary() {
+            files_to_unzip
+        } else {
+            let gtoolkit_vm = Self::gtoolkit_vm_to_download(application, target);
+            files_to_unzip.add(FileToUnzip::new(
+                gtoolkit_vm.path(),
+                application.gtoolkit_app_location(target),
+            ))
+        }
     }
 
     pub async fn download_glamorous_toolkit_vm(

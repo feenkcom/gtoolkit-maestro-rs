@@ -7,7 +7,9 @@ use feenk_releaser::VersionBump;
 use file_matcher::FileNamed;
 use zipper::ToZip;
 
-use crate::{Application, Downloader, ExecutableSmalltalk, PlatformOS, Result, SmalltalkCommand};
+use crate::{
+    Application, Downloader, ExecutableSmalltalk, Package, PlatformOS, Result, SmalltalkCommand,
+};
 
 #[derive(Parser, Debug, Clone)]
 pub struct ReleaseOptions {
@@ -116,7 +118,10 @@ impl Release {
             .one_entry(FileNamed::wildmatch("*.changes").within(application.workspace()))
             .one_entry(FileNamed::wildmatch("*.sources").within(application.workspace()))
             .folder(application.workspace().join("gt-extra"))
-            .one_entries(application.gtoolkit_app_entries_for_target(target))
+            .one_entries(Package::gtoolkit_app_entries_for_target(
+                application,
+                target,
+            ))
             .zip()
             .map_err(|error| error.into())
     }

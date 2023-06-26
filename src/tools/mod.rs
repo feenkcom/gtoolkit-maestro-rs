@@ -3,6 +3,7 @@ mod checker;
 mod cleaner;
 mod copier;
 mod downloader;
+mod package;
 mod release;
 mod renamer;
 mod setup;
@@ -17,6 +18,7 @@ pub use builder::{BuildOptions, Builder, Loader, LocalBuildOptions, ReleaseBuild
 pub use checker::Checker;
 pub use cleaner::Cleaner;
 pub use copier::{Copier, CopyOptions};
+pub use package::Package;
 pub use release::{Release, ReleaseOptions, ReleaserOptions};
 pub use renamer::{RenameOptions, Renamer};
 pub use setup::{Setup, SetupOptions, SetupTarget};

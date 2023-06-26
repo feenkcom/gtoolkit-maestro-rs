@@ -1,6 +1,6 @@
-use crate::Smalltalk;
+use crate::{Smalltalk, Result};
 use std::fs::OpenOptions;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 #[derive(Debug)]
@@ -10,6 +10,7 @@ pub struct SmalltalkEvaluator<'smalltalk, 'options> {
     should_quit: bool,
     should_save: bool,
     verbose: bool,
+    use_image: bool,
 }
 
 impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
@@ -20,6 +21,7 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
             should_quit: true,
             should_save: false,
             verbose: false,
+            use_image: true,
         }
     }
 
@@ -43,8 +45,17 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         self
     }
 
-    pub fn workspace(&self) -> &Path {
-        self.smalltalk.workspace()
+    pub fn without_image(&mut self) -> &mut Self {
+        self.use_image = false;
+        self
+    }
+
+    pub fn workspace(&self) -> PathBuf {
+        let app_workspace = self.smalltalk.workspace();
+        if !app_workspace.exists() {
+            return PathBuf::from(".")
+        }
+        app_workspace.to_path_buf()
     }
 
     pub fn executable(&self) -> &Path {
@@ -107,12 +118,9 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         Stdio::from(stderr)
     }
 
-    pub fn command(&self) -> Command {
+    pub fn command(&self) -> Result<Command> {
         let relative_executable = self.workspace().join(self.executable());
-        let executable = to_absolute::canonicalize(&relative_executable).expect(&format!(
-            "Failed to canonicalize {}",
-            &relative_executable.display()
-        ));
+        let executable = to_absolute::canonicalize(&relative_executable)?;
 
         let mut command = Command::new(executable);
         command
@@ -123,7 +131,9 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
         if let Some(flag) = self.interactive_or_headless_flag() {
             command.arg(flag);
         }
-        command.arg(self.image());
-        command
+        if self.use_image {
+            command.arg(self.image());
+        }
+        Ok(command)
     }
 }

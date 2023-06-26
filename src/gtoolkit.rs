@@ -6,6 +6,7 @@ use feenk_releaser::{Version, VersionBump};
 
 pub trait GToolkit {
     fn get_gtoolkit_version(&self) -> Result<Version>;
+    fn get_app_version(&self) -> Result<Version>;
     fn print_new_commits(&self) -> Result<()>;
     fn perform_setup_for_release(&self, bump: VersionBump) -> Result<()>;
     fn perform_setup_for_local_build(&self) -> Result<()>;
@@ -21,6 +22,12 @@ impl<'application> GToolkit for Smalltalk<'application> {
     fn get_gtoolkit_version(&self) -> Result<Version> {
         let version_string =
             SmalltalkCommand::new("getgtoolkitversion").execute_with_result(&self.evaluator())?;
+        Version::parse(version_string).map_err(|error| error.into())
+    }
+
+    fn get_app_version(&self) -> Result<Version> {
+        let version_string = SmalltalkCommand::new("--short-version")
+            .execute_with_result(&self.evaluator().without_image())?;
         Version::parse(version_string).map_err(|error| error.into())
     }
 

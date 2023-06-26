@@ -16,7 +16,7 @@ impl SmalltalkScriptToExecute {
 
 impl ExecutableSmalltalk for SmalltalkScriptToExecute {
     fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command> {
-        let mut command = evaluator.command();
+        let mut command = evaluator.command()?;
         command
             .arg("st")
             .arg(if evaluator.should_quit() {

@@ -36,9 +36,6 @@ pub struct BuildOptions {
     /// Specify a path to the .image in which to install the glamorous toolkit
     #[clap(long, parse(from_os_str), conflicts_with_all(&["image_url", "image_zip"]))]
     pub image_file: Option<PathBuf>,
-    /// Specify a URL to a pharo vm which will be used to prepare a seed image
-    #[clap(long, parse(try_from_str = url_parse))]
-    pub pharo_vm_url: Option<Url>,
     /// Public ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub public_key: Option<PathBuf>,
@@ -144,7 +141,6 @@ impl BuildOptions {
             image_url: None,
             image_zip: None,
             image_file: None,
-            pharo_vm_url: None,
             public_key: None,
             private_key: None,
             version: BuildVersion::BleedingEdge,

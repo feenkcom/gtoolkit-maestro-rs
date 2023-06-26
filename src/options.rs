@@ -23,6 +23,10 @@ pub struct AppOptions {
     verbose: bool,
     #[clap(long, default_value = DEFAULT_DIRECTORY, parse(from_os_str))]
     workspace: PathBuf,
+    /// Specify a path to a gtoolkit app binary which will should be used by the installer,
+    /// The binary
+    #[clap(long, parse(from_os_str))]
+    pub app_cli_binary: Option<PathBuf>,
 }
 
 #[derive(Parser, Clone, Debug)]

@@ -44,6 +44,9 @@ async fn run() -> Result<()> {
 
     let mut application = Application::for_workspace(options.workspace()).await?;
     application.set_verbose(options.verbose());
+    if let Some(ref app_cli_bin) = options.app_cli_binary {
+        application.set_app_cli_binary(app_cli_bin)?;
+    }
 
     match options.command() {
         SubCommand::Build(build_options) => {

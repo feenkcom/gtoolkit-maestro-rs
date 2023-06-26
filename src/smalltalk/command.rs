@@ -40,7 +40,7 @@ impl SmalltalkCommand {
 
 impl ExecutableSmalltalk for SmalltalkCommand {
     fn create_command(&self, evaluator: &SmalltalkEvaluator) -> Result<Command> {
-        let mut command = evaluator.command();
+        let mut command = evaluator.command()?;
         command.arg(&self.command);
         command.args(&self.arguments);
 

@@ -4,15 +4,15 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use feenk_releaser::{GitHub, Version};
-use file_matcher::{FolderNamed, OneEntry, OneEntryNamed};
+use file_matcher::{FolderNamed, OneEntryNamed};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::options::{VM_REPOSITORY_NAME, VM_REPOSITORY_OWNER};
 use crate::{
-    AppVersion, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags,
-    DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE, GTOOLKIT_REPOSITORY_NAME,
-    GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE,
+    AppVersion, GToolkit, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk,
+    SmalltalkFlags, DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE,
+    GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -20,6 +20,7 @@ pub struct Application {
     verbose: bool,
     workspace: PathBuf,
     app_version: AppVersion,
+    app_cli_binary: Option<PathBuf>,
     image_version: ImageVersion,
     image_name: String,
     image_extension: String,
@@ -89,6 +90,7 @@ impl Application {
             verbose: false,
             workspace: workspace.as_ref().to_path_buf(),
             app_version,
+            app_cli_binary: None,
             image_version,
             image_name: DEFAULT_IMAGE_NAME.to_string(),
             image_extension: DEFAULT_IMAGE_EXTENSION.to_string(),
@@ -110,6 +112,17 @@ impl Application {
 
     pub fn set_workspace(&mut self, workspace: impl Into<PathBuf>) {
         self.workspace = workspace.into()
+    }
+
+    pub fn set_app_cli_binary(&mut self, binary: impl Into<PathBuf>) -> Result<()> {
+        let binary = binary.into();
+        self.app_cli_binary = Some(binary.clone());
+        self.app_version = self.gtoolkit().get_app_version()?.into();
+        Ok(())
+    }
+
+    pub fn has_explicit_app_cli_binary(&self) -> bool {
+        self.app_cli_binary.is_some()
     }
 
     /// Returns a name of the image (without .image extension)
@@ -186,16 +199,6 @@ impl Application {
         )
     }
 
-    #[deprecated(since = "0.2.0", note = "please use `gtoolkit` instead")]
-    pub fn pharo(&self) -> Smalltalk {
-        Smalltalk::new(
-            self.pharo_executable(),
-            self.image(),
-            SmalltalkFlags::pharo(),
-            self,
-        )
-    }
-
     pub fn serialization_file_name() -> &'static str {
         SERIALIZATION_FILE
     }
@@ -235,41 +238,6 @@ impl Application {
         } else {
             self.workspace().join(target.as_str())
         }
-    }
-
-    pub fn gtoolkit_app_folders(&self) -> Vec<OneEntry> {
-        self.gtoolkit_app_entries_for_target(self.host_platform())
-    }
-
-    pub fn gtoolkit_app_entries_for_target(&self, target: PlatformOS) -> Vec<OneEntry> {
-        let folders = match target {
-            PlatformOS::MacOSX8664 => {
-                vec![FolderNamed::exact("GlamorousToolkit.app")]
-            }
-            PlatformOS::MacOSAarch64 => {
-                vec![FolderNamed::exact("GlamorousToolkit.app")]
-            }
-            PlatformOS::WindowsX8664 => {
-                vec![FolderNamed::exact("bin")]
-            }
-            PlatformOS::WindowsAarch64 => {
-                vec![FolderNamed::exact("bin")]
-            }
-            PlatformOS::LinuxX8664 => {
-                vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
-            }
-            PlatformOS::LinuxAarch64 => {
-                vec![FolderNamed::exact("bin"), FolderNamed::exact("lib")]
-            }
-            PlatformOS::AndroidAarch64 => {
-                vec![FolderNamed::exact("lib")]
-            }
-        };
-
-        folders
-            .into_iter()
-            .map(|each| each.within(self.gtoolkit_app_location(target)))
-            .collect::<Vec<OneEntry>>()
     }
 
     pub fn gtoolkit_app(&self) -> &str {
@@ -337,24 +305,17 @@ impl Application {
         }
     }
 
-    pub fn pharo_executable(&self) -> PathBuf {
-        PathBuf::from(match self.host_platform() {
-            PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
-                "pharo-vm/Pharo.app/Contents/MacOS/Pharo"
-            }
-            PlatformOS::WindowsX8664 | PlatformOS::WindowsAarch64 => "pharo-vm/PharoConsole.exe",
-            PlatformOS::LinuxX8664 | PlatformOS::LinuxAarch64 => "pharo-vm/pharo",
-            PlatformOS::AndroidAarch64 => {
-                panic!("Installer can not run on Android as a host")
-            }
-        })
-    }
-
     pub fn gtoolkit_app_cli(&self) -> PathBuf {
         self.gtoolkit_app_cli_for_target(self.host_platform())
     }
 
+    /// Return a path to the gtoolkit app's cli executable for a given platform.
+    /// `app_cli_binary` overrides the path to the binary
     pub fn gtoolkit_app_cli_for_target(&self, target: PlatformOS) -> PathBuf {
+        if let Some(ref cli) = self.app_cli_binary {
+            return cli.clone();
+        }
+
         let location = self.gtoolkit_app_location(target);
         let cli = PathBuf::from(match target {
             PlatformOS::MacOSX8664 | PlatformOS::MacOSAarch64 => {
