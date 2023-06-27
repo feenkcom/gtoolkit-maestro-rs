@@ -220,8 +220,6 @@ classified: (ZnHTTPSTest >> #testGmailEncrypted) protocol.
 ChunkWriteStream compile: 'afterNexPut 
 	decoratedStream flush' classified: 'accessing'.
 ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
-	"Append the argument, aString, to the receiver, doubling embedded ! terminators and adding a extra one"
-
 	| string start bangIndex newStringStream |
 	string := aString asString.
 	newStringStream := WriteStream on: (string species new: string size * 2).
@@ -234,7 +232,7 @@ ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString
 				putAll: string
 				startingAt: start.
 
-			newStringStream nextPut: self terminatorMark. "double it"
+			newStringStream nextPut: self terminatorMark. 
 			start := bangIndex + 1 ].
 
 	newStringStream
@@ -242,7 +240,7 @@ ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString
 		putAll: string
 		startingAt: start.
 
-	newStringStream nextPut: self terminatorMark. "one extra"
+	newStringStream nextPut: self terminatorMark. 
 
 	^ newStringStream contents' classified: 'accessing'.
 
@@ -251,8 +249,6 @@ SourceChunkWriteStream  compile: 'afterNexPut
 	decoratedStream setToEnd' classified: 'accessing'.
 
 ChunkWriteStream compile: 'nextPut: aString
-	"Append the argument, aString, to the receiver, doubling embedded ! terminators and adding a extra one"
- 
 	| string |
 	string := self duplicateTerminatorMarkOn: aString asString.
 
