@@ -217,5 +217,54 @@ ZnHTTPSTest compile: 'testGmailEncrypted
 	client close'
 classified: (ZnHTTPSTest >> #testGmailEncrypted) protocol.
 
+ChunkWriteStream compile: 'afterNexPut 
+	decoratedStream flush' classified: 'accessing'.
+ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
+	"Append the argument, aString, to the receiver, doubling embedded ! terminators and adding a extra one"
+
+	| string start bangIndex newStringStream |
+	string := aString asString.
+	newStringStream := WriteStream on: (string species new: string size * 2).
+	start := 1.
+
+	[ (bangIndex := string indexOf: self terminatorMark startingAt: start) = 0 ]
+		whileFalse: [
+			newStringStream
+				next: bangIndex - start + 1
+				putAll: string
+				startingAt: start.
+
+			newStringStream nextPut: self terminatorMark. "double it"
+			start := bangIndex + 1 ].
+
+	newStringStream
+		next: string size - start + 1
+		putAll: string
+		startingAt: start.
+
+	newStringStream nextPut: self terminatorMark. "one extra"
+
+	^ newStringStream contents' classified: 'accessing'.
+
+SourceChunkWriteStream  compile: 'afterNexPut
+
+	decoratedStream setToEnd' classified: 'accessing'.
+
+ChunkWriteStream compile: 'nextPut: aString
+	"Append the argument, aString, to the receiver, doubling embedded ! terminators and adding a extra one"
+ 
+	| string |
+	string := self duplicateTerminatorMarkOn: aString asString.
+
+	decoratedStream
+		next: string size
+		putAll: string
+		startingAt: 1.
+
+	self afterNexPut' classified: 'accessing'.
+	
+(SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
+	SourceChunkWriteStream removeSelector: #nextPut: ].
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
