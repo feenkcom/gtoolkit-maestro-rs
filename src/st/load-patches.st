@@ -262,5 +262,107 @@ ChunkWriteStream compile: 'nextPut: aString
 (SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
 	SourceChunkWriteStream removeSelector: #nextPut: ].
 
+"Code to allow switch Iceberg repository implementations"
+"----------------------"
+
+Object subclass: #IceRepository
+	instanceVariableNames: 'name workingCopy index commitsInPackageCache'
+	classVariableNames: 'Registry RepositoryClass'
+	package: 'Iceberg-Core'.
+
+IceRepository class compile: 'repositoryClass: aClass
+	RepositoryClass := aClass' classified: 'accessing'.
+
+IceRepository class compile: 'repositoryClass
+	^ RepositoryClass ifNil: [ RepositoryClass := IceLibgitRepository ]' classified: 'accessing'.
+
+Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageNameList
+
+	| commit repository |
+	repository := IceRepository repositoryClass new.
+	commit := IceUnknownCommit new
+		id: commitId;
+		repository: repository;
+ 		yourself.
+		
+	repository name: ''iceberg''.
+	repository workingCopy referenceCommit: commit.
+	commit repository: repository.
+	
+	packageNameList do: [ :each |
+		repository workingCopy basicAddPackage: (IcePackage
+			named: each
+			repository: repository) ].
+	
+	repository register' classified: 'accessing'.
+
+IceRepositoryCreator compile: '
+repository
+
+	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classfied: 'accessing'.
+
+IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
+	| locationToUse  |
+	self validate.
+	locationToUse := self locationToUse.
+	(locationToUse exists and: [ locationToUse hasChildren ])
+		ifTrue: [ IceError
+				signal: (''{1} is not empty.'' format: {locationToUse fullName}) ].
+	locationToUse ensureCreateDirectory.
+	self subdirectory
+		ifNotEmpty: [ (locationToUse resolve: self subdirectory) ensureCreateDirectory ].
+	repository := IceRepository repositoryClass new
+		name: aString;
+		location: locationToUse;
+		initBare: isBareRepository;
+		yourself.
+	self addProjectFileTo: repository.
+	self addPropertiesFileTo: repository.
+	repository workingCopy refreshProject.
+	^ repository' classfied: 'actions'.
+
+IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baselines: aCollection
+	| repository commit workingCopy |
+
+	repository := IceRepository repositoryClass new
+		name: aName;
+		yourself.
+	
+	commit := IceUnknownCommit new 
+		repository: repository;
+		id: aCommitId;
+	 	yourself.
+
+	workingCopy := IceWorkingCopy basicNew
+		repository: repository;
+		initialize;
+		referenceCommit: commit;
+		project: ((IceBasicProject onRepository: repository)
+			sourceDirectory: ''src'';
+			yourself);
+		yourself.
+
+	repository workingCopy: workingCopy.
+	
+	(aCollection 
+		flatCollect: [ :each | (Smalltalk globals at: each) allPackageNames copyWith: each ] 
+		as: Set)
+		do: [ :each | 
+			repository workingCopy basicAddPackage: (IcePackage
+				named: each
+				repository: repository) ].
+
+	repository register' classified: 'adding'.
+
+IceMetacelloDuplicatedNotification compile: 'existingProjectRegistration
+	| repository |
+	repository := IceRepository repositoryClass new
+		location: builder locationToUse.
+	^ IceMetacelloProjectRegistration new
+		version: repository head description;
+		yourself' classified: 'accessing'.
+
+"--------------------"
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
