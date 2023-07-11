@@ -299,7 +299,7 @@ Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageName
 IceRepositoryCreator compile: '
 repository
 
-	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classfied: 'accessing'.
+	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classified: 'accessing'.
 
 IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
 	| locationToUse  |
@@ -319,7 +319,7 @@ IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
 	self addProjectFileTo: repository.
 	self addPropertiesFileTo: repository.
 	repository workingCopy refreshProject.
-	^ repository' classfied: 'actions'.
+	^ repository' classified: 'actions'.
 
 IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baselines: aCollection
 	| repository commit workingCopy |
