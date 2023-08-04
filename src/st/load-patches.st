@@ -70,7 +70,8 @@ RPackage compile: 'toTagName: aSymbol
 classified: (RPackage >> #toTagName:) protocol.
 
 MCPackageLoader compile: 'tryToLoad: aDefinition
-	aDefinition isClassDefinition ifTrue: [ ^ false ].
+	(aDefinition isClassDefinition and: [
+		aDefinition actualClass notNil ]) ifTrue: [ ^ false ].
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
 classified: (MCPackageLoader >> #tryToLoad:) protocol.
