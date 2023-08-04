@@ -47,6 +47,11 @@ Object compile:
  	^ self retrySetPinnedInMemory: aBoolean'
 classified: (Object >> #setPinnedInMemory:) protocol.
 
+Object compile:
+'asOrderedCollection
+	^ OrderedCollection with: self'
+classified: (Object >> #asOrderedCollection) protocol.
+
 Metaclass compile:
 'classVariableNamed: aString ifAbsent: absentBlock
 	"Answer the Class Variable"
