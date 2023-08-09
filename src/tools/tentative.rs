@@ -47,8 +47,14 @@ impl Tentative {
         }
 
         // Add Docker files
-        zip.add_file(application.workspace().parent().join(Application::dockerfile()));
-        zip.add_folder(application.workspace().parent().join(Application::docker_image_content_directory()));
+        let pwd = application.workspace().parent();
+        match pwd {
+            None => {}
+            Some(path) => {
+                zip.add_file(path.join(Application::dockerfile()));
+                zip.add_folder(path.join(Application::docker_image_content_directory()))
+            }
+        }
 
         zip.zip().map_err(|error| error.into())
     }
