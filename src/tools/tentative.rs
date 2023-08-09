@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use file_matcher::FileNamed;
+use file_matcher::{FileNamed, FolderNamed};
 use unzipper::{FileToUnzip, FilesToUnzip};
 use zipper::ToZip;
 
@@ -37,6 +37,14 @@ impl Tentative {
             .one_entry(
                 FileNamed::exact(Application::serialization_file_name())
                     .within(application.workspace()),
+            )
+            .one_entry(
+                FileNamed::exact(Application::dockerfile())
+                    .within(application.workspace())
+            )
+            .folder(
+                FolderNamed::exact("scripts/docker/gtoolkit")
+                    .within(application.workspace())
             )
             .one_entries(Package::gtoolkit_app_folders(application));
 

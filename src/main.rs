@@ -35,6 +35,8 @@ pub const DEFAULT_PHARO_IMAGE: &str =
     "https://dl.feenk.com/pharo/Pharo10-SNAPSHOT.build.538.sha.179ef65.arch.64bit.zip";
 
 pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
+pub const DOCKERFILE: &str = "Dockerfile";
+pub const DOCKER_IMAGE_CONTENT_DIRECTORY: &str = "scripts/docker/gtoolkit";
 
 pub const GTOOLKIT_REPOSITORY_OWNER: &str = "feenkcom";
 pub const GTOOLKIT_REPOSITORY_NAME: &str = "gtoolkit";
