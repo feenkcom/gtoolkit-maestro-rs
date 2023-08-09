@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use file_matcher::{FileNamed, FolderNamed};
+use file_matcher::FileNamed;
 use unzipper::{FileToUnzip, FilesToUnzip};
 use zipper::ToZip;
 
@@ -38,14 +38,6 @@ impl Tentative {
                 FileNamed::exact(Application::serialization_file_name())
                     .within(application.workspace()),
             )
-            .one_entry(
-                FileNamed::exact(Application::dockerfile())
-                    .within(application.workspace())
-            )
-            .folder(
-                FolderNamed::exact("scripts/docker/gtoolkit")
-                    .within(application.workspace())
-            )
             .one_entries(Package::gtoolkit_app_folders(application));
 
         let gt_extra = application.workspace().join("gt-extra");
@@ -53,6 +45,10 @@ impl Tentative {
         if gt_extra.exists() || !tentative_options.ignore_absent {
             zip.add_folder(gt_extra);
         }
+
+        // Add Docker files
+        zip.add_file(application.workspace().parent().join(Application::dockerfile()));
+        zip.add_folder(application.workspace().parent().join(Application::docker_image_content_directory()));
 
         zip.zip().map_err(|error| error.into())
     }
