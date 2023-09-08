@@ -165,6 +165,29 @@ LGitLibrary compile:
     ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
 classified: (LGitLibrary >> #win32LibraryName) protocol.
 
+LGitExternalObject compile:
+'withReturnHandlerDo: callBlock
+	| retry |
+
+	retry := 3.
+	^ [ callBlock value handleLGitReturnCode ]
+				on: Error
+				do: [ :ex |
+					(ex messageText indexOfSubCollection: ''Connection timed out'') = 0 ifTrue:
+						[ ex pass ].
+					retry := retry - 1.
+					retry > 0 ifTrue:
+						[ Stdio stdout 
+							<< ''retry: ''; 
+							<< retry asString; 
+							<< '': '';
+							<< ex printString;
+							lf.
+						ex retry ]
+					ifFalse:
+						[ ex pass ] ]'
+classified: (LgitLibrary >> #withReturnHandlerDo:) protocol.
+
 CairoLibrary compile:
 'macLibraryName
 
