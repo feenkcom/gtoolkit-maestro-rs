@@ -186,7 +186,7 @@ LGitExternalObject compile:
 						ex retry ]
 					ifFalse:
 						[ ex pass ] ]'
-classified: (LgitLibrary >> #withReturnHandlerDo:) protocol.
+classified: 'exit code handling'.
 
 CairoLibrary compile:
 'macLibraryName
