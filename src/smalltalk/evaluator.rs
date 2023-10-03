@@ -1,4 +1,4 @@
-use crate::{Smalltalk, Result};
+use crate::{Result, Smalltalk};
 use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -53,7 +53,7 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
     pub fn workspace(&self) -> PathBuf {
         let app_workspace = self.smalltalk.workspace();
         if !app_workspace.exists() {
-            return PathBuf::from(".")
+            return PathBuf::from(".");
         }
         app_workspace.to_path_buf()
     }

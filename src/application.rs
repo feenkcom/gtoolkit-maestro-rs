@@ -186,6 +186,10 @@ impl Application {
         self.image_version = version;
     }
 
+    pub fn set_app_version(&mut self, version: AppVersion) {
+        self.app_version = version;
+    }
+
     pub fn app_version(&self) -> &AppVersion {
         &self.app_version
     }

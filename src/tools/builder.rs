@@ -13,10 +13,10 @@ use url::Url;
 
 use crate::create::FileToCreate;
 use crate::{
-    Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed, InstallerError,
-    Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder, SmalltalkFlags,
-    SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING, DEFAULT_PHARO_IMAGE,
-    DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
+    AppVersion, Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed,
+    InstallerError, Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder,
+    SmalltalkFlags, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING,
+    DEFAULT_PHARO_IMAGE, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -45,6 +45,9 @@ pub struct BuildOptions {
     /// Specify a named version to load: 'bleeding-edge', 'latest-release' or 'vX.Y.Z'
     #[clap(long, parse(try_from_str = BuildVersion::from_str), default_value = BuildVersion::BleedingEdge.abstract_name())]
     pub version: BuildVersion,
+    /// Specify a named version of the GToolkit App (vm) to use: 'latest-release' or 'vX.Y.Z'
+    #[clap(long, parse(try_from_str = BuilderAppVersion::from_str), default_value = BuilderAppVersion::LatestRelease.abstract_name())]
+    pub app_version: BuilderAppVersion,
 }
 
 impl BuildOptions {
@@ -64,6 +67,13 @@ impl BuildOptions {
             url_parse(DEFAULT_PHARO_IMAGE)
                 .unwrap_or_else(|_| panic!("Failed to parse url: {}", DEFAULT_PHARO_IMAGE)),
         );
+    }
+
+    pub fn explicit_app_version(&self) -> Option<AppVersion> {
+        match &self.app_version {
+            BuilderAppVersion::LatestRelease => None,
+            BuilderAppVersion::Version(version) => Some(version.clone().into()),
+        }
     }
 }
 
@@ -144,6 +154,7 @@ impl BuildOptions {
             public_key: None,
             private_key: None,
             version: BuildVersion::BleedingEdge,
+            app_version: BuilderAppVersion::LatestRelease,
         }
     }
     pub fn should_overwrite(&self) -> bool {
@@ -194,9 +205,9 @@ pub enum BuildVersion {
 impl BuildVersion {
     pub fn abstract_name(&self) -> &str {
         match self {
-            BuildVersion::LatestRelease => "latest-release",
-            BuildVersion::BleedingEdge => "bleeding-edge",
-            BuildVersion::Version(_) => "vX.Y.Z",
+            Self::LatestRelease => "latest-release",
+            Self::BleedingEdge => "bleeding-edge",
+            Self::Version(_) => "vX.Y.Z",
         }
     }
 }
@@ -208,9 +219,9 @@ impl FromStr for BuildVersion {
         let version = s.to_string().to_lowercase();
         let version_str = version.as_str();
         match version_str {
-            "latest-release" => Ok(BuildVersion::LatestRelease),
-            "bleeding-edge" => Ok(BuildVersion::BleedingEdge),
-            _ => Ok(BuildVersion::Version(Version::parse(version_str)?)),
+            "latest-release" => Ok(Self::LatestRelease),
+            "bleeding-edge" => Ok(Self::BleedingEdge),
+            _ => Ok(Self::Version(Version::parse(version_str)?)),
         }
     }
 }
@@ -218,7 +229,44 @@ impl FromStr for BuildVersion {
 impl ToString for BuildVersion {
     fn to_string(&self) -> String {
         match self {
-            BuildVersion::Version(version) => version.to_string(),
+            Self::Version(version) => version.to_string(),
+            _ => self.abstract_name().to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BuilderAppVersion {
+    LatestRelease,
+    Version(Version),
+}
+
+impl BuilderAppVersion {
+    pub fn abstract_name(&self) -> &str {
+        match self {
+            Self::LatestRelease => "latest-release",
+            Self::Version(_) => "vX.Y.Z",
+        }
+    }
+}
+
+impl FromStr for BuilderAppVersion {
+    type Err = InstallerError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let version = s.to_string().to_lowercase();
+        let version_str = version.as_str();
+        match version_str {
+            "latest-release" => Ok(Self::LatestRelease),
+            _ => Ok(Self::Version(Version::parse(version_str)?)),
+        }
+    }
+}
+
+impl ToString for BuilderAppVersion {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Version(version) => version.to_string(),
             _ => self.abstract_name().to_string(),
         }
     }
@@ -297,6 +345,11 @@ impl Builder {
 
         let image_seed = build_options.image_seed();
         application.set_image_seed(image_seed.clone())?;
+
+        // assign an explicit app version, if specified by the build options
+        if let Some(version) = build_options.explicit_app_version() {
+            application.set_app_version(version)
+        }
 
         Checker::new()
             .check(application, build_options.should_overwrite())
