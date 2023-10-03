@@ -47,6 +47,11 @@ Object compile:
  	^ self retrySetPinnedInMemory: aBoolean'
 classified: (Object >> #setPinnedInMemory:) protocol.
 
+Object compile:
+'asOrderedCollection
+	^ OrderedCollection with: self'
+classified: (Object >> #asOrderedCollection) protocol.
+
 Metaclass compile:
 'classVariableNamed: aString ifAbsent: absentBlock
 	"Answer the Class Variable"
@@ -70,7 +75,8 @@ RPackage compile: 'toTagName: aSymbol
 classified: (RPackage >> #toTagName:) protocol.
 
 MCPackageLoader compile: 'tryToLoad: aDefinition
-	aDefinition isClassDefinition ifTrue: [ ^ false ].
+	(aDefinition isClassDefinition and: [
+		aDefinition actualClass notNil ]) ifTrue: [ ^ false ].
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
 classified: (MCPackageLoader >> #tryToLoad:) protocol.
@@ -159,6 +165,29 @@ LGitLibrary compile:
     ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
 classified: (LGitLibrary >> #win32LibraryName) protocol.
 
+LGitExternalObject compile:
+'withReturnHandlerDo: callBlock
+	| retry |
+
+	retry := 3.
+	^ [ callBlock value handleLGitReturnCode ]
+				on: Error
+				do: [ :ex |
+					(ex messageText indexOfSubCollection: ''Connection timed out'') = 0 ifTrue:
+						[ ex pass ].
+					retry := retry - 1.
+					retry > 0 ifTrue:
+						[ Stdio stdout 
+							<< ''retry: ''; 
+							<< retry asString; 
+							<< '': '';
+							<< ex printString;
+							lf.
+						ex retry ]
+					ifFalse:
+						[ ex pass ] ]'
+classified: 'exit code handling'.
+
 CairoLibrary compile:
 'macLibraryName
 
@@ -216,6 +245,153 @@ ZnHTTPSTest compile: 'testGmailEncrypted
 	self assert: (client contents includesSubstring: ''mail''). 
 	client close'
 classified: (ZnHTTPSTest >> #testGmailEncrypted) protocol.
+
+ChunkWriteStream compile: 'afterNexPut 
+	decoratedStream flush' classified: 'accessing'.
+ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
+	| string start bangIndex newStringStream |
+	string := aString asString.
+	newStringStream := WriteStream on: (string species new: string size * 2).
+	start := 1.
+
+	[ (bangIndex := string indexOf: self terminatorMark startingAt: start) = 0 ]
+		whileFalse: [
+			newStringStream
+				next: bangIndex - start + 1
+				putAll: string
+				startingAt: start.
+
+			newStringStream nextPut: self terminatorMark. 
+			start := bangIndex + 1 ].
+
+	newStringStream
+		next: string size - start + 1
+		putAll: string
+		startingAt: start.
+
+	newStringStream nextPut: self terminatorMark. 
+
+	^ newStringStream contents' classified: 'accessing'.
+
+SourceChunkWriteStream  compile: 'afterNexPut
+
+	decoratedStream setToEnd' classified: 'accessing'.
+
+ChunkWriteStream compile: 'nextPut: aString
+	| string |
+	string := self duplicateTerminatorMarkOn: aString asString.
+
+	decoratedStream
+		next: string size
+		putAll: string
+		startingAt: 1.
+
+	self afterNexPut' classified: 'accessing'.
+	
+(SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
+	SourceChunkWriteStream removeSelector: #nextPut: ].
+
+"Code to allow switch Iceberg repository implementations"
+"----------------------"
+
+Object subclass: #IceRepository
+	instanceVariableNames: 'name workingCopy index commitsInPackageCache'
+	classVariableNames: 'Registry RepositoryClass'
+	package: 'Iceberg-Core'.
+
+IceRepository class compile: 'repositoryClass: aClass
+	RepositoryClass := aClass' classified: 'accessing'.
+
+IceRepository class compile: 'repositoryClass
+	^ RepositoryClass ifNil: [ RepositoryClass := IceLibgitRepository ]' classified: 'accessing'.
+
+Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageNameList
+
+	| commit repository |
+	repository := IceRepository repositoryClass new.
+	commit := IceUnknownCommit new
+		id: commitId;
+		repository: repository;
+ 		yourself.
+		
+	repository name: ''iceberg''.
+	repository workingCopy referenceCommit: commit.
+	commit repository: repository.
+	
+	packageNameList do: [ :each |
+		repository workingCopy basicAddPackage: (IcePackage
+			named: each
+			repository: repository) ].
+	
+	repository register' classified: 'accessing'.
+
+IceRepositoryCreator compile: '
+repository
+
+	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classified: 'accessing'.
+
+IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
+	| locationToUse  |
+	self validate.
+	locationToUse := self locationToUse.
+	(locationToUse exists and: [ locationToUse hasChildren ])
+		ifTrue: [ IceError
+				signal: (''{1} is not empty.'' format: {locationToUse fullName}) ].
+	locationToUse ensureCreateDirectory.
+	self subdirectory
+		ifNotEmpty: [ (locationToUse resolve: self subdirectory) ensureCreateDirectory ].
+	repository := IceRepository repositoryClass new
+		name: aString;
+		location: locationToUse;
+		initBare: isBareRepository;
+		yourself.
+	self addProjectFileTo: repository.
+	self addPropertiesFileTo: repository.
+	repository workingCopy refreshProject.
+	^ repository' classified: 'actions'.
+
+IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baselines: aCollection
+	| repository commit workingCopy |
+
+	repository := IceRepository repositoryClass new
+		name: aName;
+		yourself.
+	
+	commit := IceUnknownCommit new 
+		repository: repository;
+		id: aCommitId;
+	 	yourself.
+
+	workingCopy := IceWorkingCopy basicNew
+		repository: repository;
+		initialize;
+		referenceCommit: commit;
+		project: ((IceBasicProject onRepository: repository)
+			sourceDirectory: ''src'';
+			yourself);
+		yourself.
+
+	repository workingCopy: workingCopy.
+	
+	(aCollection 
+		flatCollect: [ :each | (Smalltalk globals at: each) allPackageNames copyWith: each ] 
+		as: Set)
+		do: [ :each | 
+			repository workingCopy basicAddPackage: (IcePackage
+				named: each
+				repository: repository) ].
+
+	repository register' classified: 'adding'.
+
+IceMetacelloDuplicatedNotification compile: 'existingProjectRegistration
+	| repository |
+	repository := IceRepository repositoryClass new
+		location: builder locationToUse.
+	^ IceMetacelloProjectRegistration new
+		version: repository head description;
+		yourself' classified: 'accessing'.
+
+"--------------------"
 
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.

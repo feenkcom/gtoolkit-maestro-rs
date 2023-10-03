@@ -9,11 +9,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::options::{VM_REPOSITORY_NAME, VM_REPOSITORY_OWNER};
-use crate::{
-    AppVersion, GToolkit, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk,
-    SmalltalkFlags, DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE,
-    GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE,
-};
+use crate::{AppVersion, GToolkit, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags, DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE, GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE, DOCKERFILE, DOCKER_IMAGE_CONTENT_DIRECTORY};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Application {
@@ -215,6 +211,14 @@ impl Application {
         let mut file = File::create(self.serialization_file())?;
         file.write(serde_yaml::to_string(self)?.as_bytes())?;
         Ok(())
+    }
+
+    pub fn dockerfile() -> &'static str {
+        DOCKERFILE
+    }
+
+    pub fn docker_image_content_directory() -> &'static str {
+        DOCKER_IMAGE_CONTENT_DIRECTORY
     }
 
     pub fn host_platform(&self) -> PlatformOS {

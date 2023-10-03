@@ -46,6 +46,16 @@ impl Tentative {
             zip.add_folder(gt_extra);
         }
 
+        // Add Docker files
+        let pwd = application.workspace().parent();
+        match pwd {
+            None => {}
+            Some(path) => {
+                zip.add_file(path.join(Application::dockerfile()));
+                zip.add_folder(path.join(Application::docker_image_content_directory()))
+            }
+        }
+
         zip.zip().map_err(|error| error.into())
     }
 
