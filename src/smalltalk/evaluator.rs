@@ -1,4 +1,4 @@
-use crate::{Result, Smalltalk};
+use crate::{InstallerError, Result, Smalltalk};
 use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -120,7 +120,8 @@ impl<'smalltalk, 'options> SmalltalkEvaluator<'smalltalk, 'options> {
 
     pub fn command(&self) -> Result<Command> {
         let relative_executable = self.workspace().join(self.executable());
-        let executable = to_absolute::canonicalize(&relative_executable)?;
+        let executable = to_absolute::canonicalize(&relative_executable)
+            .map_err(|error| InstallerError::CanonicalizeError(relative_executable, error))?;
 
         let mut command = Command::new(executable);
         command
