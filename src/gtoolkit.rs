@@ -116,7 +116,7 @@ impl<'application> GToolkit for Smalltalk<'application> {
 
     fn run_architectural_report(&self) -> Result<()> {
         SmalltalkCommand::new("gtexportreport")
-            .arg("--report=GtGtoolkitArchitecturalDevelopmentReport")
+            .arg("--report=GtGtoolkitArchitecturalReport")
             .execute(&self.evaluator())
     }
 }
