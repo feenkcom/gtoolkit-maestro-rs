@@ -9,7 +9,12 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::options::{VM_REPOSITORY_NAME, VM_REPOSITORY_OWNER};
-use crate::{AppVersion, GToolkit, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk, SmalltalkFlags, DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE, GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER, SERIALIZATION_FILE, DOCKERFILE, DOCKER_IMAGE_CONTENT_DIRECTORY};
+use crate::{
+    AppVersion, GToolkit, ImageSeed, ImageVersion, InstallerError, Result, Smalltalk,
+    SmalltalkFlags, DEFAULT_IMAGE_EXTENSION, DEFAULT_IMAGE_NAME, DEFAULT_PHARO_IMAGE, DOCKERFILE,
+    DOCKER_IMAGE_CONTENT_DIRECTORY, GTOOLKIT_REPOSITORY_NAME, GTOOLKIT_REPOSITORY_OWNER,
+    SERIALIZATION_FILE,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Application {

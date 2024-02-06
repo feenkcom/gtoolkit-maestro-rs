@@ -36,6 +36,10 @@ pub struct BuildOptions {
     /// Specify a path to the .image in which to install the glamorous toolkit
     #[clap(long, parse(from_os_str), conflicts_with_all(&["image_url", "image_zip"]))]
     pub image_file: Option<PathBuf>,
+    /// Path to the `iceberg` folder where cloned repositories are located. Allows users to build an image
+    /// from locally available sources in case of unstable internet connection.
+    #[clap(long, parse(from_os_str))]
+    pub iceberg_location: Option<PathBuf>,
     /// Public ssh key to use when cloning repositories
     #[clap(long, parse(from_os_str))]
     pub public_key: Option<PathBuf>,
@@ -151,6 +155,7 @@ impl BuildOptions {
             image_url: None,
             image_zip: None,
             image_file: None,
+            iceberg_location: None,
             public_key: None,
             private_key: None,
             version: BuildVersion::BleedingEdge,
@@ -459,6 +464,22 @@ impl Builder {
                         "IceCredentialsProvider sshCredentials publicKey: '{}'; privateKey: '{}'",
                         private.display(),
                         public.display()
+                    ))
+                    .build(),
+            );
+        }
+
+        // Enable shared repositories in Iceberg
+        if let Some(ref iceberg_location) = build_options.iceberg_location {
+            scripts_to_execute.add(
+                SmalltalkExpressionBuilder::new()
+                    .add(format!(
+                        "IceLibgitRepository sharedRepositoriesLocationString: '{}'",
+                        iceberg_location.display()
+                    ))
+                    .add(format!(
+                        "IceLibgitRepository shareRepositoriesBetweenImages: {}",
+                        true
                     ))
                     .build(),
             );
