@@ -395,7 +395,7 @@ CompiledMethod compile: '= aCompiledMethod
 	^ (super = aCompiledMethod) 
 		ifTrue: [
 			self selector = aCompiledMethod selector ]
-		ifFalse: [ false ]' classified: 'comparing'
+		ifFalse: [ false ]' classified: 'comparing'.
 
 "--------------------"
 
