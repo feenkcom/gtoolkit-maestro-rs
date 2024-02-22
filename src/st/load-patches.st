@@ -391,6 +391,12 @@ IceMetacelloDuplicatedNotification compile: 'existingProjectRegistration
 		version: repository head description;
 		yourself' classified: 'accessing'.
 
+CompiledMethod compile: '= aCompiledMethod
+	^ (super = aCompiledMethod) 
+		ifTrue: [
+			self selector = aCompiledMethod selector ]
+		ifFalse: [ false ]' classified: 'comparing'.
+
 "--------------------"
 
 EpMonitor current enable.
