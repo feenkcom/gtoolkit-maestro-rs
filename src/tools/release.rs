@@ -102,6 +102,7 @@ impl Release {
         // check if the vm for the target exists, and download it otherwise
         if !application.gtoolkit_app_cli_for_target(target).exists() {
             Downloader::new()
+                .be_silent()
                 .download_glamorous_toolkit_vm(application, target)
                 .await?;
         }

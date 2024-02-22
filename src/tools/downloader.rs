@@ -3,11 +3,18 @@ use unzipper::{FileToUnzip, FilesToUnzip};
 
 use crate::{Application, PlatformOS, Result, DOWNLOADING, EXTRACTING};
 
-pub struct Downloader;
+pub struct Downloader {
+    silent: bool,
+}
 
 impl Downloader {
     pub fn new() -> Self {
-        Self {}
+        Self { silent: false }
+    }
+
+    pub fn be_silent(mut self) -> Self {
+        self.silent = true;
+        self
     }
 
     pub fn gtoolkit_vm_to_download(
@@ -67,22 +74,26 @@ impl Downloader {
         application: &Application,
         target: PlatformOS,
     ) -> Result<()> {
-        println!(
-            "{}Downloading GlamorousToolkit App (v{}, {})...",
-            DOWNLOADING,
-            application.app_version().to_string(),
-            target.as_str()
-        );
+        if !self.silent {
+            println!(
+                "{}Downloading GlamorousToolkit App (v{}, {})...",
+                DOWNLOADING,
+                application.app_version().to_string(),
+                target.as_str()
+            );
+        }
 
         Self::files_to_download(application, target)
             .download()
             .await?;
 
-        println!(
-            "{}Extracting GlamorousToolkit App (v{})...",
-            EXTRACTING,
-            application.app_version().to_string()
-        );
+        if !self.silent {
+            println!(
+                "{}Extracting GlamorousToolkit App (v{})...",
+                EXTRACTING,
+                application.app_version().to_string()
+            );
+        }
 
         Self::files_to_unzip(application, target).unzip().await?;
 
