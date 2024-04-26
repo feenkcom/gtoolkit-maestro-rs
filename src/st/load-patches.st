@@ -80,7 +80,7 @@ MCPackageLoader compile: 'tryToLoad: aDefinition
 		aDefinition actualClass notNil ]) ifTrue: [ ^ false ].
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
-classified: (MCPackageLoader >> #tryToLoad:) protocol ].
+classified: (MCPackageLoader >> #tryToLoad:) protocol.
 
 CompiledMethod compile: 'basicAsMCMethodDefinition
 	^ MCMethodDefinition
@@ -90,7 +90,19 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocol
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol.
+classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol. ].
+
+SystemVersion current major >= 12 ifTrue: [ 
+
+CompiledMethod compile: 'basicAsMCMethodDefinition
+	^ MCMethodDefinition
+		  className: self methodClass instanceSide name
+		  classIsMeta: self isClassSide
+		  selector: self selector
+		  category: self protocolName
+		  timeStamp: '''' "self stamp"
+		  source: self sourceCode'
+classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol ].
 
 RBParser compile: 'parseKeywordMessageWith: node 
 	| args isKeyword keywordsStartPositions selector selectorStream |
