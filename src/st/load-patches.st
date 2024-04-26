@@ -68,6 +68,7 @@ Month class compile:
  	self error: aMonthName , '' is not a recognized month name'''
 classified: (Month class >> #indexOfMonth:) protocol.
 
+SystemVersion current major <= 11 ifTrue: [ 
 RPackage compile: 'toTagName: aSymbol
 	^ (aSymbol beginsWith: self name asString, ''-'')
 		ifTrue: [ (aSymbol allButFirst: self name size + 1) asSymbol ]
@@ -79,7 +80,7 @@ MCPackageLoader compile: 'tryToLoad: aDefinition
 		aDefinition actualClass notNil ]) ifTrue: [ ^ false ].
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
-classified: (MCPackageLoader >> #tryToLoad:) protocol.
+classified: (MCPackageLoader >> #tryToLoad:) protocol ].
 
 CompiledMethod compile: 'basicAsMCMethodDefinition
 	^ MCMethodDefinition
@@ -218,9 +219,10 @@ ShMetaclassChangeDetector compile:
 			yourself}'
 classified: (ShMetaclassChangeDetector >> #newChanges) protocol.
 
+SystemVersion current major <= 11 ifTrue: [ 
 RBCommentChange compile: 'primitiveExecute
 	self changeClass classComment: comment stamp: self changeStamp.'
-classified: (RBCommentChange >> #primitiveExecute) protocol.
+classified: (RBCommentChange >> #primitiveExecute) protocol ].
 
 WriteStream compile: 'pastEndPut: anObject
 	"Grow the collection, then put <anObject> at the current write position."
