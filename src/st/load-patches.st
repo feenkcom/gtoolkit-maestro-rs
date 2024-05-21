@@ -25,7 +25,12 @@ externalAddressMethodsToPatch do: [ :each |
 	(RBRemovePragmaTransformation
 		pragma: '<primitive: nil>'
 		inMethod: each
-		inClass: #ExternalAddress) asRefactoring execute ].
+		inClass: #ExternalAddress) asRefactoring execute.
+		
+	(RBAddPragmaTransformation
+		pragma: '<gtPharoPatch: #Pharo>'
+		inMethod: each
+		inClass: #ExternalAddress) asRefactoring execute  ].
 
 Object compile:
 'setPinnedInMemory: aBoolean
@@ -302,7 +307,7 @@ ChunkWriteStream compile: 'afterNexPut
 	decoratedStream flush' classified: 'gt-pharo-patch'.
 ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
 	<gtPharoPatch: #Pharo>
-	
+
 	| string start bangIndex newStringStream |
 	string := aString asString.
 	newStringStream := WriteStream on: (string species new: string size * 2).
