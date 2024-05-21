@@ -4,7 +4,7 @@ EpMonitor current disable.
 Iceberg enableMetacelloIntegration: false.
 
 NonInteractiveTranscript stdout
-    nextPutAll: 'Patching Pharo 10 image...';
+    nextPutAll: 'Patching Pharo Base image...';
     cr.
 
 externalAddressMethodsToPatch := #(
@@ -37,6 +37,7 @@ Object compile:
 
  	If there is not enough memory, I will try to find more memory and retry once."
  	<primitive: 184 error: ec>
+	<gtPharoPatch: #Pharo>
 
  	ec = #''insufficient object memory''
  		ifFalse: [ ^ self primitiveFailed ].
@@ -45,44 +46,55 @@ Object compile:
  		[Smalltalk growMemoryByAtLeast: self sizeInMemory * 2 ].
 
  	^ self retrySetPinnedInMemory: aBoolean'
-classified: (Object >> #setPinnedInMemory:) protocol.
+classified: 'gt-pharo-patch'.
 
 Object compile:
 'asOrderedCollection
+	<gtPharoPatch: #Pharo>
+
 	^ OrderedCollection with: self'
-classified: (Object >> #asOrderedCollection) protocol.
+classified: 'gt-pharo-patch'.
 
 Metaclass compile:
 'classVariableNamed: aString ifAbsent: absentBlock
+	<gtPharoPatch: #Pharo>
 	"Answer the Class Variable"
 
 	^ self instanceSide
 		ifNil: absentBlock
 		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'
-classified: 'class variables'.
+classified: 'gt-pharo-patch'.
 
 Month class compile:
 'indexOfMonth: aMonthName
+	<gtPharoPatch: #Pharo>
+
 	1 to: 12 do: [ :i |
 		((MonthNames at: i) beginsWith: aMonthName caseSensitive: false) ifTrue: [^i] ].
  	self error: aMonthName , '' is not a recognized month name'''
-classified: (Month class >> #indexOfMonth:) protocol.
+classified: 'gt-pharo-patch'.
 
 SystemVersion current major <= 11 ifTrue: [ 
 RPackage compile: 'toTagName: aSymbol
+	<gtPharoPatch: #Pharo>
+
 	^ (aSymbol beginsWith: self name asString, ''-'')
 		ifTrue: [ (aSymbol allButFirst: self name size + 1) asSymbol ]
 		ifFalse: [ aSymbol ]'
-classified: (RPackage >> #toTagName:) protocol.
+classified: 'gt-pharo-patch'.
 
 MCPackageLoader compile: 'tryToLoad: aDefinition
+	<gtPharoPatch: #Pharo>
+
 	(aDefinition isClassDefinition and: [
 		aDefinition actualClass notNil ]) ifTrue: [ ^ false ].
 
 	[aDefinition addMethodAdditionTo: methodAdditions] on: Error do: [errorDefinitions add: aDefinition].'
-classified: (MCPackageLoader >> #tryToLoad:) protocol.
+classified: 'gt-pharo-patch'.
 
 CompiledMethod compile: 'basicAsMCMethodDefinition
+	<gtPharoPatch: #Pharo>
+
 	^ MCMethodDefinition
 		  className: self methodClass instanceSide name
 		  classIsMeta: self isClassSide
@@ -90,11 +102,13 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocol
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol. ].
+classified: 'gt-pharo-patch' ].
 
 SystemVersion current major >= 12 ifTrue: [ 
 
 CompiledMethod compile: 'basicAsMCMethodDefinition
+	<gtPharoPatch: #Pharo12>
+
 	^ MCMethodDefinition
 		  className: self methodClass instanceSide name
 		  classIsMeta: self isClassSide
@@ -102,9 +116,11 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocolName
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: (CompiledMethod >> #basicAsMCMethodDefinition) protocol ].
+classified: 'gt-pharo-patch' ].
 
 RBParser compile: 'parseKeywordMessageWith: node 
+	<gtPharoPatch: #Pharo>
+
 	| args isKeyword keywordsStartPositions selector selectorStream |
 	args := OrderedCollection new: 3.
 	keywordsStartPositions := OrderedCollection new: 3.
@@ -126,10 +142,12 @@ RBParser compile: 'parseKeywordMessageWith: node
 				keywordsPositions: keywordsStartPositions
 				arguments: args]
 		ifFalse: [node]'
-classified: (RBParser >> #parseKeywordMessageWith:) protocol.
+classified: 'gt-pharo-patch'.
 
 ExternalData compile:
 'readStringUTF8
+	<gtPharoPatch: #Pharo>
+
 	"Assume that the receiver represents a C string containing UTF8 characters and convert
 	 it to a Smalltalk string."
 	| stream index char |
@@ -143,24 +161,28 @@ ExternalData compile:
 		stream nextPut: char.
 		index := index + 1].
 	^ [ ZnCharacterEncoder utf8 decodeBytes: stream contents ] on: ZnInvalidUTF8 do: [ stream contents asString ]'
-classified: (ExternalData >> #readStringUTF8) protocol.
+classified: 'gt-pharo-patch'.
 
 FFIUnixLibraryFinder compile:
 'basePaths
+	<gtPharoPatch: #Pharo>
+
 	^ {
 	(Smalltalk vm directory asFileReference parent / ''lib'') pathString.
 	Smalltalk imageDirectory fullName.
 	Smalltalk vm directory }'
-classified: (FFIUnixLibraryFinder >> #basePaths) protocol.
+classified: 'gt-pharo-patch'.
 
 LGitLibrary compile:
 'macLibraryName
+	<gtPharoPatch: #Pharo>
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libgit2.dylib'' ''libgit2.1.0.1.dylib'' ''libgit2.1.0.0.dylib'' ''libgit2.0.25.1.dylib'')'
-classified: (LGitLibrary >> #macLibraryName) protocol.
+classified: 'gt-pharo-patch'.
 
 LGitLibrary compile:
 'unix64LibraryName
+	<gtPharoPatch: #Pharo>
 
 	^ FFIUnix64LibraryFinder findAnyLibrary: #(
 	    ''libgit2.so''
@@ -170,16 +192,18 @@ LGitLibrary compile:
 		''libgit2.so.1.0''
 		''libgit2.so.1.1''
 		''libgit2.so.0.25.1'')'
-classified: (LGitLibrary >> #unix64LibraryName) protocol.
+classified: 'gt-pharo-patch'.
 
 LGitLibrary compile:
 'win32LibraryName
+	<gtPharoPatch: #Pharo>
 
     ^ FFIWindowsLibraryFinder findAnyLibrary: #(''git2.dll'' ''libgit2-1-0-0.dll'' ''libgit2.dll'')'
-classified: (LGitLibrary >> #win32LibraryName) protocol.
+classified: 'gt-pharo-patch'.
 
 LGitExternalObject compile:
 'withReturnHandlerDo: callBlock
+	<gtPharoPatch: #Pharo>
 	| retry |
 
 	retry := 3.
@@ -203,49 +227,61 @@ classified: 'exit code handling'.
 
 CairoLibrary compile:
 'macLibraryName
+	<gtPharoPatch: #Pharo>
 
  	^ FFIMacLibraryFinder findAnyLibrary: #(''libcairo.dylib'' ''libcairo.2.dylib'')'
-classified: (CairoLibrary >> #macLibraryName) protocol.
+classified: 'gt-pharo-patch'.
 
 CairoLibrary compile:
 'win32LibraryName
+	<gtPharoPatch: #Pharo>
 
  	^ FFIWindowsLibraryFinder findAnyLibrary: #(''cairo.dll'' ''libcairo-2.dll'')'
-classified: (CairoLibrary >> #win32LibraryName) protocol.
+classified: 'gt-pharo-patch'.
 
 ShMetaclassChanged compile:
 'propagateToSubclasses: anotherBuilder
+	<gtPharoPatch: #Pharo>
+
 	anotherBuilder changes
 		add: (self class new
 				builder: anotherBuilder;
 				yourself)'
-classified: (ShMetaclassChanged >> #propagateToSubclasses:) protocol.
+classified: 'gt-pharo-patch'.
 
 ShMetaclassChangeDetector compile:
 'newChanges
+	<gtPharoPatch: #Pharo>
+
 	^ {ShMetaclassChanged new
 			builder: builder;
 			yourself.
 		ShInstanceShapeChanged new
 			builder: builder;
 			yourself}'
-classified: (ShMetaclassChangeDetector >> #newChanges) protocol.
+classified: 'gt-pharo-patch'.
 
 SystemVersion current major <= 11 ifTrue: [ 
 RBCommentChange compile: 'primitiveExecute
+	<gtPharoPatch: #Pharo>
+
 	self changeClass classComment: comment stamp: self changeStamp.'
-classified: (RBCommentChange >> #primitiveExecute) protocol ].
+classified: 'gt-pharo-patch' ].
 
 WriteStream compile: 'pastEndPut: anObject
+	<gtPharoPatch: #Pharo>
+
 	"Grow the collection, then put <anObject> at the current write position."
 
 	collection := collection grownBy: (collection size max: 20).
 	writeLimit := collection size.
 	collection at: (position := position + 1) put: anObject.
 	^ anObject'
-classified: (WriteStream >> #pastEndPut:) protocol.
+classified: 'gt-pharo-patch'.
 
 ZnHTTPSTest compile: 'testGmailEncrypted
+	<gtPharoPatch: #Pharo>
+
 	| client |
 	self ensureSocketStreamFactory.
 	self isNativeSSLPluginPresent ifFalse: [ ^ self ].  
@@ -258,11 +294,15 @@ ZnHTTPSTest compile: 'testGmailEncrypted
 	self assert: (client contents includesSubstring: ''Google'').    
 	self assert: (client contents includesSubstring: ''mail''). 
 	client close'
-classified: (ZnHTTPSTest >> #testGmailEncrypted) protocol.
+classified: 'gt-pharo-patch'.
 
 ChunkWriteStream compile: 'afterNexPut 
-	decoratedStream flush' classified: 'accessing'.
+	<gtPharoPatch: #Pharo>
+
+	decoratedStream flush' classified: 'gt-pharo-patch'.
 ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
+	<gtPharoPatch: #Pharo>
+	
 	| string start bangIndex newStringStream |
 	string := aString asString.
 	newStringStream := WriteStream on: (string species new: string size * 2).
@@ -285,13 +325,16 @@ ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString
 
 	newStringStream nextPut: self terminatorMark. 
 
-	^ newStringStream contents' classified: 'accessing'.
+	^ newStringStream contents' classified: 'gt-pharo-patch'.
 
 SourceChunkWriteStream  compile: 'afterNexPut
+	<gtPharoPatch: #Pharo>
 
-	decoratedStream setToEnd' classified: 'accessing'.
+	decoratedStream setToEnd' classified: 'gt-pharo-patch'.
 
 ChunkWriteStream compile: 'nextPut: aString
+	<gtPharoPatch: #Pharo>
+
 	| string |
 	string := self duplicateTerminatorMarkOn: aString asString.
 
@@ -300,7 +343,7 @@ ChunkWriteStream compile: 'nextPut: aString
 		putAll: string
 		startingAt: 1.
 
-	self afterNexPut' classified: 'accessing'.
+	self afterNexPut' classified: 'gt-pharo-patch'.
 	
 (SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
 	SourceChunkWriteStream removeSelector: #nextPut: ].
@@ -314,12 +357,17 @@ Object subclass: #IceRepository
 	package: 'Iceberg-Core'.
 
 IceRepository class compile: 'repositoryClass: aClass
-	RepositoryClass := aClass' classified: 'accessing'.
+	<gtPharoPatch: #Pharo>
+
+	RepositoryClass := aClass' classified: 'gt-pharo-patch'.
 
 IceRepository class compile: 'repositoryClass
-	^ RepositoryClass ifNil: [ RepositoryClass := IceLibgitRepository ]' classified: 'accessing'.
+	<gtPharoPatch: #Pharo>
+
+	^ RepositoryClass ifNil: [ RepositoryClass := IceLibgitRepository ]' classified: 'gt-pharo-patch'.
 
 Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageNameList
+	<gtPharoPatch: #Pharo>
 
 	| commit repository |
 	repository := IceRepository repositoryClass new.
@@ -337,14 +385,17 @@ Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageName
 			named: each
 			repository: repository) ].
 	
-	repository register' classified: 'accessing'.
+	repository register' classified: 'gt-pharo-patch'.
 
 IceRepositoryCreator compile: '
 repository
+	<gtPharoPatch: #Pharo>
 
-	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classified: 'accessing'.
+	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classified: 'gt-pharo-patch'.
 
 IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
+	<gtPharoPatch: #Pharo>
+
 	| locationToUse  |
 	self validate.
 	locationToUse := self locationToUse.
@@ -362,9 +413,11 @@ IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
 	self addProjectFileTo: repository.
 	self addPropertiesFileTo: repository.
 	repository workingCopy refreshProject.
-	^ repository' classified: 'actions'.
+	^ repository' classified: 'gt-pharo-patch'.
 
 IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baselines: aCollection
+	<gtPharoPatch: #Pharo>
+
 	| repository commit workingCopy |
 
 	repository := IceRepository repositoryClass new
@@ -395,21 +448,25 @@ IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baseline
 				named: each
 				repository: repository) ].
 
-	repository register' classified: 'adding'.
+	repository register' classified: 'gt-pharo-patch'.
 
 IceMetacelloDuplicatedNotification compile: 'existingProjectRegistration
+	<gtPharoPatch: #Pharo>
+
 	| repository |
 	repository := IceRepository repositoryClass new
 		location: builder locationToUse.
 	^ IceMetacelloProjectRegistration new
 		version: repository head description;
-		yourself' classified: 'accessing'.
+		yourself' classified: 'gt-pharo-patch'.
 
 CompiledMethod compile: '= aCompiledMethod
+	<gtPharoPatch: #Pharo>
+	
 	^ (super = aCompiledMethod) 
 		ifTrue: [
 			self selector = aCompiledMethod selector ]
-		ifFalse: [ false ]' classified: 'comparing'.
+		ifFalse: [ false ]' classified: 'gt-pharo-patch'.
 
 "--------------------"
 
