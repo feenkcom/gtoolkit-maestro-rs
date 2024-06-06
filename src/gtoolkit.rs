@@ -52,6 +52,7 @@ impl<'application> GToolkit for Smalltalk<'application> {
         SmalltalkExpressionBuilder::new()
             .add("IceCredentialsProvider sshCredentials publicKey: ''; privateKey: ''")
             .add("IceCredentialsProvider useCustomSsh: false")
+            .add("GtGitRepositoryRegistryHistory instance capture")
             .add("IceRepository registry removeAll")
             .add("3 timesRepeat: [ Smalltalk garbageCollect ]")
             .build()
