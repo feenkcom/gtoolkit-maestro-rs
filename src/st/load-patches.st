@@ -392,34 +392,6 @@ Iceberg class compile: 'bootstrapWithCommitId: commitId packageList: packageName
 	
 	repository register' classified: 'gt-pharo-patch'.
 
-IceRepositoryCreator compile: '
-repository
-	<gtPharoPatch: #Pharo>
-
-	^ repository ifNil: [ repository := IceRepository repositoryClass new ]' classified: 'gt-pharo-patch'.
-
-IceRepositoryCreator compile: 'createNewRepositoryNamed: aString
-	<gtPharoPatch: #Pharo>
-
-	| locationToUse  |
-	self validate.
-	locationToUse := self locationToUse.
-	(locationToUse exists and: [ locationToUse hasChildren ])
-		ifTrue: [ IceError
-				signal: (''{1} is not empty.'' format: {locationToUse fullName}) ].
-	locationToUse ensureCreateDirectory.
-	self subdirectory
-		ifNotEmpty: [ (locationToUse resolve: self subdirectory) ensureCreateDirectory ].
-	repository := IceRepository repositoryClass new
-		name: aString;
-		location: locationToUse;
-		initBare: isBareRepository;
-		yourself.
-	self addProjectFileTo: repository.
-	self addPropertiesFileTo: repository.
-	repository workingCopy refreshProject.
-	^ repository' classified: 'gt-pharo-patch'.
-
 IcePharoPlugin class compile: 'addProjectNamed: aName commit: aCommitId baselines: aCollection
 	<gtPharoPatch: #Pharo>
 
