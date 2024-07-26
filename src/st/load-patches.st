@@ -107,7 +107,39 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocol
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: 'gt-pharo-patch' ].
+classified: 'gt-pharo-patch'.
+
+MCMethodDefinition compile: 'addMethodAdditionTo: aCollection
+	<gtPharoPatch: #Pharo>
+	| methodAddition |
+	methodAddition := MethodAddition new
+		compile: source
+		classified: category
+		withStamp: timeStamp
+		notifying: nil
+		logSource: true
+		inClass: self actualClass.
+	aCollection add: methodAddition.'
+classified: 'gt-pharo-patch'.
+
+MethodAddition compile: 'compile
+	<gtPharoPatch: #Pharo>
+    "This method is the how compiling a method used to work.  All these steps were done at once.
+     This method should not normally be used, because the whole point of MethodAddition is to let
+	you first create a compiled method and then install the method later."
+	self installMethod.
+	self notifyObservers.
+	^selector'
+classified: 'gt-pharo-patch'.
+
+MethodAddition compile: 'installMethod
+	<gtPharoPatch: #Pharo>
+	self createCompiledMethod.
+	SystemAnnouncer uniqueInstance
+		suspendAllWhile: [ myClass addSelector: selector withMethod: compiledMethod ]'
+classified: 'gt-pharo-patch'.
+
+ ].
 
 SystemVersion current major >= 12 ifTrue: [ 
 
