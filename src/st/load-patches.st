@@ -477,6 +477,18 @@ CompiledMethod compile: '= aCompiledMethod
 			self selector = aCompiledMethod selector ]
 		ifFalse: [ false ]' classified: 'gt-pharo-patch'.
 
+ReflectiveMethod compile: 'installMethod: aMethod
+	"add to method dictionary"
+
+	| oldMethod |
+	oldMethod := ast methodClass methodDict at: aMethod selector ifAbsent: [  ].
+	ast methodClass methodDict at: aMethod selector put: aMethod.
+	SystemAnnouncer uniqueInstance
+		announce: (ReflectiveMethodInstalled new
+				oldMethod: oldMethod;
+				newMethod: aMethod;
+				yourself)'.
+
 "--------------------"
 
 EpMonitor current enable.
