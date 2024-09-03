@@ -478,6 +478,7 @@ CompiledMethod compile: '= aCompiledMethod
 		ifFalse: [ false ]' classified: 'gt-pharo-patch'.
 
 ReflectiveMethod compile: 'installMethod: aMethod
+	<gtPharoPatch: #Pharo>
 	"add to method dictionary"
 
 	| oldMethod |
