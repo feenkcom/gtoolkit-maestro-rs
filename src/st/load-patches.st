@@ -485,7 +485,7 @@ ReflectiveMethod compile: 'installMethod: aMethod
 	oldMethod := ast methodClass methodDict at: aMethod selector ifAbsent: [  ].
 	ast methodClass methodDict at: aMethod selector put: aMethod.
 	SystemAnnouncer uniqueInstance
-		announce: (ReflectiveMethodInstalled new
+		announce: (GtReflectiveMethodInstalled new
 				oldMethod: oldMethod;
 				newMethod: aMethod;
 				yourself)'.
