@@ -385,6 +385,11 @@ ChunkWriteStream compile: 'nextPut: aString
 (SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
 	SourceChunkWriteStream removeSelector: #nextPut: ].
 
+"Changes for string symbol comparison"
+IcePackage compile: 'package: anObject
+	package := anObject ifNotNil: [ anObject asSymbol ]' 
+		classified: 'accessing'.
+
 "Code to allow switch Iceberg repository implementations"
 "----------------------"
 
