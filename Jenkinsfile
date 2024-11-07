@@ -105,6 +105,7 @@ pipeline {
                     steps {
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
+                        sh "rm -rf ${TOOL_NAME}-${TARGET}"
                         sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
@@ -125,6 +126,7 @@ pipeline {
                     steps {
                         sh "cargo build --bin ${TOOL_NAME} --release"
 
+                        sh "rm -rf ${TOOL_NAME}-${TARGET}"
                         sh "mv -f target/release/${TOOL_NAME} ${TOOL_NAME}-${TARGET}"
 
                         stash includes: "${TOOL_NAME}-${TARGET}", name: "${TARGET}"
