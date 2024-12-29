@@ -143,6 +143,12 @@ classified: 'gt-pharo-patch'.
 
 SystemVersion current major >= 12 ifTrue: [ 
 
+String compile: 'asClass
+	<gtPharoPatch: #Pharo12>
+	"returns a global class with my name"
+	^ self asClassInEnvironment: Smalltalk globals'
+classified: 'gt-pharo-patch'.
+
 CompiledMethod compile: 'basicAsMCMethodDefinition
 	<gtPharoPatch: #Pharo12>
 
