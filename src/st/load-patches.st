@@ -122,7 +122,7 @@ MCMethodDefinition compile: 'addMethodAdditionTo: aCollection
 	aCollection add: methodAddition.'
 classified: 'gt-pharo-patch'.
 
-MethodAddition compile: 'compile
+(#MethodAddition asClassInEnvironment: Smalltalk globals) compile: 'compile
 	<gtPharoPatch: #Pharo>
     "This method is the how compiling a method used to work.  All these steps were done at once.
      This method should not normally be used, because the whole point of MethodAddition is to let
@@ -132,7 +132,7 @@ MethodAddition compile: 'compile
 	^selector'
 classified: 'gt-pharo-patch'.
 
-MethodAddition compile: 'installMethod
+(#MethodAddition asClassInEnvironment: Smalltalk globals) compile: 'installMethod
 	<gtPharoPatch: #Pharo>
 	self createCompiledMethod.
 	SystemAnnouncer uniqueInstance
