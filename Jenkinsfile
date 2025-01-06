@@ -179,8 +179,6 @@ pipeline {
             environment {
                 TARGET = "${MACOS_M1_TARGET}"
                 PATH = "$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
-                CERT = credentials('devcertificate')
-                APPLEPASSWORD = credentials('notarizepassword-manager')
             }
 
             steps {
@@ -190,8 +188,10 @@ pipeline {
                 sh "curl -o feenk-signer -LsS  https://github.com/feenkcom/feenk-signer/releases/download/${FEENK_SIGNER_VERSION}/feenk-signer-${TARGET}"
                 sh "chmod +x feenk-signer"
 
-                sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
-                sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_M1_TARGET}"
+                withCredentials([file(credentialsId: 'feenk-apple-developer-certificate', variable: 'CERT')]) {
+                    sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
+                    sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_M1_TARGET}"
+                }
 
                 stash includes: "${TOOL_NAME}-${MACOS_INTEL_TARGET}", name: "${MACOS_INTEL_TARGET}"
                 stash includes: "${TOOL_NAME}-${MACOS_M1_TARGET}", name: "${MACOS_M1_TARGET}"
