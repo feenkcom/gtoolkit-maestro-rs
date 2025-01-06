@@ -7,6 +7,25 @@ NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo Base image...';
     cr.
 
+SystemVersion current major = 12 
+	ifTrue: [ 
+		Object 
+			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+	^ pharo12Block value' 
+			classified: 'gt-extension' ]
+	ifFalse: [
+		SystemVersion current major = 11
+			ifTrue: [ 
+				Object 
+				compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+	^ pharo11Block value' 
+				classified: 'gt-extension' ]
+			ifFalse: [
+				Object 
+				compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+	Error signal: ''Unsuported version'' ' 
+				classified: 'gt-extension' ] ].
+
 externalAddressMethodsToPatch := #(
     boolean8AtOffset: boolean8AtOffset:put:
     char8AtOffset: char8AtOffset:put:
