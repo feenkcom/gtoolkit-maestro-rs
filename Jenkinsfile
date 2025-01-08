@@ -188,7 +188,10 @@ pipeline {
                 sh "curl -o feenk-signer -LsS  https://github.com/feenkcom/feenk-signer/releases/download/${FEENK_SIGNER_VERSION}/feenk-signer-${TARGET}"
                 sh "chmod +x feenk-signer"
 
-                withCredentials([file(credentialsId: 'feenk-apple-developer-certificate', variable: 'CERT')]) {
+                withCredentials([
+                    file(credentialsId: 'feenk-apple-developer-certificate', variable: 'CERT'),
+                    string(credentialsId: 'feenk-apple-signing-identity', variable: 'SIGNING_IDENTITY')
+                ]) {
                     sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
                     sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_M1_TARGET}"
                 }
