@@ -189,7 +189,8 @@ pipeline {
                 sh "chmod +x feenk-signer"
 
                 withCredentials([
-                    file(credentialsId: 'feenk-apple-developer-certificate', variable: 'CERT'),
+                    file(credentialsId: 'feenk-apple-developer-certificate', variable: 'CERT')
+                    string(credentialsId: 'feenk-apple-developer-certificate-password', variable: 'CERT_PASSWORD')
                     string(credentialsId: 'feenk-apple-signing-identity', variable: 'SIGNING_IDENTITY')
                 ]) {
                     sh "./feenk-signer mac ${TOOL_NAME}-${MACOS_INTEL_TARGET}"
