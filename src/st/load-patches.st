@@ -520,6 +520,29 @@ ReflectiveMethod compile: 'installMethod: aMethod
 				newMethod: aMethod;
 				yourself)'.
 
+RBAbstractClass compile: 'checkSelector: aSelector using: aMatcher
+	<gtPharoPatch: #Pharo>
+	| parseTree |
+	parseTree := self parseTreeForSelector: aSelector.
+	parseTree ifNotNil: [ aMatcher executeTree: parseTree initialAnswer: nil ].
+	^ aMatcher answer'.
+
+RBCreateAccessorsForVariableTransformation compile: 'findGetterMethod
+	<gtPharoPatch: #Pharo>
+
+	"Look for possible already existing getter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new getter."
+
+	^ self definingClass getterMethodFor: variableName'.
+
+RBCreateAccessorsForVariableTransformation compile: 'findSetterMethod
+	<gtPharoPatch: #Pharo>
+	
+	"Look for possible already existing setter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new setter."
+
+	^ self definingClass setterMethodFor: variableName'.
+
 "--------------------"
 
 EpMonitor current enable.
