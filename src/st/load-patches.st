@@ -178,7 +178,27 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocolName
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: 'gt-pharo-patch' ].
+classified: 'gt-pharo-patch'.
+
+(Object environment)
+	removeKey: #RPackage
+	ifAbsent: [].
+				
+(Object << #RPackage
+	slots: {};
+	package: 'GToolkit-Pharo11Stubs') install.
+				
+(Object environment 
+	lookupVar: #RPackage) isDeprecated: true.
+
+ ].
+
+ SystemVersion current major <= 11 ifTrue: [
+	(Object << #Package
+		slots: {};
+		package: 'GToolkit-Pharo12Stubs') install.
+		
+  ].
 
 RBParser compile: 'parseKeywordMessageWith: node 
 	<gtPharoPatch: #Pharo>
