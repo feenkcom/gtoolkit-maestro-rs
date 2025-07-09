@@ -52,7 +52,7 @@ SystemVersion current major = 11
 	^ pharo11Block value' 
 			classified: 'gt-extension' ].
 
-(SystemVersion current major < 11) or: [SystemVersion current major > 13 ]	
+((SystemVersion current major < 11) or: [SystemVersion current major > 13 ])	
 	ifTrue: [
 		Object 
 			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
