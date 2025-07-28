@@ -7,24 +7,65 @@ NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo Base image...';
     cr.
 
+SystemVersion current major = 13 
+	ifTrue: [ 
+		Object 
+			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+	Error signal: ''Unsuported version'' ' 
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
+	^ pharo13Block value' 
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
+	^ pharo13AndPharo12Block value' 
+			classified: 'gt-extension' ].
+
 SystemVersion current major = 12 
 	ifTrue: [ 
 		Object 
 			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo12Block value' 
-			classified: 'gt-extension' ]
-	ifFalse: [
-		SystemVersion current major = 11
-			ifTrue: [ 
-				Object 
-				compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
+	^ pharo12Block value' 
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
+	^ pharo13AndPharo12Block value' 
+			classified: 'gt-extension' ].
+
+SystemVersion current major = 11
+	ifTrue: [ 
+		Object 
+			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo11Block value' 
-				classified: 'gt-extension' ]
-			ifFalse: [
-				Object 
-				compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
+	^ pharo11Block value' 
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
+	^ pharo11Block value' 
+			classified: 'gt-extension' ].
+
+((SystemVersion current major < 11) or: [SystemVersion current major > 13 ])	
+	ifTrue: [
+		Object 
+			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
 	Error signal: ''Unsuported version'' ' 
-				classified: 'gt-extension' ] ].
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
+	Error signal: ''Unsuported version'' ' 
+			classified: 'gt-extension'.
+		Object 
+			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
+	Error signal: ''Unsuported version'' '  
+			classified: 'gt-extension' ].
 
 externalAddressMethodsToPatch := #(
     boolean8AtOffset: boolean8AtOffset:put:
@@ -178,7 +219,29 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  category: self protocolName
 		  timeStamp: '''' "self stamp"
 		  source: self sourceCode'
-classified: 'gt-pharo-patch' ].
+classified: 'gt-pharo-patch'.
+
+#(#RPackage #RPackageTag #RPackageOrganizer) do: [ :aClassName | 
+	(Object environment)
+		removeKey: aClassName
+		ifAbsent: [].
+				
+	(Object << aClassName
+		slots: {};
+		package: 'GToolkit-Pharo11Stubs') install.
+				
+	(Object environment 
+		lookupVar: aClassName) isDeprecated: true.
+]
+
+ ].
+
+ SystemVersion current major <= 11 ifTrue: [
+	#(#Package #PackageTag #PackageOrganizer) do: [ :aClassName | 
+		(Object << aClassName
+			slots: {};
+			package: 'GToolkit-Pharo12Stubs') install ].
+  ].
 
 RBParser compile: 'parseKeywordMessageWith: node 
 	<gtPharoPatch: #Pharo>
@@ -519,6 +582,29 @@ ReflectiveMethod compile: 'installMethod: aMethod
 				oldMethod: oldMethod;
 				newMethod: aMethod;
 				yourself)'.
+
+RBAbstractClass compile: 'checkSelector: aSelector using: aMatcher
+	<gtPharoPatch: #Pharo>
+	| parseTree |
+	parseTree := self parseTreeForSelector: aSelector.
+	parseTree ifNotNil: [ aMatcher executeTree: parseTree initialAnswer: nil ].
+	^ aMatcher answer'.
+
+RBCreateAccessorsForVariableTransformation compile: 'findGetterMethod
+	<gtPharoPatch: #Pharo>
+
+	"Look for possible already existing getter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new getter."
+
+	^ self definingClass getterMethodFor: variableName'.
+
+RBCreateAccessorsForVariableTransformation compile: 'findSetterMethod
+	<gtPharoPatch: #Pharo>
+	
+	"Look for possible already existing setter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new setter."
+
+	^ self definingClass setterMethodFor: variableName'.
 
 "--------------------"
 
