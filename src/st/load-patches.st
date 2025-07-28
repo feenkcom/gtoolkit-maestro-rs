@@ -205,7 +205,15 @@ classified: 'gt-pharo-patch'.
 	| d |
 	d := DelayWaitTimeout new setDelay: (anInteger max: 0) forSemaphore: self.
 	^d wait' 
-	classified: 'gt-patch'
+	classified: 'gt-patch'.
+
+#Semaphore asClass
+	compile: 'waitTimeoutMilliseconds: anInteger onCompletion: completionBlock onTimeout: timeoutBlock
+	<gtPharoPatch: #Pharo12>
+	| d |
+	d := DelayWaitTimeout new setDelay: (anInteger max: 0) forSemaphore: self.
+	^d waitOnCompletion: completionBlock onTimeout: timeoutBlock' 
+	classified: 'gt-patch'.
 
  ].
 
