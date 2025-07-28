@@ -199,6 +199,14 @@ classified: 'gt-pharo-patch'.
 		suspendAllWhile: [ myClass addSelector: selector withMethod: compiledMethod ]'
 classified: 'gt-pharo-patch'.
 
+#Semaphore asClass
+	compile: 'waitTimeoutMilliseconds: anInteger
+	<gtPharoPatch: #Pharo12>
+	| d |
+	d := DelayWaitTimeout new setDelay: (anInteger max: 0) forSemaphore: self.
+	^d wait' 
+	classified: 'gt-patch'
+
  ].
 
 SystemVersion current major >= 12 ifTrue: [ 
