@@ -1,5 +1,6 @@
 use crate::{ExecutableSmalltalk, Result, SmalltalkEvaluator};
 use indicatif::{ProgressBar, ProgressStyle};
+use std::time::Duration;
 
 pub struct SmalltalkScriptsToExecute {
     scripts: Vec<Box<dyn ExecutableSmalltalk>>,
@@ -27,13 +28,14 @@ impl SmalltalkScriptsToExecute {
             } else {
                 let pb = ProgressBar::new_spinner();
 
-                pb.enable_steady_tick(120);
+                pb.enable_steady_tick(Duration::from_millis(120));
                 pb.set_style(
                     ProgressStyle::default_spinner()
                         .tick_strings(&[
                             "🌑 ", "🌒 ", "🌓 ", "🌔 ", "🌕 ", "🌖 ", "🌗 ", "🌘 ", "✅ ",
                         ])
-                        .template("{prefix:.bold.dim} {spinner:.blue} {wide_msg}"),
+                        .template("{prefix:.bold.dim} {spinner:.blue} {wide_msg}")
+                        .unwrap(),
                 );
                 pb.set_message(format!("Executing {:?}", script.name()));
                 pb.set_prefix(format!("[{}/{}]", index, total));
