@@ -92,6 +92,28 @@ externalAddressMethodsToPatch do: [ :each |
 		inMethod: each
 		inClass: #ExternalAddress) asRefactoring execute  ].
 
+EpMonitor compile: 'addEvent: anEvent newEntryDo: aBlock triggerReference: triggerReference
+	<gtPharoPatch: #Pharo>
+	| newEntry |
+	
+	newEntry := log
+		addEntryWith: anEvent
+		tags: [ :tags |
+			triggerReference isNull ifFalse: [
+				tags
+					at: EpLog triggererReferenceKey
+					put: triggerReference ].
+
+			self 
+				fastForPharo13AndPharo12: [
+					"Ensure we have a time in Pharo 12"
+					tags at: EpLog timeKey put: self time] 
+				forPharo11: [
+					tags at: EpLog authorKey put: self author.
+					tags at: EpLog timeKey put: self time ] ].
+
+	aBlock value: newEntry' classified: 'gt-pharo-patch'.
+
 Object compile:
 'setPinnedInMemory: aBoolean
  	"The VM''s garbage collector routinely moves objects as it reclaims and compacts
