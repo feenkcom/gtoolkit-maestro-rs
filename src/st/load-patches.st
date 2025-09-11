@@ -10,10 +10,6 @@ NonInteractiveTranscript stdout
 SystemVersion current major = 13 
 	ifTrue: [ 
 		Object 
-			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
-	Error signal: ''Unsuported version'' ' 
-			classified: 'gt-extension'.
-		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo13Block value' 
 			classified: 'gt-extension'.
@@ -24,10 +20,6 @@ SystemVersion current major = 13
 
 SystemVersion current major = 12 
 	ifTrue: [ 
-		Object 
-			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
-	^ pharo12Block value' 
-			classified: 'gt-extension'.
 		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo12Block value' 
@@ -40,10 +32,6 @@ SystemVersion current major = 12
 SystemVersion current major = 11
 	ifTrue: [ 
 		Object 
-			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
-	^ pharo11Block value' 
-			classified: 'gt-extension'.
-		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo11Block value' 
 			classified: 'gt-extension'.
@@ -54,10 +42,6 @@ SystemVersion current major = 11
 
 ((SystemVersion current major < 11) or: [SystemVersion current major > 13 ])	
 	ifTrue: [
-		Object 
-			compile: 'fastForPharo12: pharo12Block forPharo11: pharo11Block
-	Error signal: ''Unsuported version'' ' 
-			classified: 'gt-extension'.
 		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	Error signal: ''Unsuported version'' ' 
