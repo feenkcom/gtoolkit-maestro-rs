@@ -76,6 +76,10 @@ externalAddressMethodsToPatch do: [ :each |
 		inMethod: each
 		inClass: #ExternalAddress) asRefactoring execute  ].
 
+FFIEnumeration compile: '
+hash
+	^ value hash'.
+
 Object compile:
 'setPinnedInMemory: aBoolean
  	"The VM''s garbage collector routinely moves objects as it reclaims and compacts
