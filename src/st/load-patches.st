@@ -485,10 +485,17 @@ IcePackage compile: 'package: anObject
 "Code to allow switch Iceberg repository implementations"
 "----------------------"
 
-Object subclass: #IceRepository
-	instanceVariableNames: 'name workingCopy index commitsInPackageCache'
-	classVariableNames: 'Registry RepositoryClass'
-	package: 'Iceberg-Core'.
+SystemVersion current major <=11 ifTrue: [ 
+	Object subclass: #IceRepository
+		instanceVariableNames: 'name workingCopy index commitsInPackageCache'
+		classVariableNames: 'Registry RepositoryClass'
+		package: 'Iceberg-Core' ]
+ifFalse: [  
+	(Object << #IceRepository
+		slots: { #name . #workingCopy . #index . #commitsInPackageCache };
+		sharedVariables: { #Registry . #RepositoryClass };
+		tag: 'Core';
+		package: 'Iceberg') install ].
 
 IceRepository class compile: 'repositoryClass: aClass
 	<gtPharoPatch: #Pharo>
@@ -594,7 +601,9 @@ RBAbstractClass compile: 'checkSelector: aSelector using: aMatcher
 	parseTree ifNotNil: [ aMatcher executeTree: parseTree initialAnswer: nil ].
 	^ aMatcher answer'.
 
-RBCreateAccessorsForVariableTransformation compile: 'findGetterMethod
+SystemVersion current major <= 12 ifTrue: [ 
+
+#RBCreateAccessorsForVariableTransformation  asClass compile: 'findGetterMethod
 	<gtPharoPatch: #Pharo>
 
 	"Look for possible already existing getter method (a method accessing the instance variable in a class or its subclasses).
@@ -602,13 +611,31 @@ RBCreateAccessorsForVariableTransformation compile: 'findGetterMethod
 
 	^ self definingClass getterMethodFor: variableName'.
 
-RBCreateAccessorsForVariableTransformation compile: 'findSetterMethod
+#RBCreateAccessorsForVariableTransformation asClass compile: 'findSetterMethod
 	<gtPharoPatch: #Pharo>
 	
 	"Look for possible already existing setter method (a method accessing the instance variable in a class or its subclasses).
 	This information will be used to avoid creating a new setter."
 
-	^ self definingClass setterMethodFor: variableName'.
+	^ self definingClass setterMethodFor: variableName'. ].
+
+SystemVersion current major >= 13 ifTrue: [ 
+
+#ReCreateAccessorsForVariableTransformation  asClass compile: 'findGetterMethod
+	<gtPharoPatch: #Pharo>
+
+	"Look for possible already existing getter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new getter."
+
+	^ self definingClass getterMethodFor: variableName'.
+
+#ReCreateAccessorsForVariableTransformation asClass compile: 'findSetterMethod
+	<gtPharoPatch: #Pharo>
+	
+	"Look for possible already existing setter method (a method accessing the instance variable in a class or its subclasses).
+	This information will be used to avoid creating a new setter."
+
+	^ self definingClass setterMethodFor: variableName'. ].
 
 "--------------------"
 
