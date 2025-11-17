@@ -32,7 +32,7 @@ pub const DEFAULT_IMAGE_NAME: &str = "GlamorousToolkit";
 pub const DEFAULT_IMAGE_EXTENSION: &str = "image";
 
 pub const DEFAULT_PHARO_IMAGE: &str =
-    "https://dl.feenk.com/pharo/Pharo11-SNAPSHOT.build.726.sha.aece1b5.arch.64bit.zip";
+    "https://dl.feenk.com/pharo/Pharo12.0-SNAPSHOT.build.1587.sha.97e7f4fc63.arch.64bit.zip";
 
 pub const SERIALIZATION_FILE: &str = "gtoolkit.yaml";
 pub const DOCKERFILE: &str = "scripts/docker/gtoolkit/Dockerfile";
