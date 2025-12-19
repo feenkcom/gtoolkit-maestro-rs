@@ -282,24 +282,6 @@ WriteStream compile: 'pastEndPut: anObject
 	^ anObject'
 classified: 'gt-pharo-patch'.
 
-ZnHTTPSTest compile: 'testGmailEncrypted
-	<gtPharoPatch: #Pharo>
-
-	| client |
-	self ensureSocketStreamFactory.
-	self isNativeSSLPluginPresent ifFalse: [ ^ self ].  
-	
-	(client := ZnClient new) 
-		maxNumberOfRedirects: 10;
-		get: ''https://www.gmail.com''.
-	
-	self assert: client isSuccess.
-	self assert: (client contents includesSubstring: ''Google'').    
-	self assert: (client contents includesSubstring: ''mail''). 
-	client close'
-classified: 'gt-pharo-patch'.
-
-
 "Changes for string symbol comparison"
 IcePackage compile: 'package: anObject
 	package := anObject ifNotNil: [ anObject asSymbol ]' 
