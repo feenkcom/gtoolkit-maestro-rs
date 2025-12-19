@@ -118,15 +118,6 @@ Metaclass compile:
 		ifNotNil: [ :class | class classVariableNamed: aString ifAbsent: absentBlock ]'
 classified: 'gt-pharo-patch'.
 
-Month class compile:
-'indexOfMonth: aMonthName
-	<gtPharoPatch: #Pharo>
-
-	1 to: 12 do: [ :i |
-		((MonthNames at: i) beginsWith: aMonthName caseSensitive: false) ifTrue: [^i] ].
- 	self error: aMonthName , '' is not a recognized month name'''
-classified: 'gt-pharo-patch'.
-
 SystemVersion current major <= 11 ifTrue: [ 
 RPackage compile: 'toTagName: aSymbol
 	<gtPharoPatch: #Pharo>
