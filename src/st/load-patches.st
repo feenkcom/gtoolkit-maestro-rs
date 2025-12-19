@@ -338,57 +338,6 @@ ZnHTTPSTest compile: 'testGmailEncrypted
 	client close'
 classified: 'gt-pharo-patch'.
 
-ChunkWriteStream compile: 'afterNexPut 
-	<gtPharoPatch: #Pharo>
-
-	decoratedStream flush' classified: 'gt-pharo-patch'.
-ChunkWriteStream compile: 'duplicateTerminatorMarkOn: aString 
-	<gtPharoPatch: #Pharo>
-
-	| string start bangIndex newStringStream |
-	string := aString asString.
-	newStringStream := WriteStream on: (string species new: string size * 2).
-	start := 1.
-
-	[ (bangIndex := string indexOf: self terminatorMark startingAt: start) = 0 ]
-		whileFalse: [
-			newStringStream
-				next: bangIndex - start + 1
-				putAll: string
-				startingAt: start.
-
-			newStringStream nextPut: self terminatorMark. 
-			start := bangIndex + 1 ].
-
-	newStringStream
-		next: string size - start + 1
-		putAll: string
-		startingAt: start.
-
-	newStringStream nextPut: self terminatorMark. 
-
-	^ newStringStream contents' classified: 'gt-pharo-patch'.
-
-SourceChunkWriteStream  compile: 'afterNexPut
-	<gtPharoPatch: #Pharo>
-
-	decoratedStream setToEnd' classified: 'gt-pharo-patch'.
-
-ChunkWriteStream compile: 'nextPut: aString
-	<gtPharoPatch: #Pharo>
-
-	| string |
-	string := self duplicateTerminatorMarkOn: aString asString.
-
-	decoratedStream
-		next: string size
-		putAll: string
-		startingAt: 1.
-
-	self afterNexPut' classified: 'gt-pharo-patch'.
-	
-(SourceChunkWriteStream includesSelector: #nextPut:) ifTrue: [
-	SourceChunkWriteStream removeSelector: #nextPut: ].
 
 "Changes for string symbol comparison"
 IcePackage compile: 'package: anObject
