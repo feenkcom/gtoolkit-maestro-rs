@@ -70,27 +70,6 @@ hash
 	^ value hash'.
 
 Object compile:
-'setPinnedInMemory: aBoolean
- 	"The VM''s garbage collector routinely moves objects as it reclaims and compacts
- 	 memory. But it can also pin an object so that it will not be moved around in memory,
-     while still being reclamable by the garbage collector. This can make
- 	 it easier to pass objects out through the FFI. Objects are unpinnned when created.
- 	 This primitive either pins or unpins an object, and answers if it was already pinned.
-
- 	If there is not enough memory, I will try to find more memory and retry once."
- 	<primitive: 184 error: ec>
-	<gtPharoPatch: #Pharo>
-
- 	ec = #''insufficient object memory''
- 		ifFalse: [ ^ self primitiveFailed ].
-
- 	Smalltalk garbageCollect < (self sizeInMemory * 2) ifTrue:
- 		[Smalltalk growMemoryByAtLeast: self sizeInMemory * 2 ].
-
- 	^ self retrySetPinnedInMemory: aBoolean'
-classified: 'gt-pharo-patch'.
-
-Object compile:
 'asOrderedCollection
 	<gtPharoPatch: #Pharo>
 
