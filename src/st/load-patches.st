@@ -29,18 +29,7 @@ SystemVersion current major = 12
 	^ pharo13AndPharo12Block value' 
 			classified: 'gt-extension' ].
 
-SystemVersion current major = 11
-	ifTrue: [ 
-		Object 
-			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
-	^ pharo11Block value' 
-			classified: 'gt-extension'.
-		Object 
-			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
-	^ pharo11Block value' 
-			classified: 'gt-extension' ].
-
-((SystemVersion current major < 11) or: [SystemVersion current major > 13 ])	
+((SystemVersion current major < 12) or: [SystemVersion current major > 13 ])	
 	ifTrue: [
 		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
@@ -303,13 +292,6 @@ ShMetaclassChangeDetector compile:
 			yourself}'
 classified: 'gt-pharo-patch'.
 
-SystemVersion current major <= 11 ifTrue: [ 
-RBCommentChange compile: 'primitiveExecute
-	<gtPharoPatch: #Pharo>
-
-	self changeClass classComment: comment stamp: self changeStamp.'
-classified: 'gt-pharo-patch' ].
-
 WriteStream compile: 'pastEndPut: anObject
 	<gtPharoPatch: #Pharo>
 
@@ -347,17 +329,11 @@ IcePackage compile: 'package: anObject
 "Code to allow switch Iceberg repository implementations"
 "----------------------"
 
-SystemVersion current major <=11 ifTrue: [ 
-	Object subclass: #IceRepository
-		instanceVariableNames: 'name workingCopy index commitsInPackageCache'
-		classVariableNames: 'Registry RepositoryClass'
-		package: 'Iceberg-Core' ]
-ifFalse: [  
-	(Object << #IceRepository
-		slots: { #name . #workingCopy . #index . #commitsInPackageCache };
-		sharedVariables: { #Registry . #RepositoryClass };
-		tag: 'Core';
-		package: 'Iceberg') install ].
+(Object << #IceRepository
+	slots: { #name . #workingCopy . #index . #commitsInPackageCache };
+	sharedVariables: { #Registry . #RepositoryClass };
+	tag: 'Core';
+	package: 'Iceberg') install .
 
 IceRepository class compile: 'repositoryClass: aClass
 	<gtPharoPatch: #Pharo>
