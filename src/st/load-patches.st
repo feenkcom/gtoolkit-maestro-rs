@@ -65,6 +65,8 @@ externalAddressMethodsToPatch do: [ :each |
 		inMethod: each
 		inClass: #ExternalAddress) asRefactoring execute  ].
 
+RBRefactoryChange addInstVarNamed: 'attributes'.
+
 FFIEnumeration compile: '
 hash
 	^ value hash'.
