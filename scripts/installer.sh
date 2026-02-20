@@ -13,7 +13,7 @@ if [ $# -eq 0 ]
     arguments="local-build"
 fi
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+if [[ "$OSTYPE" == "linux"* ]]; then
   arch_name="$(uname -m)"
   if [ "${arch_name}" = "x86_64" ]; then
     curl -o "$installer" -L -s -S "https://github.com/feenkcom/gtoolkit-maestro-rs/releases/latest/download/$installer-x86_64-unknown-linux-gnu" > /dev/null
