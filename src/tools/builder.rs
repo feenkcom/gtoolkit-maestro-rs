@@ -462,8 +462,8 @@ impl Builder {
                     .add("IceCredentialsProvider useCustomSsh: true")
                     .add(format!(
                         "IceCredentialsProvider sshCredentials publicKey: '{}'; privateKey: '{}'",
+                        public.display(),
                         private.display(),
-                        public.display()
                     ))
                     .build(),
             );
