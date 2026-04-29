@@ -58,12 +58,12 @@ externalAddressMethodsToPatch do: [ :each |
 	(RBRemovePragmaTransformation
 		pragma: '<primitive: nil>'
 		inMethod: each
-		inClass: #ExternalAddress) asRefactoring execute.
+		inClass: #ExternalAddress) execute.
 		
 	(RBAddPragmaTransformation
 		pragma: '<gtPharoPatch: #Pharo>'
 		inMethod: each
-		inClass: #ExternalAddress) asRefactoring execute  ].
+		inClass: #ExternalAddress) execute  ].
 
 RBRefactoryChange addInstVarNamed: 'attributes'.
 
