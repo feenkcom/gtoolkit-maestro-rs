@@ -108,27 +108,7 @@ CompiledMethod compile: 'basicAsMCMethodDefinition
 		  source: self sourceCode'
 classified: 'gt-pharo-patch'.
 
-#(#RPackage #RPackageTag #RPackageOrganizer) do: [ :aClassName | 
-	(Object environment)
-		removeKey: aClassName
-		ifAbsent: [].
-				
-	(Object << aClassName
-		slots: {};
-		package: 'GToolkit-Pharo11Stubs') install.
-				
-	(Object environment 
-		lookupVar: aClassName) isDeprecated: true.
-]
-
- ].
-
- SystemVersion current major <= 11 ifTrue: [
-	#(#Package #PackageTag #PackageOrganizer) do: [ :aClassName | 
-		(Object << aClassName
-			slots: {};
-			package: 'GToolkit-Pharo12Stubs') install ].
-  ].
+].
 
 RBParser compile: 'parseKeywordMessageWith: node 
 	<gtPharoPatch: #Pharo>
