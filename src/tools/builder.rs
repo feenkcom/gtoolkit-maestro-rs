@@ -13,8 +13,8 @@ use url::Url;
 
 use crate::create::FileToCreate;
 use crate::{
-    AppVersion, Application, Checker, Downloader, ExecutableSmalltalk, FileToMove, ImageSeed,
-    InstallerError, Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder,
+    AppVersion, Application, Checker, CustomerLevel, Downloader, ExecutableSmalltalk, FileToMove,
+    ImageSeed, InstallerError, Result, Smalltalk, SmalltalkCommand, SmalltalkExpressionBuilder,
     SmalltalkFlags, SmalltalkScriptToExecute, SmalltalkScriptsToExecute, BUILDING, CREATING,
     DEFAULT_PHARO_IMAGE, DOWNLOADING, EXTRACTING, MOVING, SPARKLE,
 };
@@ -52,6 +52,9 @@ pub struct BuildOptions {
     /// Specify a named version of the GToolkit App (vm) to use: 'latest-release' or 'vX.Y.Z'
     #[clap(long, parse(try_from_str = BuilderAppVersion::from_str), default_value = BuilderAppVersion::LatestRelease.abstract_name())]
     pub app_version: BuilderAppVersion,
+    /// Specify which customer-level GToolkit VM to download: 'auto', 'regular' or 'pro'
+    #[clap(long, default_value = "auto", arg_enum, ignore_case = true)]
+    pub customer_level: CustomerLevel,
 }
 
 impl BuildOptions {
@@ -160,6 +163,7 @@ impl BuildOptions {
             private_key: None,
             version: BuildVersion::BleedingEdge,
             app_version: BuilderAppVersion::LatestRelease,
+            customer_level: CustomerLevel::Auto,
         }
     }
     pub fn should_overwrite(&self) -> bool {
@@ -364,11 +368,24 @@ impl Builder {
 
         println!("{}Downloading files...", DOWNLOADING);
 
+        if !application.has_explicit_app_cli_binary()
+            && Downloader::should_download_pro_vm(build_options.customer_level)?
+        {
+            Downloader::new()
+                .download_glamorous_toolkit_vm_archive(
+                    application,
+                    application.host_platform(),
+                    build_options.customer_level,
+                )
+                .await?;
+        }
+
         let files_to_download = FilesToDownload::new()
             .extend(Downloader::files_to_download(
                 application,
                 application.host_platform(),
-            ))
+                build_options.customer_level,
+            )?)
             .maybe_add(image_seed.file_to_download(application));
 
         files_to_download.download().await?;

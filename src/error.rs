@@ -19,6 +19,8 @@ pub enum InstallerError {
     ZipperError(#[from] zipper::ZipperError),
     #[error("Downloader error")]
     DownloaderError(#[from] downloader::DownloaderError),
+    #[error("Failed to authenticate or download the private GlamorousToolkit Pro VM")]
+    ProVmDownloadError(#[from] feenk_download_auth_client::ClientError),
     #[error("Failed to canonicalize a path {0}")]
     CanonicalizeError(PathBuf, #[source] to_absolute::Error),
     #[error("Failed to serialize as yaml")]
@@ -53,6 +55,12 @@ pub enum InstallerError {
     CommandExecutionFailed(Command),
     #[error("Both private {0:?} and public key {1:?} must be set, or none")]
     SshKeysConfigurationError(Option<PathBuf>, Option<PathBuf>),
+    #[error("Both FEENK_CUSTOMER_ID and FEENK_CUSTOMER_KEY must be set to download the private GlamorousToolkit Pro VM, or neither")]
+    ProVmCredentialsConfigurationError,
+    #[error(
+        "FEENK_CUSTOMER_ID and FEENK_CUSTOMER_KEY must be set when --customer-level pro is used"
+    )]
+    ProVmCredentialsRequired,
     #[error("Specified private key {0} does not exist")]
     PrivateKeyDoesNotExist(PathBuf),
     #[error("Specified public key {0} does not exist")]

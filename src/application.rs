@@ -271,31 +271,55 @@ impl Application {
         self.gtoolkit_app_url_for_target(self.host_platform())
     }
 
-    pub fn gtoolkit_app_url_for_target(&self, platform: PlatformOS) -> String {
-        let version = self.app_version().to_string();
+    pub fn gtoolkit_app_file_name_for_target(&self, platform: PlatformOS) -> String {
+        match platform {
+            PlatformOS::MacOSX8664 => "GlamorousToolkit-x86_64-apple-darwin.app.zip".to_string(),
+            PlatformOS::MacOSAarch64 => "GlamorousToolkit-aarch64-apple-darwin.app.zip".to_string(),
+            PlatformOS::WindowsX8664 => "GlamorousToolkit-x86_64-pc-windows-msvc.zip".to_string(),
+            PlatformOS::WindowsAarch64 => {
+                "GlamorousToolkit-aarch64-pc-windows-msvc.zip".to_string()
+            }
+            PlatformOS::LinuxX8664 => "GlamorousToolkit-x86_64-unknown-linux-gnu.zip".to_string(),
+            PlatformOS::LinuxAarch64 => {
+                "GlamorousToolkit-aarch64-unknown-linux-gnu.zip".to_string()
+            }
+            PlatformOS::AndroidAarch64 => "GlamorousToolkit-aarch64-linux-android.apk".to_string(),
+        }
+    }
+
+    pub fn gtoolkit_pro_app_file_name_for_target(&self, platform: PlatformOS) -> String {
         match platform {
             PlatformOS::MacOSX8664 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-apple-darwin.app.zip", &version)
+                "GlamorousToolkit-x86_64-apple-darwin-pro.app.zip".to_string()
             }
             PlatformOS::MacOSAarch64 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-apple-darwin.app.zip", &version)
+                "GlamorousToolkit-aarch64-apple-darwin-pro.app.zip".to_string()
             }
             PlatformOS::WindowsX8664 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-pc-windows-msvc.zip", &version)
+                "GlamorousToolkit-x86_64-pc-windows-msvc-pro.zip".to_string()
             }
             PlatformOS::WindowsAarch64 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-pc-windows-msvc.zip", &version)
+                "GlamorousToolkit-aarch64-pc-windows-msvc-pro.zip".to_string()
             }
             PlatformOS::LinuxX8664 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-x86_64-unknown-linux-gnu.zip", &version)
+                "GlamorousToolkit-x86_64-unknown-linux-gnu-pro.zip".to_string()
             }
             PlatformOS::LinuxAarch64 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-unknown-linux-gnu.zip", &version)
+                "GlamorousToolkit-aarch64-unknown-linux-gnu-pro.zip".to_string()
             }
             PlatformOS::AndroidAarch64 => {
-                format!("https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/GlamorousToolkit-aarch64-linux-android.apk", &version)
+                "GlamorousToolkit-aarch64-linux-android-pro.apk".to_string()
             }
         }
+    }
+
+    pub fn gtoolkit_app_url_for_target(&self, platform: PlatformOS) -> String {
+        let version = self.app_version().to_string();
+        let file_name = self.gtoolkit_app_file_name_for_target(platform);
+        format!(
+            "https://github.com/feenkcom/gtoolkit-vm/releases/download/v{}/{}",
+            &version, file_name
+        )
     }
 
     pub fn gtoolkit_app_entries(&self) -> Vec<Box<dyn OneEntryNamed>> {

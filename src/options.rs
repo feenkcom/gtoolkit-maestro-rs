@@ -12,6 +12,7 @@ pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
 
 pub const VM_REPOSITORY_OWNER: &str = "feenkcom";
 pub const VM_REPOSITORY_NAME: &str = "gtoolkit-vm";
+pub const VM_PRO_REPOSITORY_NAME: &str = "gtoolkit-vm-pro";
 
 #[derive(Parser, Clone, Debug)]
 #[clap(author)]

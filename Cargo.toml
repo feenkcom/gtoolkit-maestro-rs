@@ -27,6 +27,7 @@ semver = "1.0"
 indicatif = "0.18"
 console = { version = "0.16"}
 feenk-releaser = { git = "https://github.com/feenkcom/releaser-rs", tag = "v0.10.0" }
+feenk-download-auth-client = { git = "https://github.com/feenkcom/feenk-download-auth-client" }
 zipper = { git = "https://github.com/feenkcom/build-helpers-rs" }
 unzipper = { git = "https://github.com/feenkcom/build-helpers-rs" }
 downloader = { git = "https://github.com/feenkcom/build-helpers-rs" }
