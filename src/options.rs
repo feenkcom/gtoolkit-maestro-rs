@@ -4,8 +4,8 @@ use clap::Parser;
 
 use crate::LocalBuildOptions;
 use crate::{
-    BuildOptions, CopyOptions, ReleaseBuildOptions, ReleaseOptions, ReleaserOptions, RenameOptions,
-    SetupOptions, StartOptions, TentativeOptions, TestOptions,
+    BuildOptions, CopyOptions, DownloadOptions, ReleaseBuildOptions, ReleaseOptions,
+    ReleaserOptions, RenameOptions, SetupOptions, StartOptions, TentativeOptions, TestOptions,
 };
 
 pub const DEFAULT_DIRECTORY: &str = "glamoroustoolkit";
@@ -41,48 +41,51 @@ pub enum SubCommand {
     /// Builds GlamorousToolkit image from sources without performing any extra setup.
     #[clap(display_order = 3)]
     Build(BuildOptions),
-    /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
+    /// Downloads and unpacks GlamorousToolkit artifacts.
     #[clap(display_order = 4)]
+    Download(DownloadOptions),
+    /// Sets up the GlamorousToolkit image. This includes opening a default GtWorld and configuring various settings.
+    #[clap(display_order = 5)]
     Setup(SetupOptions),
     /// Copies glamorous toolkit related files from the current workspace into a new workspace.
     /// Does not copy temporary files or logs
-    #[clap(display_order = 5)]
+    #[clap(display_order = 6)]
     CopyTo(CopyOptions),
     /// Rename the image deleting the old one
-    #[clap(display_order = 6)]
+    #[clap(display_order = 7)]
     RenameTo(RenameOptions),
     /// Starts an application interactively, waits for a duration of delay to let it load completely then saves and quits.
-    #[clap(display_order = 7)]
+    #[clap(display_order = 8)]
     Start(StartOptions),
     /// Cleans up an image after loading Glamorous Toolkit. It cleans up ssh keys, removes iceberg repositories
     /// and garbage collects objects
-    #[clap(display_order = 8)]
+    #[clap(display_order = 9)]
     CleanUp,
     /// Tests Glamorous Toolkit and exports the results.
-    #[clap(display_order = 9)]
+    #[clap(display_order = 10)]
     Test(TestOptions),
     /// Package the GlamorousToolkit image as a tentative release.
-    #[clap(display_order = 10)]
+    #[clap(display_order = 11)]
     PackageTentative(TentativeOptions),
     /// Given a packaged tentative image, download the GlamorousToolkit app for the version specified in the .version file
-    #[clap(display_order = 11)]
+    #[clap(display_order = 12)]
     UnpackageTentative(TentativeOptions),
     /// Package the GlamorousToolkit image and App for a release. Prints the path to the created package in the `stdout`
-    #[clap(display_order = 12)]
+    #[clap(display_order = 13)]
     PackageRelease(ReleaseOptions),
     /// Run the gtoolkit-releaser to release glamorous toolkit
-    #[clap(display_order = 13)]
+    #[clap(display_order = 14)]
     RunReleaser(ReleaserOptions),
     /// Display the Debug information of the AppOptions
-    #[clap(display_order = 14)]
+    #[clap(display_order = 15)]
     PrintDebug,
     /// Display the version of the glamorous toolkit image from the .yaml file in the workspace.
     /// Fails if the .yaml file wasn't found.
-    #[clap(display_order = 15)]
+    #[clap(display_order = 16)]
     PrintGtoolkitImageVersion,
     /// Display the version of the glamorous toolkit app from the .yaml file in the workspace.
     /// Fails if the .yaml file wasn't found.
-    #[clap(display_order = 16)]
+    #[clap(display_order = 17)]
     PrintGtoolkitAppVersion,
 }
 

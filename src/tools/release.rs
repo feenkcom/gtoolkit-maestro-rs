@@ -8,7 +8,8 @@ use file_matcher::FileNamed;
 use zipper::ToZip;
 
 use crate::{
-    Application, Downloader, ExecutableSmalltalk, Package, PlatformOS, Result, SmalltalkCommand,
+    Application, CustomerLevel, Downloader, ExecutableSmalltalk, Package, PlatformOS, Result,
+    SmalltalkCommand,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -103,7 +104,7 @@ impl Release {
         if !application.gtoolkit_app_cli_for_target(target).exists() {
             Downloader::new()
                 .be_silent()
-                .download_glamorous_toolkit_vm(application, target)
+                .download_glamorous_toolkit_vm(application, target, CustomerLevel::Auto)
                 .await?;
         }
 

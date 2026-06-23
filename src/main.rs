@@ -56,6 +56,11 @@ async fn run() -> Result<()> {
                 .build(&mut application, &build_options)
                 .await?;
         }
+        SubCommand::Download(download_options) => {
+            Downloader::new()
+                .download(&application, &download_options)
+                .await?;
+        }
         SubCommand::Setup(setup_options) => {
             Setup::new().setup(&mut application, &setup_options).await?;
         }

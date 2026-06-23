@@ -1,4 +1,4 @@
-use clap::ArgEnum;
+use clap::{ArgEnum, Parser};
 use downloader::{FileToDownload, FilesToDownload};
 use feenk_download_auth_client::{
     download_release_asset_with_env_auth, EnvDownloadRequest, InstallationTokenSource,
@@ -22,6 +22,25 @@ pub enum CustomerLevel {
     Auto,
     Regular,
     Pro,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct DownloadOptions {
+    #[clap(subcommand)]
+    pub target: DownloadTarget,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub enum DownloadTarget {
+    /// Downloads and unpacks the GlamorousToolkit VM for the current host.
+    Vm(DownloadVmOptions),
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct DownloadVmOptions {
+    /// Specify which customer-level GToolkit VM to download: 'auto', 'regular' or 'pro'
+    #[clap(long, default_value = "auto", arg_enum, ignore_case = true)]
+    pub customer_level: CustomerLevel,
 }
 
 impl Downloader {
@@ -120,6 +139,7 @@ impl Downloader {
         &self,
         application: &Application,
         target: PlatformOS,
+        customer_level: CustomerLevel,
     ) -> Result<()> {
         if !self.silent {
             println!(
@@ -130,7 +150,7 @@ impl Downloader {
             );
         }
 
-        self.download_glamorous_toolkit_vm_archive(application, target, CustomerLevel::Auto)
+        self.download_glamorous_toolkit_vm_archive(application, target, customer_level)
             .await?;
 
         if !self.silent {
@@ -144,6 +164,23 @@ impl Downloader {
         Self::files_to_unzip(application, target).unzip().await?;
 
         Ok(())
+    }
+
+    pub async fn download(
+        &self,
+        application: &Application,
+        options: &DownloadOptions,
+    ) -> Result<()> {
+        match &options.target {
+            DownloadTarget::Vm(vm_options) => {
+                self.download_glamorous_toolkit_vm(
+                    application,
+                    application.host_platform(),
+                    vm_options.customer_level,
+                )
+                .await
+            }
+        }
     }
 
     pub async fn download_glamorous_toolkit_vm_archive(

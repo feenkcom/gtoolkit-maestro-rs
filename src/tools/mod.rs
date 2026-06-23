@@ -13,7 +13,7 @@ mod tester;
 
 use console::Emoji;
 
-pub use self::downloader::{CustomerLevel, Downloader};
+pub use self::downloader::{CustomerLevel, DownloadOptions, Downloader};
 pub use builder::{BuildOptions, Builder, Loader, LocalBuildOptions, ReleaseBuildOptions};
 pub use checker::Checker;
 pub use cleaner::Cleaner;

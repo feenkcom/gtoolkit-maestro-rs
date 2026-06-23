@@ -5,7 +5,7 @@ use file_matcher::FileNamed;
 use unzipper::{FileToUnzip, FilesToUnzip};
 use zipper::ToZip;
 
-use crate::{Application, Downloader, Package, Result};
+use crate::{Application, CustomerLevel, Downloader, Package, Result};
 
 #[derive(Parser, Debug, Clone)]
 pub struct TentativeOptions {
@@ -74,7 +74,11 @@ impl Tentative {
         let application = Application::for_workspace_from_file(application.workspace())?;
 
         Downloader::new()
-            .download_glamorous_toolkit_vm(&application, application.host_platform())
+            .download_glamorous_toolkit_vm(
+                &application,
+                application.host_platform(),
+                CustomerLevel::Auto,
+            )
             .await?;
 
         Ok(())
