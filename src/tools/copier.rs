@@ -9,6 +9,9 @@ pub struct CopyOptions {
     /// A folder in which to copy the image, changes and sources with some extra files
     #[clap(parse(from_os_str), default_value = crate::options::DEFAULT_DIRECTORY)]
     pub destination: PathBuf,
+    /// Include an app binary when copying. When set to false, will only copy an image.
+    #[clap(long, default_value = "true")]
+    pub include_app: bool,
 }
 
 pub struct Copier;
@@ -31,7 +34,9 @@ impl Copier {
             FolderNamed::exact("gt-extra").boxed(),
         ];
 
-        entries.extend(application.gtoolkit_app_entries());
+        if copy_options.include_app {
+            entries.extend(application.gtoolkit_app_entries());
+        }
 
         let entries = entries
             .into_iter()
