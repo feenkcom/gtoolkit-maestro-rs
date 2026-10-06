@@ -18,6 +18,11 @@ pub struct TestOptions {
     pub disable_tests: bool,
     #[clap(long, min_values = 1)]
     pub skip_packages: Option<Vec<String>>,
+    /// Run the image with a windowing event loop rather than headless.
+    ///
+    /// If enabled, a `RustWindowingEventFetcher` loop is started in GToolkit.
+    #[clap(long)]
+    pub interactive: bool,
 }
 
 impl Tester {
@@ -31,7 +36,7 @@ impl Tester {
         if let Some(ref packages) = test_options.packages {
             gtoolkit.run_examples(packages, test_options)?;
             if !test_options.disable_tests {
-                gtoolkit.run_tests(packages)?;
+                gtoolkit.run_tests(packages, test_options)?;
             }
         } else {
             gtoolkit.run_release_examples(test_options)?;
