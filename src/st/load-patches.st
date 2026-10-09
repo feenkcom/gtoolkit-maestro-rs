@@ -7,16 +7,24 @@ NonInteractiveTranscript stdout
     nextPutAll: 'Patching Pharo Base image...';
     cr.
 
+SystemVersion current major = 14 
+	ifTrue: [ 
+		Object 
+			compile: 'fastForPharo14: pharo14Block forPharo13: pharo13Block forPharo12: pharo12Block 
+	^ pharo14Block value' 
+			classified: 'gt-extension'. ].
+
 SystemVersion current major = 13 
 	ifTrue: [ 
 		Object 
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo13Block value' 
 			classified: 'gt-extension'.
+			
 		Object 
-			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
-	^ pharo13AndPharo12Block value' 
-			classified: 'gt-extension' ].
+			compile: 'fastForPharo14: pharo14Block forPharo13: pharo13Block forPharo12: pharo12Block 
+	^ pharo13Block value' 
+			classified: 'gt-extension'. ].
 
 SystemVersion current major = 12 
 	ifTrue: [ 
@@ -24,21 +32,18 @@ SystemVersion current major = 12
 			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
 	^ pharo12Block value' 
 			classified: 'gt-extension'.
-		Object 
-			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
-	^ pharo13AndPharo12Block value' 
-			classified: 'gt-extension' ].
+			
+	Object 
+			compile: 'fastForPharo14: pharo14Block forPharo13: pharo13Block forPharo12: pharo12Block 
+	^ pharo12Block value' 
+			classified: 'gt-extension'. ].
 
-((SystemVersion current major < 12) or: [SystemVersion current major > 13 ])	
+((SystemVersion current major < 12) or: [SystemVersion current major > 14 ])	
 	ifTrue: [
 		Object 
-			compile: 'fastForPharo13: pharo13Block forPharo12: pharo12Block forPharo11: pharo11Block
+			compile: 'fastForPharo14: pharo14Block forPharo13: pharo13Block forPharo12: pharo12Block 
 	Error signal: ''Unsuported version'' ' 
-			classified: 'gt-extension'.
-		Object 
-			compile: 'fastForPharo13AndPharo12: pharo13AndPharo12Block forPharo11: pharo11Block
-	Error signal: ''Unsuported version'' '  
-			classified: 'gt-extension' ].
+			classified: 'gt-extension'. ].
 
 externalAddressMethodsToPatch := #(
     boolean8AtOffset: boolean8AtOffset:put:
