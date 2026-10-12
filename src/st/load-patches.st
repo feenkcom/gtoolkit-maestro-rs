@@ -105,7 +105,7 @@ classified: 'gt-pharo-patch'.
 
 ].
 
-RBParser compile: 'parseKeywordMessageWith: node 
+OCParser compile: 'parseKeywordMessageWith: node 
 	<gtPharoPatch: #Pharo>
 
 	| args isKeyword keywordsStartPositions selector selectorStream |
@@ -121,7 +121,7 @@ RBParser compile: 'parseKeywordMessageWith: node
 			isKeyword := true].
 	^isKeyword
 		ifTrue: 
-			[selector := self selectorNodeClass value: selectorStream contents.
+			[selector := self selectorNodeClass value: selectorStream contents asSymbol.
 			selector keywordPositions: keywordsStartPositions.
 			self messageNodeClass 
 				receiver: node
