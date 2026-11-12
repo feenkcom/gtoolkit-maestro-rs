@@ -415,5 +415,106 @@ SystemVersion current major >= 13 ifTrue: [
 
 "--------------------"
 
+"Make ProcessMonitorTestService thread-safe: forkedProcesses and testFailures are shared by all
+tests (examples) of a TestExecutionEnvironment and changed from several processes.
+One mutex guards every access; terminate, suspend and resume run outside of it."
+
+(ProcessMonitorTestService hasInstVarNamed: 'mutex')
+	ifFalse: [ ProcessMonitorTestService addInstVarNamed: 'mutex' ].
+
+ProcessMonitorTestService compile: 'initialize
+	<gtPharoPatch: #Pharo13>
+	super initialize.
+
+	mutex := Mutex new.
+	self enableBackgroudFailuresSuspension.
+	self useDefaultFailingStrategyForRunningProcesses.
+	self useDefaultTerminationStrategyForRunningProcesses.
+	forkedProcesses := WeakSet new.
+	testFailures := OrderedIdentityDictionary new'
+classified: 'initialization'.
+
+ProcessMonitorTestService allInstancesDo: [ :each |
+	(each instVarNamed: 'mutex') ifNil: [ each instVarNamed: 'mutex' put: Mutex new ] ].
+
+ProcessMonitorTestService compile: 'handleNewProcess: aProcess
+	<gtPharoPatch: #Pharo13>
+	super handleNewProcess: aProcess.
+
+	mutex critical: [ forkedProcesses add: aProcess ].
+
+	aProcess on: UnhandledException do: [ :err |
+		self handleBackgroundException: err]'
+classified: 'controlling'.
+
+ProcessMonitorTestService compile: 'recordTestFailure: anException
+	<gtPharoPatch: #Pharo13>
+
+	| activeProcess |
+	activeProcess := Processor activeProcess.
+	activeProcess isTerminating ifTrue: [
+		"Do nothing for exceptions during process termination"
+		^self ].
+
+	mutex critical: [ testFailures at: activeProcess put: anException ]'
+classified: 'controlling'.
+
+ProcessMonitorTestService compile: 'runningProcesses
+	<gtPharoPatch: #Pharo13>
+	"Suspended processes are not scheduled and therefore they are not considered as running"
+	^ (mutex critical: [ forkedProcesses copy ])
+		reject: [ :each | each isTerminated or: [ each isSuspended ]]'
+classified: 'accessing'.
+
+ProcessMonitorTestService compile: 'terminateRunningProcesses
+	<gtPharoPatch: #Pharo13>
+	"Terminate outside of the mutex: a process can fork new processes while it is unwinding"
+	(mutex critical: [ forkedProcesses copy ]) do: [:each | each terminate]'
+classified: 'controlling'.
+
+ProcessMonitorTestService compile: 'cleanUpAfterTest
+	<gtPharoPatch: #Pharo13>
+	super cleanUpAfterTest.
+
+	shouldTerminateProcesses ifTrue: [
+		self terminateRunningProcesses].
+	mutex critical: [
+		forkedProcesses removeAll.
+		testFailures removeAll ].
+	self enableBackgroudFailuresSuspension.
+	self useDefaultFailingStrategyForRunningProcesses.
+	self useDefaultTerminationStrategyForRunningProcesses'
+classified: 'controlling'.
+
+ProcessMonitorTestService compile: 'passBackgroundFailures
+	<gtPharoPatch: #Pharo13>
+	self disableBackgroudFailuresSuspension.
+	self disableProcessesTermination.
+
+	(mutex critical: [ testFailures keys ])
+		select: [:each | each isSuspended ]
+		thenDo: [:each | each resume ]'
+classified: 'controlling'.
+
+ProcessMonitorTestService compile: 'suspendedBackgroundFailures
+	<gtPharoPatch: #Pharo13>
+	^ (mutex critical: [ testFailures copy ]) associationsSelect: [ :each | each key isSuspended ]'
+classified: 'accessing'.
+
+ProcessMonitorTestService compile: 'testBackgroundFailures
+	<gtPharoPatch: #Pharo13>
+	^ (mutex critical: [ testFailures copy ])
+		removeKey: executionEnvironment mainTestProcess ifAbsent: [ ];
+		yourself'
+classified: 'accessing'.
+
+ProcessMonitorTestService compile: 'isTestProcessFailed: aProcess
+	<gtPharoPatch: #Pharo13>
+
+	^ mutex critical: [ testFailures at: aProcess ifPresent: [ true ] ifAbsent: [ false ] ]'
+classified: 'testing'.
+
+"--------------------"
+
 EpMonitor current enable.
 Iceberg enableMetacelloIntegration: true.
