@@ -514,6 +514,16 @@ ProcessMonitorTestService compile: 'isTestProcessFailed: aProcess
 	^ mutex critical: [ testFailures at: aProcess ifPresent: [ true ] ifAbsent: [ false ] ]'
 classified: 'testing'.
 
+ProcessMonitorTestService compile: 'lock: aBlock
+	<gtPharoPatch: #Pharo13>
+	"Evaluate aBlock with me as its argument while holding my mutex, and answer its value.
+	Use it to read or change #forkedProcesses or #testFailures safely from outside.
+	The mutex is re-entrant for the same process, so my methods can be called inside aBlock.
+	aBlock must not terminate, suspend or wait for other processes: they may need the lock"
+
+	^ mutex critical: [ aBlock value: self ]'
+classified: 'synchronization'.
+
 "--------------------"
 
 EpMonitor current enable.
