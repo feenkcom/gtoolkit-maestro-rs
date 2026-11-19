@@ -13,6 +13,7 @@ pub trait GToolkit {
     fn perform_iceberg_clean_up(&self) -> Result<()>;
     fn run_examples(&self, packages: &Vec<String>, test_options: &TestOptions) -> Result<()>;
     fn run_release_examples(&self, test_options: &TestOptions) -> Result<()>;
+    fn run_parallel_release_examples(&self, test_options: &TestOptions) -> Result<()>;
     fn run_release_slides(&self, test_options: &TestOptions) -> Result<()>;
     fn run_tests(&self, packages: &Vec<String>, test_options: &TestOptions) -> Result<()>;
     fn run_architectural_report(&self) -> Result<()>;
@@ -82,6 +83,21 @@ impl<'application> GToolkit for Smalltalk<'application> {
         SmalltalkCommand::new("dedicatedReleaseBranchExamples")
             .arg("--junit-xml-output")
             .arg(if self.verbose() { "--verbose" } else { "" })
+            .arg(if test_options.disable_deprecation_rewrites {
+                "--disable-deprecation-rewrites"
+            } else {
+                ""
+            })
+            .arg(test_options.skip_packages.as_ref().map_or_else(
+                || "".to_string(),
+                |skip_packages| format!("--skip-packages=\"{}\"", skip_packages.join(",")),
+            ))
+            .execute(&self.evaluator())
+    }
+
+    fn run_parallel_release_examples(&self, test_options: &TestOptions) -> Result<()> {
+        SmalltalkCommand::new("parallelReleaseBranchExamples")
+            .arg("--junit-xml-output")
             .arg(if test_options.disable_deprecation_rewrites {
                 "--disable-deprecation-rewrites"
             } else {

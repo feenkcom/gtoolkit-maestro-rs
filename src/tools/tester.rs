@@ -23,6 +23,9 @@ pub struct TestOptions {
     /// If enabled, a `RustWindowingEventFetcher` loop is started in GToolkit.
     #[clap(long)]
     pub interactive: bool,
+    /// Run the full release example suite with parallel Smalltalk workers.
+    #[clap(long, conflicts_with = "packages")]
+    pub parallel_examples: bool,
 }
 
 impl Tester {
@@ -39,11 +42,35 @@ impl Tester {
                 gtoolkit.run_tests(packages, test_options)?;
             }
         } else {
-            gtoolkit.run_release_examples(test_options)?;
+            if test_options.parallel_examples {
+                gtoolkit.run_parallel_release_examples(test_options)?;
+            } else {
+                gtoolkit.run_release_examples(test_options)?;
+            }
             gtoolkit.run_release_slides(test_options)?;
             gtoolkit.run_architectural_report()?;
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TestOptions;
+    use clap::Parser;
+
+    #[test]
+    fn parallel_examples_only_accepts_release_suite() {
+        let options = TestOptions::try_parse_from(["test", "--parallel-examples"])
+            .expect("parallel release option should parse");
+        assert!(options.parallel_examples);
+        assert!(TestOptions::try_parse_from([
+            "test",
+            "--parallel-examples",
+            "--packages",
+            "GToolkit-Editor",
+        ])
+        .is_err());
     }
 }
